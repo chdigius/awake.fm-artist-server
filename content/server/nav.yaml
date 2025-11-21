@@ -1,0 +1,21 @@
+# content/server/nav.yaml
+items:
+  - label: "Home"
+    ref: "."                # content/server/index.yaml
+
+  - label: "Artists"
+    ref: "pages/artists"    # content/server/pages/artists/index.yaml
+    auto_children: from_subpages
+    # Dropdown built from subpage blocks with `nav: true` in pages/artists/index.yaml
+
+  - label: "Releases"
+    ref: "pages/releases"   # content/server/pages/releases/index.yaml
+    auto_children: from_subpages
+    # Dropdown: e.g. compilations, key releases that opt-in via `nav: true`
+
+  - label: "Store"
+    ref: "pages/store"      # content/server/pages/store/index.yaml
+    # No auto_children by default; store page itself can handle categories
+
+  - label: "About"
+    ref: "pages/about"      # content/server/pages/about/index.yaml

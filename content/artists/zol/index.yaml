@@ -1,0 +1,30 @@
+# content/artists/zol/index.yaml
+
+title: "ZØL"
+tagline: "Machine signal, human intent."
+
+preview:
+  image: "assets/zol-preview.jpg"
+  caption: "ZØL — Techno from the Void"
+  badge: "Artist"
+  blurb: "Signal-focused techno, machine worship, and post-human rhythm studies."
+
+content:
+  - type: section
+    id: music
+    label: "Music"
+    blocks:
+      - type: subpage
+        ref: music/albums
+        label: "Albums"
+        nav: true
+
+      - type: subpage
+        ref: music/tracks
+        label: "Tracks"
+        nav: true
+
+      - type: subpage
+        ref: music/sets
+        label: "Live Sets"
+        nav: true
