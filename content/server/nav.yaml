@@ -4,7 +4,7 @@ items:
     ref: "."                # content/server/index.yaml
 
   - label: "Artists"
-    ref: "pages/artists"    # content/server/pages/artists/index.yaml
+    ref: "../artists"    # content/server/pages/artists/index.yaml
     auto_children: from_subpages
     # Dropdown built from subpage blocks with `nav: true` in pages/artists/index.yaml
 
