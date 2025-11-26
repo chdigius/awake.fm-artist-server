@@ -10,8 +10,8 @@ items:
     # e.g. Albums, Tracks, Live Sets
 
   - label: "About"
-    ref: "pages/about"            # content/artists/zol/pages/about/index.yaml
+    ref: "artists/zol/pages/about"            # content/artists/zol/pages/about/index.yaml
 
   - label: "Store"
-    ref: "../../server/pages/store"
+    ref: "server/pages/store"
     # Reuses the server-level store page, but from the artist-centric nav

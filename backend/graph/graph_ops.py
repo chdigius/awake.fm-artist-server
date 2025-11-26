@@ -1,9 +1,17 @@
 # backend/graph/graph_ops.py
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Iterable, Union, Set
 
-from backend.models.content_graph import ContentGraph, ContentNode, SubpageBlock
+from backend.models.content_graph import (
+  ContentGraph,
+  ContentNode,
+  SubpageBlock,
+  SectionBlock,
+)
+
+
+BlockLike = Union[SubpageBlock, SectionBlock, Dict[str, Any]]
 
 
 @dataclass
@@ -17,43 +25,103 @@ class GraphOps:
     graph: ContentGraph,
     nav_config: Optional[Dict[str, Any]] = None,
   ) -> "GraphOps":
-    self = cls(graph=graph, nav_config=nav_config or {})
-    # TODO: build artists/albums/tracks indexes later
-    return self
+    return cls(graph=graph, nav_config=nav_config or {})
 
-  # --- nav: helpers ---
+  # ------------- helpers -------------
 
   def _resolve_ref(self, ref: str) -> Optional[str]:
-    """
-    Map a nav.yaml 'ref' to a graph node path.
+    root = self.graph.root_content_path
 
-    Rules for now:
-      "."           -> graph.root_content_path (e.g. "server")
-      "../artists"  -> "artists"  (we treat it as relative to root's parent)
-      "pages/foo"   -> "pages/foo"
-    """
-    if not ref:
+    if ref in (".", "./"):
+      path = root
+    else:
+      path = ref
+
+    if self.graph.get_node(path) is None:
+      print(f"DEBUG _resolve_ref: ref='{ref}' -> path='{path}' (NOT FOUND)")
       return None
 
-    if ref == ".":
-      return self.graph.root_content_path
-
-    if ref.startswith("../"):
-      # Relative to parent of root_content_path. Since our root is logically "server",
-      # "../artists" just becomes "artists".
-      return ref[3:] or None
-
-    return ref
+    print(f"DEBUG _resolve_ref: ref='{ref}' -> path='{path}'")
+    return path
 
   def _href_for_path(self, path: str) -> str:
-    """
-    Convert a node path into a URL.
-      - root_content_path -> "/"
-      - otherwise: "/" + path
-    """
     if path == self.graph.root_content_path:
       return "/"
     return "/" + path
+
+  def _iter_nav_subpages(self, blocks: Iterable[BlockLike]) -> Iterable[BlockLike]:
+    for block in blocks:
+      btype = getattr(block, "type", None)
+      if btype is None and isinstance(block, dict):
+        btype = block.get("type")
+
+      if btype == "subpage":
+        nav_flag = getattr(block, "nav", None)
+        if nav_flag is None and isinstance(block, dict):
+          nav_flag = block.get("nav", False)
+
+        if nav_flag:
+          yield block
+
+      elif btype == "section":
+        if isinstance(block, SectionBlock):
+          inner = block.blocks
+        elif isinstance(block, dict):
+          inner = block.get("blocks", []) or []
+        else:
+          inner = []
+
+        if inner:
+          yield from self._iter_nav_subpages(inner)
+
+  # 🔥 NEW: build nested nav tree for a given node
+  def _build_nav_tree_for_node(
+    self,
+    node: ContentNode,
+    visited: Optional[Set[str]] = None,
+  ) -> List[Dict[str, Any]]:
+    if visited is None:
+      visited = set()
+
+    if node.meta.path in visited:
+      return []
+    visited.add(node.meta.path)
+
+    children: List[Dict[str, Any]] = []
+
+    for block in self._iter_nav_subpages(node.content):
+      # dataclass vs dict support
+      if isinstance(block, SubpageBlock):
+        ref_path = block.ref
+        label = block.label
+      else:  # dict
+        ref_path = block.get("ref")
+        label = block.get("label")
+
+      if not ref_path:
+        continue
+
+      target = self.graph.get_node(ref_path)
+      if not target:
+        continue
+
+      effective_label = (
+        label
+        or target.meta.display_name
+        or target.title
+        or target.meta.slug
+        or target.meta.path
+      )
+
+      child = {
+        "label": effective_label,
+        "href": self._href_for_path(target.meta.path),
+        # recursion: allow 3rd, 4th, ... levels
+        "children": self._build_nav_tree_for_node(target, visited),
+      }
+      children.append(child)
+
+    return children
 
   def _nav_item_from_entry(self, entry: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     ref = entry.get("ref")
@@ -77,23 +145,10 @@ class GraphOps:
 
     href = self._href_for_path(node.meta.path)
 
-    # For now, ignore auto_children beyond an empty list.
-    # We'll add a separate test and implementation that looks up subpages later.
-    children: List[Dict[str, Any]] = []
-
     if entry.get("auto_children") == "from_subpages":
-      for block in node.content:
-        if isinstance(block, SubpageBlock) and block.nav:
-          child_node = self.graph.get_node(block.ref)
-          if not child_node:
-            continue
-          child_label = block.label or child_node.meta.display_name or child_node.title or child_node.meta.slug or child_node.meta.path
-          child_href = self._href_for_path(child_node.meta.path)
-          children.append({
-            "label": child_label,
-            "href": child_href,
-            "children": [],
-          })
+      children = self._build_nav_tree_for_node(node)
+    else:
+      children: List[Dict[str, Any]] = []
 
     return {
       "label": effective_label,

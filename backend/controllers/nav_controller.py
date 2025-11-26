@@ -9,6 +9,7 @@ def get_graph_ops() -> GraphOps:
 
 @nav_bp.get("/api/nav")
 async def get_nav():
-  ops = get_graph_ops()
+  ops: GraphOps = get_graph_ops()
   nav_data = ops.get_nav()
+  print(nav_data)
   return jsonify(nav_data)

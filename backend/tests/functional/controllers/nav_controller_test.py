@@ -69,7 +69,7 @@ def sample_graph() -> ContentGraph:
 
   releases_node = ContentNode(
     meta=NodeMeta(
-      path="pages/releases",
+      path="server/pages/releases",
       parent_path="server",
       layout="page",
       slug="releases",
@@ -83,7 +83,7 @@ def sample_graph() -> ContentGraph:
 
   store_node = ContentNode(
     meta=NodeMeta(
-      path="pages/store",
+      path="server/pages/store",
       parent_path="server",
       layout="page",
       slug="store",
@@ -99,13 +99,12 @@ def sample_graph() -> ContentGraph:
 
 @pytest.fixture
 def nav_config() -> dict:
-
   return {
     "items": [
       {"label": "Home", "ref": "."},
-      {"label": "Artists", "ref": "../artists", "auto_children": "from_subpages"},
-      {"label": "Releases", "ref": "pages/releases"},
-      {"label": "Store", "ref": "pages/store"},
+      {"label": "Artists", "ref": "artists", "auto_children": "from_subpages"},
+      {"label": "Releases", "ref": "server/pages/releases"},
+      {"label": "Store", "ref": "server/pages/store"},
     ]
   }
 
@@ -199,7 +198,7 @@ def nav_config_with_auto_children() -> dict:
   return {
     "items": [
       {"label": "Home", "ref": "."},
-      {"label": "Artists", "ref": "../artists", "auto_children": "from_subpages"},
+      {"label": "Artists", "ref": "artists", "auto_children": "from_subpages"},
     ]
   }
 
@@ -236,10 +235,10 @@ async def test_nav_endpoint_returns_expected_structure(client):
   assert artists['href'] == '/artists'
 
   assert releases['label'] == 'Releases'
-  assert releases['href'] == '/pages/releases'
+  assert releases['href'] == '/server/pages/releases'
 
   assert store['label'] == 'Store'
-  assert store['href'] == '/pages/store'
+  assert store['href'] == '/server/pages/store'
 
   print(await resp.json)
 

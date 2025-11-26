@@ -216,4 +216,9 @@ if __name__ == "__main__":
   print("Building content graph...")
   content_root = Path("content")
   graph = build_content_graph(content_root)
+
+  os.makedirs("build", exist_ok=True)
+  with open("build/content_graph.json", "w") as f:
+    json.dump(asdict(graph), f, indent=2)
+
   print(json.dumps(asdict(graph), indent=2))

@@ -1,2 +1,2 @@
 theme: crt  # referencing theme in frontend/packages/css-core/themes
-root_content: server  # or "artists/<artist>" for single-artist flavor
+root_content_path: server  # or "artists/<artist>" for single-artist flavor

@@ -21,14 +21,14 @@ content:
     blocks:
       - type: collection
         source: folder
-        path: "../artists"
+        path: "artists"
 
   - type: section
     id: releases
     label: "Releases"
     blocks:
       - type: subpage
-        ref: pages/releases
+        ref: server/pages/releases
         label: "All Releases"
 
   - type: section
@@ -36,7 +36,7 @@ content:
     label: "Store"
     blocks:
       - type: subpage
-        ref: pages/store
+        ref: server/pages/store
         label: "Merch & Digital"
 
   - type: section

@@ -15,16 +15,16 @@ content:
     label: "Music"
     blocks:
       - type: subpage
-        ref: music/albums
+        ref: artists/zol/music/albums
         label: "Albums"
         nav: true
 
       - type: subpage
-        ref: music/tracks
+        ref: artists/zol/music/tracks
         label: "Tracks"
         nav: true
 
       - type: subpage
-        ref: music/sets
+        ref: artists/zol/music/sets
         label: "Live Sets"
         nav: true
