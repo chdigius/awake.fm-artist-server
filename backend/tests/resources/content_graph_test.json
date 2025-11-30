@@ -1,0 +1,188 @@
+{
+  "root_content_path": "server",
+  "nodes": {
+    "server": {
+      "meta": {
+        "path": "server",
+        "parent_path": null,
+        "layout": "server",
+        "slug": "awake-fm-node-001",
+        "display_name": "Awake FM Node 001",
+        "extra": {}
+      },
+      "title": "Awake FM Node 001",
+      "tagline": "Artist-owned. Algorithm-free. Built for humans.",
+      "preview": null,
+      "content": [
+        {
+          "type": "hero",
+          "heading": "Awake FM Node 001",
+          "subheading": "A sovereign music server on the Awake.fm network.",
+          "body": "Body copy here",
+          "cta": { "label": "Meet the Artists", "target": "#artists" }
+        },
+        {
+          "type": "section",
+          "id": "artists",
+          "label": "Artists",
+          "blocks": [
+            {
+              "type": "subpage",
+              "ref": "artists",
+              "label": "Artists",
+              "nav": true
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "id": "releases",
+          "label": "Releases",
+          "blocks": [
+            {
+              "type": "subpage",
+              "ref": "server/pages/releases",
+              "label": "All Releases",
+              "nav": false
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "id": "store",
+          "label": "Store",
+          "blocks": [
+            {
+              "type": "subpage",
+              "ref": "server/pages/store",
+              "label": "Merch & Digital",
+              "nav": false
+            }
+          ]
+        }
+      ]
+    },
+    "server/pages/releases": {
+      "meta": {
+        "path": "server/pages/releases",
+        "parent_path": "server/pages",
+        "layout": "releases",
+        "slug": "releases",
+        "display_name": "Releases",
+        "extra": {}
+      },
+      "title": "Releases",
+      "tagline": "Server level releases.",
+      "preview": null,
+      "content": []
+    },
+    "server/pages/store": {
+      "meta": {
+        "path": "server/pages/store",
+        "parent_path": "server/pages",
+        "layout": "store",
+        "slug": "store",
+        "display_name": "Store",
+        "extra": {}
+      },
+      "title": "Store",
+      "tagline": "Server store.",
+      "preview": null,
+      "content": []
+    },
+    "artists": {
+      "meta": {
+        "path": "artists",
+        "parent_path": null,
+        "layout": "artists",
+        "slug": "artists",
+        "display_name": "Artists",
+        "extra": {}
+      },
+      "title": "Artists",
+      "tagline": "The roster.",
+      "preview": null,
+      "content": [
+        {
+          "type": "section",
+          "id": "roster",
+          "label": "Artists",
+          "blocks": [
+            {
+              "type": "subpage",
+              "ref": "artists/zol",
+              "label": "ZØL",
+              "nav": true
+            },
+            {
+              "type": "subpage",
+              "ref": "artists/dissolvr",
+              "label": "DISSØLVR",
+              "nav": true
+            }
+          ]
+        }
+      ]
+    },
+    "artists/zol": {
+      "meta": {
+        "path": "artists/zol",
+        "parent_path": "artists",
+        "layout": "artist",
+        "slug": "zol",
+        "display_name": "ZØL",
+        "extra": {}
+      },
+      "title": "ZØL",
+      "tagline": "Machine signal, human intent.",
+      "preview": null,
+      "content": [
+        {
+          "type": "section",
+          "id": "music",
+          "label": "Music",
+          "blocks": [
+            {
+              "type": "subpage",
+              "ref": "artists/zol/tracks",
+              "label": "Tracks",
+              "nav": true
+            }
+          ]
+        }
+      ]
+    },
+    "artists/zol/tracks": {
+      "meta": {
+        "path": "artists/zol/tracks",
+        "parent_path": "artists/zol",
+        "layout": "tracks",
+        "slug": "tracks",
+        "display_name": "Tracks",
+        "extra": {}
+      },
+      "title": "Tracks",
+      "tagline": "All tracks.",
+      "preview": null,
+      "content": []
+    },
+    "artists/dissolvr": {
+      "meta": {
+        "path": "artists/dissolvr",
+        "parent_path": "artists",
+        "layout": "artist",
+        "slug": "dissolvr",
+        "display_name": "DISSØLVR",
+        "extra": {}
+      },
+      "title": "DISSØLVR",
+      "tagline": "Neon ghosts in a dying circuit grid.",
+      "preview": null,
+      "content": []
+    }
+  },
+  "children_by_parent": {},
+  "artists": [],
+  "albums_by_artist": {},
+  "tracks_by_album": {}
+}
