@@ -2,6 +2,7 @@
 from quart import Quart
 from backend.graph.graph_ops import GraphOps
 from backend.controllers.nav_controller import nav_bp
+from backend.controllers.page_controller import page_bp
 
 
 def create_app(graph_ops: GraphOps) -> Quart:
@@ -10,6 +11,7 @@ def create_app(graph_ops: GraphOps) -> Quart:
 
   # register controllers
   app.register_blueprint(nav_bp)
+  app.register_blueprint(page_bp)
   # # DEBUG: print routes
   # print("Registered routes:")
   # for rule in app.url_map.iter_rules():

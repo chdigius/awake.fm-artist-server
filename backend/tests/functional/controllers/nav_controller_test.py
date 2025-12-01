@@ -1,25 +1,10 @@
 import pytest
-import pytest_asyncio
 
-from quart import Quart
-
-from backend.graph.graph_ops import GraphOps
-from backend.app import create_app
 from backend.tests.base import ContentGraphTestBase
 
 
 class TestNavController(ContentGraphTestBase):
-  """Test navigation controller endpoints using shared content graph fixture."""
-  
-  @pytest_asyncio.fixture
-  async def client(self):
-    """Test client with full nav config (Home, Artists, Releases, Store)."""
-    graph_ops = GraphOps.from_graph(self.graph, nav_config=self.get_nav_config_basic())
-    app: Quart = create_app(graph_ops)
-    app.config.update(TESTING=True)
-
-    async with app.test_client() as test_client:
-      yield test_client
+  """Test navigation controller endpoints."""
 
   @pytest.mark.asyncio
   async def test_nav_endpoint_returns_expected_structure(self, client):

@@ -163,3 +163,15 @@ class GraphOps:
       if item:
         items.append(item)
     return {"items": items}
+
+  def get_page(self, path: Optional[str]) -> Optional[Dict[str, Any]]:
+    """
+    Return a page payload for the given node path.
+
+    - If path is None or empty, use graph.root_content_path.
+    - If the node does not exist, return None.
+    """
+    if not path:
+      path = self.graph.root_content_path
+
+    return self.graph.to_page_payload(path)

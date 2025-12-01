@@ -1,15 +1,19 @@
 # backend/controllers/nav_controller.py
-from quart import Blueprint, jsonify, current_app
-from backend.graph.graph_ops import GraphOps
+from quart import Blueprint, jsonify
+
+from backend.controllers.base import ArtistServerControllerBase
 
 nav_bp = Blueprint("nav", __name__)
 
-def get_graph_ops() -> GraphOps:
-  return current_app.config["GRAPH_OPS"]
 
-@nav_bp.get("/api/nav")
-async def get_nav():
-  ops: GraphOps = get_graph_ops()
-  nav_data = ops.get_nav()
-  print(nav_data)
-  return jsonify(nav_data)
+class NavController(ArtistServerControllerBase):
+  """Controller for navigation endpoints."""
+
+  async def get(self):
+    """GET /api/nav - Returns navigation structure."""
+    ops = self.get_graph_ops()
+    nav_data = ops.get_nav()
+    return jsonify(nav_data)
+
+# Register the view
+nav_bp.add_url_rule("/api/nav", view_func=NavController.as_view("nav"))

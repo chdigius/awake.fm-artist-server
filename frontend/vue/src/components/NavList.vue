@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineEmits, defineOptions } from 'vue'
 
-// mirror your Pinia NavItem shape
+// mirror the Pinia NavItem shape
 interface NavItem {
   label: string
   href: string
