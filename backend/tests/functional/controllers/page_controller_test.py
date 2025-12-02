@@ -25,6 +25,7 @@ class TestPageController(ContentGraphTestBase):
     assert resp.status_code == 200
 
     data = await resp.get_json()
+    print(data)
     assert data["path"] == "artists/zol"
     # assert data["title"] == "ZØL"
     assert isinstance(data["content"], list)

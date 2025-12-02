@@ -1,9 +1,15 @@
-<script setup lang="ts">
-import MainNav from './components/MainNav.vue'
-</script>
-
+<!-- src/App.vue -->
 <template>
-  <MainNav/>
+  <div class="app-shell">
+    <header>
+      <MainNav />
+    </header>
+    <main>
+      <RouterView />
+    </main>
+  </div>
 </template>
 
-<style scoped></style>
+<script setup lang="ts">
+import MainNav from '@/components/MainNav.vue'
+</script>
