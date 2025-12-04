@@ -213,8 +213,9 @@ def _build_additional_indexes(graph: ContentGraph) -> None:
 
 
 if __name__ == "__main__":
+  # TODO - CJD - option to pass in content path here
   print("Building content graph...")
-  content_root = Path("content")
+  content_root = Path("../content")
   graph = build_content_graph(content_root)
 
   os.makedirs("build", exist_ok=True)

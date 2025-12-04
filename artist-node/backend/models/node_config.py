@@ -32,9 +32,11 @@ class NodeConfig:
     with node_config_path.open("r", encoding="utf-8") as f:
       raw = yaml.safe_load(f) or {}
 
-    content_root_rel = raw.get('content_root', 'content')
-    content_root = (base / content_root_rel).resolve()
+    content_root_rel = raw.get('content', {}).get('root', '../content')
+    content_root = Path(content_root_rel).resolve()
 
+    print(f"Content root relative: {content_root_rel}")
+    print(f"Content root: {content_root}")
     # load <content_root>/_meta.yaml
     meta_path = content_root / '_meta.yaml'
     if not meta_path.exists():

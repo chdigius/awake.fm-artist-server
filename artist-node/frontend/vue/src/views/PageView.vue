@@ -15,6 +15,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+
+import {getLayout} from '@/layouts/index.ts'
+
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import ServerLayout from '@/layouts/ServerLayout.vue'
 // later:
@@ -38,24 +41,28 @@ const page = ref<PagePayload | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
 
-// registry: layout name -> component
-const layoutRegistry: Record<string, any> = {
-  server: ServerLayout,
-  // artist: ArtistLayout,
-  // artists: ArtistsLayout,
-  default: DefaultLayout,
-}
-
 const layoutComponent = computed(() => {
-  const layout = page.value?.meta?.layout
-  console.log(layout)
-  if (layout && layoutRegistry[layout]) {
-    console.log(layoutRegistry[layout])
-    return layoutRegistry[layout]
-  }
-  console.log(layoutRegistry.default)
-  return layoutRegistry.default
+  const layoutName = page.value?.meta?.layout
+  return getLayout(layoutName || 'default')
 })
+
+// registry: layout name -> component
+// const layoutRegistry: Record<string, any> = {
+//   server: ServerLayout,
+//   // artist: ArtistLayout,
+//   // artists: ArtistsLayout,
+//   default: DefaultLayout,
+// }
+
+// const layoutComponent = computed(() => {
+//   const layout = page.value?.meta?.layout
+
+//   if (layout && layoutRegistry[layout]) {
+//     return layoutRegistry[layout]
+//   }
+
+//   return layoutRegistry.default
+// })
 
 const currentGraphPath = computed(() => {
   const raw = route.path

@@ -18,8 +18,8 @@ content:
         nav: true
 
       - type: subpage
-        ref: "artists/dissolvr"
-        label: "DISSØLVR"
+        ref: "artists/rom_trooper"
+        label: "ROM Trooper"
         nav: true
 
       # This one will NOT show in the nav (nav: false)

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineEmits, defineOptions } from 'vue'
+// import { defineEmits, defineOptions } from 'vue'
 
 // mirror the Pinia NavItem shape
 interface NavItem {
