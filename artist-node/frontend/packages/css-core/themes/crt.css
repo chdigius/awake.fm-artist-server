@@ -1,0 +1,13 @@
+:root[data-theme="crt"] {
+  --color-bg: #050505;
+  --color-fg: #7aff7a;
+  --color-accent: #00ff99;
+  --color-muted: #2a5a2a;
+  --color-border: #0f0;
+
+  --radius: 0px;
+  
+  /* optional extras */
+  --font-body: 'VT323', monospace;
+  --font-heading: 'VT323', monospace;
+}

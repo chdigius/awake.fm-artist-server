@@ -12,7 +12,8 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@awake/css-core': fileURLToPath(new URL('../packages/css-core', import.meta.url))
     },
   },
   server: {

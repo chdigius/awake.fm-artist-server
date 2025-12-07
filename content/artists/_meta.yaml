@@ -1,3 +1,6 @@
 slug: "artists"
 layout: "artists"     # or "page" or whatever you decide
 display_name: "Artists"
+theme: "crt"
+effects:
+  - grain

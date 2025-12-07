@@ -1,7 +1,7 @@
 <template>
   <nav class="main-nav">
     <div v-if="loading" class="loading">Loading...</div>
-    <div v-else-if="error">{{ error }}</div>
+    <div v-else-if="error" class="error">{{ error }}</div>
 
     <!-- everything else goes through NavList -->
     <NavList
@@ -34,3 +34,19 @@ onMounted(async () => {
   await navStore.fetchNav()
 })
 </script>
+
+<style scoped>
+.main-nav {
+  font-family: var(--font-body);
+}
+
+.loading {
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+.error {
+  color: var(--color-accent);
+  font-size: 0.875rem;
+}
+</style>

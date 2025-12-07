@@ -22,6 +22,11 @@ content:
         label: "ROM Trooper"
         nav: true
 
+      - type: subpage
+        ref: "artists/ishimura"
+        label: "Ishimura"
+        nav: true
+
       # This one will NOT show in the nav (nav: false)
       - type: subpage
         ref: "artists/hidden"

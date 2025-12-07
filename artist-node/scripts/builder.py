@@ -132,6 +132,8 @@ def build_node_from_directory(node_dir: Path, content_root: Path) -> ContentNode
     layout = layout,
     slug = folder_meta.get("slug"),
     display_name = folder_meta.get("display_name"),
+    theme = folder_meta.get("theme"),  # per-node theme override
+    effects = folder_meta.get("effects", []),  # visual FX layers: ["crt", "chroma", "glow"]
     # NOTE - CJD - Extra is intentionally not used for now, decide later if we want to handle random user defined attributes
   )
 
@@ -178,8 +180,9 @@ def build_content_graph(content_root: Path) -> ContentGraph:
   #1 Global content meta
   root_meta = load_content_root_meta(content_root)
   root_content_path = root_meta.get("root_content", "server")  # e.g 'server' or 'artists/zol'
+  root_theme = root_meta.get("theme")  # default theme for the entire graph
 
-  graph = ContentGraph(root_content_path=root_content_path)
+  graph = ContentGraph(root_content_path=root_content_path, root_theme=root_theme)
 
   #2 recursively walk directories
   for dirpath, dirnames, filenames in os.walk(content_root):

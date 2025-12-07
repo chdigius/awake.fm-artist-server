@@ -1,0 +1,26 @@
+/* effects/fx-chromatic-aberration.css */
+
+/* Chromatic aberration - RGB color fringing on text */
+.fx-chroma,
+.fx-chroma * {
+  text-shadow:
+    calc(var(--fx-chroma-offset-x, 1px) * -1) var(--fx-chroma-offset-y, 0px)
+      rgba(255, 0, 128, var(--fx-chroma-alpha, 0.5)),
+    var(--fx-chroma-offset-x, 1px) var(--fx-chroma-offset-y, 0px)
+      rgba(0, 255, 255, var(--fx-chroma-alpha, 0.5));
+}
+
+/* Block variant - uses filter for images/containers */
+.fx-chroma-block {
+  filter:
+    drop-shadow(
+      calc(var(--fx-chroma-offset-x, 2px) * -1)
+      var(--fx-chroma-offset-y, 0px)
+      rgba(255, 0, 128, var(--fx-chroma-alpha, 0.5))
+    )
+    drop-shadow(
+      var(--fx-chroma-offset-x, 2px)
+      var(--fx-chroma-offset-y, 0px)
+      rgba(0, 255, 255, var(--fx-chroma-alpha, 0.5))
+    );
+}

@@ -15,6 +15,8 @@ class NodeMeta:
   layout: str              # "server", "artist", "album", "track", ...
   slug: Optional[str] = None
   display_name: Optional[str] = None
+  theme: Optional[str] = None  # "dark", "vapor", "crt", "minimal" - inherits from parent if None
+  effects: List[str] = field(default_factory=list)  # ["crt", "chroma", "glow"] - visual FX layers
   extra: Dict[str, Any] = field(default_factory=dict)
   # extra can hold things like imprints, roster, status, etc.
 
@@ -97,6 +99,8 @@ class ContentNode:
         "layout": self.meta.layout,
         "slug": self.meta.slug,
         "display_name": self.meta.display_name,
+        "theme": self.meta.theme,
+        "effects": self.meta.effects,
         "extra": self.meta.extra,
       },
       "title": self.title,
@@ -119,6 +123,8 @@ class ContentNode:
       layout=meta_raw.get("layout", ""),
       slug=meta_raw.get("slug"),
       display_name=meta_raw.get("display_name"),
+      theme=meta_raw.get("theme"),
+      effects=meta_raw.get("effects") or [],
       extra=meta_raw.get("extra") or {},
     )
 
@@ -180,6 +186,7 @@ class ContentNode:
 @dataclass
 class ContentGraph:
   root_content_path: str                # e.g. "server" or "artists/zol"
+  root_theme: Optional[str] = None      # default theme from content/_meta.yaml
   nodes: Dict[str, ContentNode] = field(default_factory=dict)
 
   # Derived indexes for fast traversal:
@@ -206,11 +213,50 @@ class ContentGraph:
     if not node:
       return None
 
-    return node.to_dict()
+    payload = node.to_dict()
+
+    # Compute effective_theme by walking up the tree
+    effective_theme = self._resolve_theme(path)
+    payload["meta"]["effective_theme"] = effective_theme
+
+    return payload
+
+  def _resolve_theme(self, path: str) -> Optional[str]:
+    """
+    Walk up the node tree to find the nearest theme.
+    Falls back to root_theme if no ancestor has a theme set.
+    
+    Handles missing intermediate nodes by computing parent from path string.
+    e.g. server/pages/releases -> server/pages -> server (even if server/pages doesn't exist)
+    """
+    current_path: Optional[str] = path
+
+    while current_path:
+      node = self.get_node(current_path)
+      
+      # If node exists and has a theme, use it
+      if node and node.meta.theme:
+        return node.meta.theme
+
+      # Move to parent - prefer node's parent_path, but fall back to computing from path
+      if node and node.meta.parent_path:
+        current_path = node.meta.parent_path
+      elif "/" in current_path:
+        # Node doesn't exist or has no parent_path - compute parent from path string
+        current_path = "/".join(current_path.split("/")[:-1])
+      else:
+        # We're at a root-level path with no parent
+        break
+
+    # No theme found in ancestors, use root theme
+    return self.root_theme
 
   @classmethod
   def from_dict(cls, data: Dict[str, Any]) -> "ContentGraph":
-    graph = cls(root_content_path=data["root_content_path"])
+    graph = cls(
+      root_content_path=data["root_content_path"],
+      root_theme=data.get("root_theme"),
+    )
 
     # restore nodes
     for path, node_data in data.get("nodes", {}).items():
@@ -221,6 +267,8 @@ class ContentGraph:
         layout=meta_data["layout"],
         slug=meta_data.get("slug"),
         display_name=meta_data.get("display_name"),
+        theme=meta_data.get("theme"),
+        effects=meta_data.get("effects") or [],
         extra=meta_data.get("extra", {}),
       )
 

@@ -1,0 +1,12 @@
+# content/artists/zol/tracks/index.yaml
+
+title: "Tracks"
+tagline: "Listen to Ishimura's tracks."
+
+content:
+  - type: hero
+    heading: "Ishimura Tracks"
+    subheading: "Latest tracks from Ishimura."
+    body: |
+      Latest tracks from Ishimura.
+      Listen to the latest tracks from Ishimura.

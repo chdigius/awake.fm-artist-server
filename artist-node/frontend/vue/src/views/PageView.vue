@@ -2,13 +2,22 @@
 <template>
   <div class="page-view">
     <div v-if="loading" class="page-loading">Loading…</div>
-    <div v-else-if="error" class="page-error">{{ error }}</div>
-    <div v-else-if="page" class="page-loaded">
+
+    <div v-else-if="error" class="page-error">
+      {{ error }}
+    </div>
+
+    <PageShell
+      v-else-if="page"
+      :meta="page.meta"
+    >
       <component
         :is="layoutComponent"
+        :meta="page.meta"
+        :blocks="page.content"
         :page="page"
       />
-    </div>
+    </PageShell>
   </div>
 </template>
 
@@ -16,13 +25,10 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
-import {getLayout} from '@/layouts/index.ts'
-
-import DefaultLayout from '@/layouts/DefaultLayout.vue'
-import ServerLayout from '@/layouts/ServerLayout.vue'
-// later:
-// import ArtistLayout from '@/layouts/ArtistLayout.vue'
-// import ArtistsLayout from '@/layouts/ArtistsLayout.vue'
+import { getLayout } from '@/layouts/index.ts'
+import { useTheme } from '@/composables/useTheme'
+import { useEffects } from '@/composables/useEffects'
+import PageShell from '@/components/shared/PageShell.vue'
 
 interface PagePayload {
   path: string
@@ -30,10 +36,16 @@ interface PagePayload {
   tagline?: string
   meta?: {
     layout?: string
+    theme?: string
+    effective_theme?: string
+    effects?: string[]
     [key: string]: any
   }
   content: any[]
 }
+
+const { applyPageTheme } = useTheme()
+const { applyPageEffects } = useEffects()
 
 const route = useRoute()
 
@@ -45,24 +57,6 @@ const layoutComponent = computed(() => {
   const layoutName = page.value?.meta?.layout
   return getLayout(layoutName || 'default')
 })
-
-// registry: layout name -> component
-// const layoutRegistry: Record<string, any> = {
-//   server: ServerLayout,
-//   // artist: ArtistLayout,
-//   // artists: ArtistsLayout,
-//   default: DefaultLayout,
-// }
-
-// const layoutComponent = computed(() => {
-//   const layout = page.value?.meta?.layout
-
-//   if (layout && layoutRegistry[layout]) {
-//     return layoutRegistry[layout]
-//   }
-
-//   return layoutRegistry.default
-// })
 
 const currentGraphPath = computed(() => {
   const raw = route.path
@@ -85,6 +79,9 @@ async function loadPage() {
 
     const data = (await res.json()) as PagePayload
     page.value = data
+
+    applyPageTheme(data.meta)
+    applyPageEffects(data.meta)
   } catch (e: any) {
     error.value = e?.message ?? 'Failed to load page'
   } finally {
@@ -101,3 +98,16 @@ watch(
   }
 )
 </script>
+
+<style scoped>
+.page-view {
+  min-height: 100vh;
+}
+.page-loading,
+.page-error {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>
