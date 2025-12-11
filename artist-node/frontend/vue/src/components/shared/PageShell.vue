@@ -1,16 +1,22 @@
 <!-- src/components/shared/PageShell.vue -->
 <template>
   <div class="page-shell">
+    
+    <!-- HEADER (full-bleed background, constrained content) -->
     <header class="page-shell__header">
-      <MainNav />
+      <div class="page-shell__header-inner">
+        <MainNav />
+      </div>
     </header>
 
+    <!-- MAIN CONTENT -->
     <main class="page-shell__main">
       <div class="page-shell__inner">
         <slot />
       </div>
     </main>
 
+    <!-- FOOTER -->
     <footer class="page-shell__footer">
       <div class="page-shell__footer-inner">
         <span class="page-shell__footer-text">
@@ -18,6 +24,7 @@
         </span>
       </div>
     </footer>
+
   </div>
 </template>
 
@@ -38,12 +45,28 @@ const props = defineProps<{
   flex-direction: column;
 }
 
-/* Header & footer hug edges; use view-mode tokens for padding */
+/*  -----------------------------  
+    FULL-BLEED HEADER + FOOTER 
+    ----------------------------- */
+
 .page-shell__header,
 .page-shell__footer {
-  padding: var(--page-padding-y) var(--page-padding-x);
+  width: 100%;
+  background: var(--color-bg);       /* or theme var for header/footer */
+  padding: 0;                       /* padding moves to the inner rail */
 }
 
+/* Constrained inner rails */
+.page-shell__header-inner,
+.page-shell__footer-inner {
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: var(--page-padding-y) var(--page-padding-x);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* MAIN AREA */
 .page-shell__main {
   flex: 1;
 }
@@ -51,6 +74,13 @@ const props = defineProps<{
 .page-shell__inner {
   max-width: var(--page-max-width);
   margin: 0 auto;
-  padding: var(--page-padding-y) var(--page-padding-x);
+  padding: 0 var(--page-padding-x) var(--page-padding-y);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.page-shell__footer-text {
+  opacity: 0.75;
+  font-size: 0.9rem;
 }
 </style>

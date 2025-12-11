@@ -13,12 +13,18 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      '@awake/css-core': fileURLToPath(new URL('../packages/css-core', import.meta.url))
+      '@awake/css-core': fileURLToPath(new URL('../packages/css-core', import.meta.url)),
+      '@awake/pixelforge': fileURLToPath(new URL('../packages/pixelforge/src/index.ts', import.meta.url))
     },
   },
   server: {
     proxy: {
       '/api': {
+        target: 'http://localhost:8888',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/content': {
         target: 'http://localhost:8888',
         changeOrigin: true,
         secure: false,

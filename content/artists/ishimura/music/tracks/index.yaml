@@ -1,4 +1,4 @@
-# content/artists/zol/tracks/index.yaml
+# content/artists/ishimura/music/tracks/index.yaml
 
 title: "Tracks"
 tagline: "Listen to Ishimura's tracks."
@@ -10,3 +10,17 @@ content:
     body: |
       Latest tracks from Ishimura.
       Listen to the latest tracks from Ishimura.
+
+  - type: audio_player
+    src: "/content/artists/ishimura/music/tracks/audio/atmos_77.mp3"
+    title: "Atmos 77"
+    artist: "Ishimura"
+    visualizer:
+      type: "p5"
+      id: "gforce-flow"
+      options:
+        sensitivity: 1.3
+        colorSpeed: 0.8
+        trailLength: 0.12
+        particleCount: 50
+        mode: "radial"

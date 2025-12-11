@@ -54,6 +54,8 @@
   --page-font-size-base: 1rem;
   --page-font-size-lg: 1.125rem;
   --page-font-size-xxl: 2rem;
+
+  --page-flow-width: 70ch; /* default; tweak to taste */
 }
 
 /* Optional — default view mode if no JS */
@@ -67,6 +69,7 @@
     --page-max-width: 100%;
     --page-padding-x: 1rem;
     --page-font-size-base: 0.95rem;
+    --page-flow-width: 100%; /* full width on small screens */
     --view-mode: mobile;
   }
 }
@@ -77,6 +80,7 @@
     --page-max-width: 1200px;
     --page-padding-x: 2rem;
     --page-font-size-base: 1rem;
+    --page-flow-width: 70ch;
     --view-mode: fixed;
   }
 }
@@ -84,10 +88,11 @@
 /* CINEMATIC DEFAULT FOR HUGE SCREENS */
 @media (min-width: 1440px) {
   :root {
-    --page-max-width: 1600px;
+    --page-max-width: 1800px;
     --page-padding-x: 3rem;
     --page-font-size-base: 1.05rem;
     --page-font-size-xxl: 2.4rem;
+    --page-flow-width: 90ch; /* let it breathe more on ultrawide */
     --view-mode: cinematic;
   }
 }

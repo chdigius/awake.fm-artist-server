@@ -11,6 +11,12 @@ content:
       A self-hosted artist node running on the Awake.fm decentralized protocol.
       No shareholders. No engagement farming. No algorithms.
       Just music, ownership, and creative autonomy.
+    sigil:
+      type: "p5"           # or "code" if you prefer
+      id: "node-001"       # matches what you registered in Pixelforge
+      options:
+        seed: "awake-node-001"
+        variant: "orbit"
     cta:
       label: "Meet the Artists"
       target: "#artists"

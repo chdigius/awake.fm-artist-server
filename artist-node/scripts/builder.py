@@ -19,7 +19,10 @@ from backend.models.content_graph import (
   SectionBlock,
   MarkdownBlock,
   SubpageBlock,
-  CollectionBlock, 
+  CollectionBlock,
+  AudioPlayerBlock,
+  SigilConfig,
+  VisualizerConfig,
   Block
  )
 
@@ -64,11 +67,24 @@ def parse_block(raw: Dict[str, Any]) -> Block:
   block_type = raw.get("type")
 
   if block_type == "hero":
+    # Parse sigil config if present
+    sigil_raw = raw.get("sigil")
+    sigil = None
+    if sigil_raw:
+      sigil = SigilConfig(
+        type=sigil_raw.get("type", "p5"),
+        id=sigil_raw.get("id"),
+        src=sigil_raw.get("src"),
+        alt=sigil_raw.get("alt"),
+        options=sigil_raw.get("options"),
+      )
+    
     return HeroBlock(
       heading=raw.get("heading", ""),
       subheading=raw.get("subheading", ""),
       body=raw.get("body", ""),
-      cta=raw.get("cta", "")
+      cta=raw.get("cta", ""),
+      sigil=sigil,
     )
 
   if block_type == "section":
@@ -93,6 +109,25 @@ def parse_block(raw: Dict[str, Any]) -> Block:
     return CollectionBlock(
       source=raw.get("source", "folder"),
       path=raw.get("path"),
+    )
+
+  if block_type == "audio_player":
+    # Parse visualizer config if present
+    visualizer_raw = raw.get("visualizer")
+    visualizer = None
+    if visualizer_raw:
+      visualizer = VisualizerConfig(
+        type=visualizer_raw.get("type", "p5"),
+        id=visualizer_raw.get("id", "spectrum-bars"),
+        options=visualizer_raw.get("options"),
+      )
+    
+    return AudioPlayerBlock(
+      src=raw.get("src", ""),
+      title=raw.get("title"),
+      artist=raw.get("artist"),
+      artwork=raw.get("artwork"),
+      visualizer=visualizer,
     )
 
   return MarkdownBlock(body=f"Unknown block type: {block_type}")

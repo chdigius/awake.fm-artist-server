@@ -38,7 +38,18 @@ BlockType = Literal[
   "markdown",
   "subpage",
   "collection",
+  "audio_player",
 ]
+
+@dataclass
+class SigilConfig:
+  """Configuration for a visual sigil (p5.js sketch or static image)."""
+  type: Literal["p5", "image"] = "p5"
+  id: Optional[str] = None           # for p5: registered sigil ID like "node-001"
+  src: Optional[str] = None          # for image: path to static image
+  alt: Optional[str] = None          # accessibility alt text
+  options: Optional[Dict[str, Any]] = None  # p5 sigil options (seed, variant, etc.)
+
 
 @dataclass
 class HeroBlock:
@@ -47,6 +58,7 @@ class HeroBlock:
   subheading: Optional[str] = None
   body: Optional[str] = None
   cta: Optional[Dict[str, str]] = None  # { "label": "...", "target": "#id" }
+  sigil: Optional[SigilConfig] = None   # animated or static visual sigil
 
 
 @dataclass
@@ -78,7 +90,26 @@ class CollectionBlock:
   path: Optional[str] = None  # when source == "folder", like "../artists"
 
 
-Block = Union[HeroBlock, SectionBlock, MarkdownBlock, SubpageBlock, CollectionBlock]
+@dataclass
+class VisualizerConfig:
+  """Configuration for an audio visualizer."""
+  type: Literal["p5"] = "p5"
+  id: str = "spectrum-bars"  # registered sigil ID
+  options: Optional[Dict[str, Any]] = None  # sensitivity, barCount, mirrorMode, etc.
+
+
+@dataclass
+class AudioPlayerBlock:
+  """Audio player with optional visualizer."""
+  type: Literal["audio_player"] = "audio_player"
+  src: str = ""                              # path to audio file
+  title: Optional[str] = None                # track title
+  artist: Optional[str] = None               # artist name
+  artwork: Optional[str] = None              # cover art path
+  visualizer: Optional[VisualizerConfig] = None  # optional visualizer config
+
+
+Block = Union[HeroBlock, SectionBlock, MarkdownBlock, SubpageBlock, CollectionBlock, AudioPlayerBlock]
 
 
 # ---------- Core content node ----------
@@ -144,11 +175,22 @@ class ContentNode:
     for b in blocks_raw:
       btype = b.get("type")
       if btype == "hero":
+        sigil_data = b.get("sigil")
+        sigil = None
+        if sigil_data:
+          sigil = SigilConfig(
+            type=sigil_data.get("type", "p5"),
+            id=sigil_data.get("id"),
+            src=sigil_data.get("src"),
+            alt=sigil_data.get("alt"),
+            options=sigil_data.get("options"),
+          )
         blocks.append(HeroBlock(
           heading=b.get("heading", ""),
           subheading=b.get("subheading"),
           body=b.get("body"),
           cta=b.get("cta"),
+          sigil=sigil,
         ))
       elif btype == "section":
         # we can recurse into nested blocks later as needed
@@ -171,6 +213,22 @@ class ContentNode:
         blocks.append(CollectionBlock(
           source=b.get("source", "folder"),
           path=b.get("path"),
+        ))
+      elif btype == "audio_player":
+        visualizer_data = b.get("visualizer")
+        visualizer = None
+        if visualizer_data:
+          visualizer = VisualizerConfig(
+            type=visualizer_data.get("type", "p5"),
+            id=visualizer_data.get("id", "spectrum-bars"),
+            options=visualizer_data.get("options"),
+          )
+        blocks.append(AudioPlayerBlock(
+          src=b.get("src", ""),
+          title=b.get("title"),
+          artist=b.get("artist"),
+          artwork=b.get("artwork"),
+          visualizer=visualizer,
         ))
       # else: unknown type, ignore for now
 
@@ -307,11 +365,22 @@ class ContentGraph:
     btype = data.get("type")
 
     if btype == "hero":
+      sigil_data = data.get("sigil")
+      sigil = None
+      if sigil_data:
+        sigil = SigilConfig(
+          type=sigil_data.get("type", "p5"),
+          id=sigil_data.get("id"),
+          src=sigil_data.get("src"),
+          alt=sigil_data.get("alt"),
+          options=sigil_data.get("options"),
+        )
       return HeroBlock(
         heading=data.get("heading", ""),
         subheading=data.get("subheading"),
         body=data.get("body"),
         cta=data.get("cta"),
+        sigil=sigil,
       )
 
     if btype == "section":
@@ -338,6 +407,23 @@ class ContentGraph:
       return CollectionBlock(
         source=data.get("source", "folder"),
         path=data.get("path"),
+      )
+
+    if btype == "audio_player":
+      visualizer_data = data.get("visualizer")
+      visualizer = None
+      if visualizer_data:
+        visualizer = VisualizerConfig(
+          type=visualizer_data.get("type", "p5"),
+          id=visualizer_data.get("id", "spectrum-bars"),
+          options=visualizer_data.get("options"),
+        )
+      return AudioPlayerBlock(
+        src=data.get("src", ""),
+        title=data.get("title"),
+        artist=data.get("artist"),
+        artwork=data.get("artwork"),
+        visualizer=visualizer,
       )
 
     # fallback so we don't blow up on unknown blocks

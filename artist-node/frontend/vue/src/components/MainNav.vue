@@ -49,4 +49,5 @@ onMounted(async () => {
   color: var(--color-accent);
   font-size: 0.875rem;
 }
+
 </style>
