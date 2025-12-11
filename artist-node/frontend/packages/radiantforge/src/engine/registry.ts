@@ -35,7 +35,7 @@ const registry = new Map<string, P5Factory>()
  */
 export function register(id: string, factory: P5Factory): void {
   if (!id) {
-    throw new Error('Pixelforge: register requires a non-empty id')
+    throw new Error('RadiantForge: register requires a non-empty id')
   }
   registry.set(id, factory)
 }

@@ -54,13 +54,13 @@ export function mountVisualizer(
   analyzerConfig?: AnalyzerConfig
 ): p5 | null {
   if (!el) {
-    throw new Error('Pixelforge: mountVisualizer requires a valid HTMLElement')
+    throw new Error('RadiantForge: mountVisualizer requires a valid HTMLElement')
   }
 
   const factory = get(id)
   if (!factory) {
     if (import.meta.env?.MODE !== 'production') {
-      console.warn(`Pixelforge: no visualizer registered with id "${id}"`)
+      console.warn(`RadiantForge: no visualizer registered with id "${id}"`)
     }
     return null
   }
@@ -113,13 +113,13 @@ export function mountVisualizerShared(
   options?: P5Options
 ): p5 | null {
   if (!el) {
-    throw new Error('Pixelforge: mountVisualizerShared requires a valid HTMLElement')
+    throw new Error('RadiantForge: mountVisualizerShared requires a valid HTMLElement')
   }
 
   const factory = get(id)
   if (!factory) {
     if (import.meta.env?.MODE !== 'production') {
-      console.warn(`Pixelforge: no visualizer registered with id "${id}"`)
+      console.warn(`RadiantForge: no visualizer registered with id "${id}"`)
     }
     return null
   }

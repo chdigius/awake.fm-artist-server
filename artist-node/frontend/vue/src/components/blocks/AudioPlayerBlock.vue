@@ -9,7 +9,7 @@
       :class="{ 'is-fullscreen': isFullscreen }"
       @dblclick="toggleFullscreen"
     >
-      <PixelForgeVisualizer
+      <RadiantForgeVisualizer
         ref="visualizerRef"
         :sigil-id="block.visualizer.id || 'spectrum-bars'"
         :audio-element="audioReady ? audioRef : null"
@@ -100,7 +100,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import PixelForgeVisualizer from '@/components/pixelforge/PixelForgeVisualizer.vue'
+import RadiantForgeVisualizer from '@/components/radiantforge/RadiantForgeVisualizer.vue'
 
 defineOptions({ name: 'AudioPlayerBlock' })
 
@@ -127,7 +127,7 @@ const audioRef = ref<HTMLAudioElement | null>(null)
 const visualizerContainerRef = ref<HTMLElement | null>(null)
 
 // Visualizer component ref (to call resumeAnalyzer)
-const visualizerRef = ref<InstanceType<typeof PixelForgeVisualizer> | null>(null)
+const visualizerRef = ref<InstanceType<typeof RadiantForgeVisualizer> | null>(null)
 
 // Playback state
 const isPlaying = ref(false)

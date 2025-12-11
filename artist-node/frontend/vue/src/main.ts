@@ -17,8 +17,8 @@ import '@awake/css-core/effects/fx-glow.css'
 import '@awake/css-core/effects/fx-film-grain.css'
 import '@awake/css-core/effects/fx-crt-chromatic-aberration.css'
 
-// Pixelforge - register built-in sigils and visualizers
-import { registerBuiltins } from '@awake/pixelforge'
+// RadiantForge - register built-in sigils and visualizers
+import { registerBuiltins } from '@awake/radiantforge'
 registerBuiltins()
 
 const app = createApp(App)

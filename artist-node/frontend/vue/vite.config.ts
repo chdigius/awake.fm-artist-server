@@ -14,7 +14,7 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@awake/css-core': fileURLToPath(new URL('../packages/css-core', import.meta.url)),
-      '@awake/pixelforge': fileURLToPath(new URL('../packages/pixelforge/src/index.ts', import.meta.url))
+      '@awake/radiantforge': fileURLToPath(new URL('../packages/radiantforge/src/index.ts', import.meta.url))
     },
   },
   server: {

@@ -15,7 +15,7 @@ const activeInstances = new WeakMap<HTMLElement, p5>()
  * Mount a p5 sketch into the given element.
  *
  * - `id` must have been registered via register()
- * - `el` is the host container (Pixelforge will create a canvas inside)
+ * - `el` is the host container (RadiantForge will create a canvas inside)
  * - `options` are forwarded to the P5Factory
  *
  * Returns the created p5 instance, or null if id not found.
@@ -26,14 +26,14 @@ export function mountSigil(
   options?: P5Options
 ): p5 | null {
   if (!el) {
-    throw new Error('Pixelforge: mountSigil requires a valid HTMLElement')
+    throw new Error('RadiantForge: mountSigil requires a valid HTMLElement')
   }
 
   const factory = get(id)
   if (!factory) {
     if (import.meta.env?.MODE !== 'production') {
       // eslint-disable-next-line no-console
-      console.warn(`Pixelforge: no sketch registered with id "${id}"`)
+      console.warn(`RadiantForge: no sketch registered with id "${id}"`)
     }
     return null
   }

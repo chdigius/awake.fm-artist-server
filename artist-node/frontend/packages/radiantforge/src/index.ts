@@ -1,6 +1,6 @@
 // src/index.ts
 //
-// Public API surface for Pixelforge.
+// Public API surface for RadiantForge.
 //
 // The idea is that host apps (Vue frontend, later mothership, etc.)
 // only import from this file, never from ./engine directly.

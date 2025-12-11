@@ -9,8 +9,8 @@
       v-if="block.sigil"
       class="hero-sigil-wrapper"
     >
-      <!-- p5 / Pixelforge sigil -->
-      <PixelforgeSigil
+      <!-- p5 / RadiantForge sigil -->
+      <RadiantForgeSigil
         v-if="block.sigil.type === 'p5' && block.sigil.id"
         :sigil-id="block.sigil.id"
         :options="block.sigil.options"
@@ -94,8 +94,8 @@
 <script setup lang="ts">
 defineOptions({ name: 'HeroBlock' })
 
-import PixelforgeSigil from '@/components/pixelforge/PixelforgeSigil.vue'
-import type { SigilOptions } from '@awake/pixelforge'
+import RadiantForgeSigil from '@/components/radiantforge/RadiantForgeSigil.vue'
+import type { SigilOptions } from '@awake/radiantforge'
 
 type Cta = {
   label: string
