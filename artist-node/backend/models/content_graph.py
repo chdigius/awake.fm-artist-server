@@ -59,6 +59,7 @@ class HeroBlock:
   body: Optional[str] = None
   cta: Optional[Dict[str, str]] = None  # { "label": "...", "target": "#id" }
   sigil: Optional[SigilConfig] = None   # animated or static visual sigil
+  background: Optional[str] = None      # background image path
 
 
 @dataclass
@@ -119,6 +120,7 @@ class ContentNode:
   meta: NodeMeta
   title: Optional[str] = None
   tagline: Optional[str] = None
+  background: Optional[str] = None      # page-level background image path
   preview: Optional[NodePreview] = None
   content: List[Block] = field(default_factory=list)
 
@@ -136,6 +138,7 @@ class ContentNode:
       },
       "title": self.title,
       "tagline": self.tagline,
+      "background": self.background,
       "preview": asdict(self.preview) if self.preview else None,
       "content": [asdict(block) for block in self.content],
     }
@@ -191,6 +194,7 @@ class ContentNode:
           body=b.get("body"),
           cta=b.get("cta"),
           sigil=sigil,
+          background=b.get("background"),
         ))
       elif btype == "section":
         # we can recurse into nested blocks later as needed
@@ -236,6 +240,7 @@ class ContentNode:
       meta=meta,
       title=data.get("title"),
       tagline=data.get("tagline"),
+      background=data.get("background"),
       preview=preview,
       content=blocks,
     )
@@ -348,6 +353,7 @@ class ContentGraph:
         meta=meta,
         title=node_data.get("title"),
         tagline=node_data.get("tagline"),
+        background=node_data.get("background"),
         preview=preview,
         content=blocks,
       )
@@ -381,6 +387,7 @@ class ContentGraph:
         body=data.get("body"),
         cta=data.get("cta"),
         sigil=sigil,
+        background=data.get("background"),
       )
 
     if btype == "section":

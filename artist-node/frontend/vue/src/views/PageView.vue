@@ -10,6 +10,7 @@
     <PageShell
       v-else-if="page"
       :meta="page.meta"
+      :background="page.background"
     >
       <component
         :is="layoutComponent"
@@ -34,6 +35,7 @@ interface PagePayload {
   path: string
   title?: string
   tagline?: string
+  background?: string
   meta?: {
     layout?: string
     theme?: string

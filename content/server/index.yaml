@@ -2,11 +2,13 @@
 
 title: "Awake FM Node 001"
 tagline: "Artist-owned. Algorithm-free. Built for humans."
+# background: '/content/assets/backgrounds/starfield_1.jpg'
 
 content:
   - type: hero
     heading: "Awake FM Node 001"
     subheading: "A sovereign music server on the Awake.fm network."
+    # background: '/content/assets/backgrounds/hero_background_1.jpg'
     body: |
       A self-hosted artist node running on the Awake.fm decentralized protocol.
       No shareholders. No engagement farming. No algorithms.

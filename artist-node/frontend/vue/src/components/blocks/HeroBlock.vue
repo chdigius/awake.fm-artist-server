@@ -2,7 +2,9 @@
 <template>
   <section
     class="hero-block"
+    :class="{ 'hero-block--has-bg': block.background }"
     :id="block.id || undefined"
+    :style="backgroundStyle"
   >
     <!-- SIGIL FLAG (optional) -->
     <div
@@ -94,6 +96,7 @@
 <script setup lang="ts">
 defineOptions({ name: 'HeroBlock' })
 
+import { computed } from 'vue'
 import RadiantForgeSigil from '@/components/radiantforge/RadiantForgeSigil.vue'
 import type { SigilOptions } from '@awake/radiantforge'
 
@@ -128,9 +131,20 @@ const props = defineProps<{
     secondary_cta?: Cta
     meta?: string
     sigil?: SigilConfig
+    background?: string
     [key: string]: any
   }
 }>()
+
+// Compute background style if block has a background image
+const backgroundStyle = computed(() => {
+  if (!props.block.background) return {}
+  return {
+    backgroundImage: `url(${props.block.background})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  }
+})
 
 const emit = defineEmits<{
   (e: 'cta', target: string): void
@@ -152,6 +166,33 @@ function onClick(target?: string) {
   align-items: center;
   text-align: center;
   gap: 1rem;
+  position: relative;
+}
+
+/* Background image variant */
+.hero-block--has-bg {
+  padding-block: clamp(4rem, 15vh, 8rem);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+/* Dark overlay for readability when background is present */
+.hero-block--has-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+  z-index: 0;
+}
+
+/* Ensure content sits above the overlay */
+.hero-block--has-bg > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* SIGIL FLAG */

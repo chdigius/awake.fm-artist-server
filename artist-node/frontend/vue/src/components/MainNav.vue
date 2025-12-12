@@ -1,5 +1,8 @@
 <template>
-  <nav class="main-nav">
+  <nav
+    class="main-nav"
+    :class="{ 'main-nav--glass': glass }"
+  >
     <div v-if="loading" class="loading">Loading...</div>
     <div v-else-if="error" class="error">{{ error }}</div>
 
@@ -17,6 +20,10 @@ import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNavStore } from '@/stores/nav'
 import NavList from '@/components/NavList.vue'
+
+const props = defineProps<{
+  glass?: boolean
+}>()
 
 const router = useRouter()
 const navStore = useNavStore()
@@ -38,6 +45,15 @@ onMounted(async () => {
 <style scoped>
 .main-nav {
   font-family: var(--font-body);
+}
+
+.main-nav--glass {
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  transition: background 150ms ease, backdrop-filter 150ms ease;
 }
 
 .loading {

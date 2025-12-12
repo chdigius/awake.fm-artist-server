@@ -1,11 +1,14 @@
 <!-- src/components/shared/PageShell.vue -->
 <template>
-  <div class="page-shell">
+  <div
+    class="page-shell"
+    :style="backgroundStyle"
+  >
     
     <!-- HEADER (full-bleed background, constrained content) -->
     <header class="page-shell__header">
       <div class="page-shell__header-inner">
-        <MainNav />
+        <MainNav :glass="hasBackground" />
       </div>
     </header>
 
@@ -31,9 +34,28 @@
 <script setup lang="ts">
 import MainNav from '@/components/MainNav.vue'
 
+import { computed } from 'vue'
+
 const props = defineProps<{
   meta?: Record<string, any>
+  background?: string
 }>()
+
+const hasBackground = computed(() => Boolean(props.background))
+
+const backgroundStyle = computed(() => {
+  if (!props.background) return {}
+  const href = props.background.startsWith('http')
+    ? props.background
+    : new URL(props.background, window.location.origin).href
+
+  return {
+    backgroundImage: `url(${href})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundAttachment: 'fixed',
+  }
+})
 </script>
 
 <style scoped>
@@ -52,7 +74,7 @@ const props = defineProps<{
 .page-shell__header,
 .page-shell__footer {
   width: 100%;
-  background: var(--color-bg);       /* or theme var for header/footer */
+  background: v-bind('hasBackground ? "transparent" : "var(--color-bg)"');
   padding: 0;                       /* padding moves to the inner rail */
 }
 
@@ -64,6 +86,8 @@ const props = defineProps<{
   padding: var(--page-padding-y) var(--page-padding-x);
   width: 100%;
   box-sizing: border-box;
+  backdrop-filter: blur(6px);
+  background-color: v-bind('hasBackground ? "rgba(0,0,0,0.32)" : "var(--color-bg)"');
 }
 
 /* MAIN AREA */

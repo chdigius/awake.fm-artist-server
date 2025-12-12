@@ -1,16 +1,10 @@
 <!-- src/layouts/ServerLayout.vue -->
 <template>
-  <div class="layout-server">
+  <div
+    class="layout-server"
+    :style="backgroundStyle"
+  >
     <div class="layout-server__inner">
-      <!-- <header class="page-header">
-        <h1 v-if="page.title" class="page-title">
-          {{ page.title }}
-        </h1>
-        <p v-if="page.tagline" class="page-tagline">
-          {{ page.tagline }}
-        </p>
-      </header> -->
-
       <main class="page-main">
         <!-- maybe force hero first if present later -->
         <BlockRenderer
@@ -27,6 +21,7 @@
 <script setup lang="ts">
 defineOptions({ name: 'ServerLayout' })
 
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import BlockRenderer from '@/components/blocks/BlockRenderer.vue'
 
@@ -35,6 +30,22 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
+
+// Compute background style if page has a background image
+const backgroundStyle = computed(() => {
+  if (!props.page?.background) return {}
+
+  const href = props.page.background.startsWith('http')
+    ? props.page.background
+    : new URL(props.page.background, window.location.origin).href
+
+  return {
+    backgroundImage: `url(${href})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundAttachment: 'fixed',
+  }
+})
 
 function handleCta(target: string) {
   if (!target) return

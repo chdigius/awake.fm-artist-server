@@ -10,6 +10,30 @@ from typing import Dict, Any, List, Optional
 from dataclasses import asdict
 
 
+def normalize_media_path(path_str: Optional[str]) -> Optional[str]:
+  """
+  Normalize media paths so the frontend can resolve them:
+  - Convert Windows backslashes to forward slashes
+  - Ensure a leading slash for site-root relative assets
+  - Leave full URLs (http/https) untouched
+  """
+  if not path_str:
+    return path_str
+
+  # replace backslashes
+  normalized = path_str.replace("\\", "/")
+
+  # if it's already absolute URL, leave it
+  if normalized.startswith("http://") or normalized.startswith("https://"):
+    return normalized
+
+  # ensure leading slash for site-root static serving
+  if not normalized.startswith("/"):
+    normalized = "/" + normalized
+
+  return normalized
+
+
 from backend.models.content_graph import (
   ContentGraph,
   ContentNode,
@@ -85,6 +109,7 @@ def parse_block(raw: Dict[str, Any]) -> Block:
       body=raw.get("body", ""),
       cta=raw.get("cta", ""),
       sigil=sigil,
+      background=normalize_media_path(raw.get("background")),
     )
 
   if block_type == "section":
@@ -153,6 +178,7 @@ def build_node_from_directory(node_dir: Path, content_root: Path) -> ContentNode
 
   title = index_data.get("title")
   tagline = index_data.get("tagline")
+  background = normalize_media_path(index_data.get("background"))  # page-level background image
 
   # 3. Load _meta.yaml data
   folder_meta = load_yaml(node_dir / "_meta.yaml")
@@ -194,6 +220,7 @@ def build_node_from_directory(node_dir: Path, content_root: Path) -> ContentNode
     meta=meta,
     title=title,
     tagline=tagline,
+    background=background,
     preview=preview,
     content=content_blocks,
   )
