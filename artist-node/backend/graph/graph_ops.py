@@ -3,12 +3,9 @@
 from dataclasses import dataclass, field
 from typing import Dict, Any, List, Optional, Iterable, Union, Set
 
-from backend.models.content_graph import (
-  ContentGraph,
-  ContentNode,
-  SubpageBlock,
-  SectionBlock,
-)
+from backend.models.content_graph import ContentGraph
+from backend.models.node import ContentNode
+from backend.models.blocks import SubpageBlock, SectionBlock
 
 
 BlockLike = Union[SubpageBlock, SectionBlock, Dict[str, Any]]

@@ -1,4 +1,5 @@
-from backend.models.content_graph import ContentNode, HeroBlock, SectionBlock, SubpageBlock
+from backend.models.node import ContentNode
+from backend.models.blocks import HeroBlock, SectionBlock, SubpageBlock
 from backend.graph.graph_ops import GraphOps
 from backend.tests.base import ContentGraphTestBase
 

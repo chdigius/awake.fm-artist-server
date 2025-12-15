@@ -4,7 +4,7 @@ title: "ZØL"
 tagline: "Machine signal, human intent."
 
 preview:
-  image: "assets/zol-preview.jpg"
+  # image: "assets/zol-preview.jpg"  # TODO: add preview image
   caption: "ZØL — Techno from the Void"
   badge: "Artist"
   blurb: "Signal-focused techno, machine worship, and post-human rhythm studies."

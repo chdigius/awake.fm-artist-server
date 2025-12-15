@@ -42,8 +42,8 @@ content:
             row: "1.5rem"
             column: "1.5rem"
           align:
-            horizontal: "stretch"  # stretch | center | start
-            vertical: "start"      # start | center
+            horizontal: "center"  # stretch | center | start
+            vertical: "center"      # start | center
           # Optional max rows before pagination / "View All"
           max_rows: 3
         sort: "name_asc"

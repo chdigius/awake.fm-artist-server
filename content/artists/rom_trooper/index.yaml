@@ -2,7 +2,7 @@ title: "ROM Trooper"
 tagline: "Neon ghosts in a dying circuit grid."
 
 preview:
-  image: "assets/dissolvr-preview.jpg"
+  # image: "assets/rom-trooper-preview.jpg"  # TODO: add preview image
   caption: "ROM Trooper — Neon-drenched Synthwave"
   badge: "Artist"
   blurb: "Dreamy VHS haze, distorted tape memories, and ultraviolet synthwave drifting through broken timelines."

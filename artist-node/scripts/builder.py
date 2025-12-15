@@ -34,11 +34,10 @@ def normalize_media_path(path_str: Optional[str]) -> Optional[str]:
   return normalized
 
 
-from backend.models.content_graph import (
-  ContentGraph,
-  ContentNode,
-  NodeMeta,
-  NodePreview,
+from backend.models.content_graph import ContentGraph
+from backend.models.node import ContentNode, NodeMeta, NodePreview
+from backend.models.blocks import (
+  Block,
   HeroBlock,
   SectionBlock,
   MarkdownBlock,
@@ -49,8 +48,7 @@ from backend.models.content_graph import (
   AudioPlayerBlock,
   SigilConfig,
   VisualizerConfig,
-  Block
- )
+)
 
 def load_yaml(path: Path) -> Dict[str, Any]:
   if not path.exists():

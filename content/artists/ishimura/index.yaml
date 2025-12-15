@@ -4,7 +4,7 @@ title: "Ishimura"
 tagline: "Atmospheric drum and bass."
 
 preview:
-  image: "assets/ishumura-preview.jpg"
+  # image: "assets/ishimura-preview.jpg"  # TODO: add preview image
   caption: "Ishimura — Atmospheric drum and bass."
   badge: "Artist"
   blurb: "Atmospheric drum and bass."
