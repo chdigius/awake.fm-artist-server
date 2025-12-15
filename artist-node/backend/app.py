@@ -1,9 +1,11 @@
 # backend/app.py
 from pathlib import Path
-from quart import Quart, send_from_directory, abort
+from quart import Quart
 from backend.graph.graph_ops import GraphOps
 from backend.controllers.nav_controller import nav_bp
 from backend.controllers.page_controller import page_bp
+from backend.controllers.content_controller import content_bp
+from backend.controllers.collections_controller import collections_bp
 
 
 def create_app(graph_ops: GraphOps, content_root: Path | None = None) -> Quart:
@@ -14,29 +16,8 @@ def create_app(graph_ops: GraphOps, content_root: Path | None = None) -> Quart:
   # register controllers
   app.register_blueprint(nav_bp)
   app.register_blueprint(page_bp)
-
-  # Serve static content assets (audio, images, etc.) from the content folder
-  @app.route("/content/<path:filepath>")
-  async def serve_content_asset(filepath: str):
-    """
-    Serve static files from the content directory.
-    e.g., /content/artists/ishimura/music/tracks/audio/atmos_77.mp3
-    """
-    content_root = app.config["CONTENT_ROOT"]
-    
-    # Security: resolve the path and ensure it's within content_root
-    requested_path = (content_root / filepath).resolve()
-    if not str(requested_path).startswith(str(content_root)):
-      abort(403)  # Forbidden - path traversal attempt
-    
-    if not requested_path.exists() or not requested_path.is_file():
-      abort(404)
-    
-    # Serve the file from its parent directory
-    return await send_from_directory(
-      requested_path.parent,
-      requested_path.name
-    )
+  app.register_blueprint(content_bp)
+  app.register_blueprint(collections_bp)
 
   # # DEBUG: print routes
   # print("Registered routes:")

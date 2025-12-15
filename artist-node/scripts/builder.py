@@ -44,6 +44,8 @@ from backend.models.content_graph import (
   MarkdownBlock,
   SubpageBlock,
   CollectionBlock,
+  CollectionLayout,
+  CollectionPaging,
   AudioPlayerBlock,
   SigilConfig,
   VisualizerConfig,
@@ -131,9 +133,55 @@ def parse_block(raw: Dict[str, Any]) -> Block:
     )
 
   if block_type == "collection":
+    # Parse layout config if present
+    layout_raw = raw.get("layout")
+    layout = None
+    if layout_raw:
+      layout = CollectionLayout(
+        mode=layout_raw.get("mode", "grid"),
+        # Grid-specific
+        columns=layout_raw.get("columns"),
+        gap=layout_raw.get("gap"),
+        align=layout_raw.get("align"),
+        max_rows=layout_raw.get("max_rows"),
+        pagination=layout_raw.get("pagination"),
+        # List-specific
+        dense=layout_raw.get("dense"),
+        show_dividers=layout_raw.get("show_dividers"),
+        show_avatar=layout_raw.get("show_avatar"),
+        show_meta=layout_raw.get("show_meta"),
+        max_items=layout_raw.get("max_items"),
+        # Carousel-specific
+        slides_per_view=layout_raw.get("slides_per_view"),
+        spacing=layout_raw.get("spacing"),
+        loop=layout_raw.get("loop"),
+        autoplay=layout_raw.get("autoplay"),
+        controls=layout_raw.get("controls"),
+        snap_align=layout_raw.get("snap_align"),
+        max_width=layout_raw.get("max_width"),
+      )
+    
+    # Parse paging config if present
+    paging_raw = raw.get("paging")
+    paging = None
+    if paging_raw:
+      paging = CollectionPaging(
+        enabled=paging_raw.get("enabled", False),
+        page_size=paging_raw.get("page_size"),
+        mode=paging_raw.get("mode", "load_more"),
+      )
+    
     return CollectionBlock(
       source=raw.get("source", "folder"),
       path=raw.get("path"),
+      layout=layout,
+      card=raw.get("card"),
+      sort=raw.get("sort"),
+      sort_options=raw.get("sort_options"),
+      limit=raw.get("limit"),
+      filters=raw.get("filters"),
+      paging=paging,
+      empty_state=raw.get("empty_state"),
     )
 
   if block_type == "audio_player":

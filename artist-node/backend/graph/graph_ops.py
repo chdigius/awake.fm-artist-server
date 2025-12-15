@@ -175,3 +175,51 @@ class GraphOps:
       path = self.graph.root_content_path
 
     return self.graph.to_page_payload(path)
+
+  def get_collection(
+    self,
+    *,
+    source: str,
+    path: str,
+    page: int = 1,
+    page_size: int = 24,
+    sort: Optional[str] = None,
+    limit: Optional[int] = None,
+    card: Optional[str] = None,
+    layout: Optional[Dict[str, Any]] = None,
+  ) -> Optional[Dict[str, Any]]:
+    """
+    Return a collection payload.
+
+    This is used by GET /api/collection and mirrors the hydrated collection block
+    shape from the /api/page endpoint.
+    """
+    if not path:
+      return None
+
+    # Normalize paging defensively
+    try:
+      page = int(page)
+    except Exception:
+      page = 1
+    if page < 1:
+      page = 1
+
+    try:
+      page_size = int(page_size)
+    except Exception:
+      page_size = 24
+    if page_size < 1:
+      page_size = 24
+
+    return self.graph.get_collection_payload(
+      source=source or "folder",
+      path=path,
+      page=page,
+      page_size=page_size,
+      sort=sort,
+      limit=limit,
+      card=card,
+      layout=layout,
+      current_node_path=self.graph.root_content_path,
+    )
