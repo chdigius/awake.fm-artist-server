@@ -188,3 +188,19 @@ export function getVisualizerAnalyzer(el: HTMLElement): AudioAnalyzer | null {
   return entry?.analyzer || null
 }
 
+/**
+ * Resize a mounted visualizer's canvas to match its container dimensions.
+ * This uses p5's resizeCanvas() which preserves the instance and audio connection.
+ */
+export function resizeVisualizer(el: HTMLElement | null | undefined): void {
+  if (!el) return
+  const entry = activeVisualizers.get(el)
+  if (!entry) return
+
+  const newWidth = el.clientWidth || 200
+  const newHeight = el.clientHeight || 200
+
+  // Call p5's resizeCanvas - this preserves the instance and audio connection
+  entry.instance.resizeCanvas(newWidth, newHeight)
+}
+

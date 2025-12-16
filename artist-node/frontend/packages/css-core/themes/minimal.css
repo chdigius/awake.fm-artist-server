@@ -4,6 +4,9 @@
   --color-muted: #666;
   --color-accent: #0066ff;
   --color-border: rgba(0,0,0,0.12);
+  --color-error: #dd3333;
+  --color-text-secondary: #666666;
+  --color-text-tertiary: #999999;
 
   --radius: 4px;
 }

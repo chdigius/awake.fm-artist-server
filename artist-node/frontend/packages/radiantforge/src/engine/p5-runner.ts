@@ -78,3 +78,28 @@ export function hasMountedSigil(el: HTMLElement | null | undefined): boolean {
   if (!el) return false
   return activeInstances.has(el)
 }
+
+/**
+ * Get the p5 instance for a mounted sigil.
+ * Useful for calling p5 methods like resizeCanvas().
+ */
+export function getSigilInstance(el: HTMLElement | null | undefined): p5 | null {
+  if (!el) return null
+  return activeInstances.get(el) || null
+}
+
+/**
+ * Resize a mounted sigil's canvas to match its container dimensions.
+ * This uses p5's resizeCanvas() which preserves the instance and all state.
+ */
+export function resizeSigil(el: HTMLElement | null | undefined): void {
+  if (!el) return
+  const instance = activeInstances.get(el)
+  if (!instance) return
+
+  const newWidth = el.clientWidth || 200
+  const newHeight = el.clientHeight || 200
+
+  // Call p5's resizeCanvas - this preserves the instance and state
+  instance.resizeCanvas(newWidth, newHeight)
+}

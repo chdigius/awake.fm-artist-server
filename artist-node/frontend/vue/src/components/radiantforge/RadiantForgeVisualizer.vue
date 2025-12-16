@@ -13,6 +13,7 @@ import {
   mountVisualizer,
   unmountVisualizer,
   getVisualizerAnalyzer,
+  resizeVisualizer,
   type VisualizerOptions,
 } from '@awake/radiantforge'
 
@@ -65,8 +66,18 @@ function resumeAnalyzer() {
   }
 }
 
-// Expose resumeAnalyzer so parent components can call it
-defineExpose({ resumeAnalyzer })
+/**
+ * Resize the visualizer canvas to match its container.
+ * Uses p5's resizeCanvas() which preserves the instance and audio connection.
+ */
+function resize() {
+  if (host.value) {
+    resizeVisualizer(host.value)
+  }
+}
+
+// Expose methods so parent components can call them
+defineExpose({ resumeAnalyzer, resize })
 
 onMounted(() => {
   renderVisualizer()

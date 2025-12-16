@@ -4,6 +4,9 @@
   --color-muted: #caaadb;
   --color-accent: #ff71ce;
   --color-border: rgba(255,255,255,0.2);
+  --color-error: #ff5588;
+  --color-text-secondary: #d4b5e0;
+  --color-text-tertiary: #9a7aaa;
 
   --radius: 12px;
   --font-body: 'IBM Plex Sans', sans-serif;

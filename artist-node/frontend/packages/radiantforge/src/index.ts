@@ -21,6 +21,8 @@ export {
   mountSigil,
   unmountSigil,
   hasMountedSigil,
+  getSigilInstance,
+  resizeSigil,
 } from './engine/p5-runner'
 
 // === AUDIO ANALYZER ===
@@ -39,6 +41,7 @@ export {
   unmountVisualizer,
   hasVisualizer,
   getVisualizerAnalyzer,
+  resizeVisualizer,
 } from './audio/visualizer-runner'
 
 // === BUILT-IN SIGILS (static/decorative) ===

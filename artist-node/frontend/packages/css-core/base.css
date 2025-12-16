@@ -9,6 +9,9 @@
   --color-mutes: #666666;
   --color-accent: #0077ff;
   --color-border: rgba(0,0,0,0.1);
+  --color-error: #ff4444;
+  --color-text-secondary: #666666;
+  --color-text-tertiary: #999999;
 
   /* Layout */
   --radius: 6px;

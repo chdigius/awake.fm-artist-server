@@ -212,7 +212,7 @@ function onEnded() {
 // Fullscreen controls
 function toggleFullscreen() {
   if (!visualizerContainerRef.value) return
-  
+
   if (document.fullscreenElement) {
     document.exitFullscreen()
   } else {
@@ -222,6 +222,14 @@ function toggleFullscreen() {
 
 function onFullscreenChange() {
   isFullscreen.value = !!document.fullscreenElement
+
+  // Resize the visualizer canvas to match the new container size
+  // Use nextTick to ensure Vue has updated the DOM with the new CSS class
+  setTimeout(() => {
+    if (visualizerRef.value) {
+      visualizerRef.value.resize()
+    }
+  }, 10)
 }
 
 // Listen for fullscreen changes (including Escape key exit)
