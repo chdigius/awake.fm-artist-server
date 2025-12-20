@@ -4,6 +4,7 @@
 //
 import p5 from 'p5'
 import { get, type P5Options } from './registry'
+import { CoordinateHelper, type RendererType } from './coordinate-helper'
 
 /**
  * Track active p5 instances by their host element.
@@ -41,20 +42,37 @@ export function mountSigil(
   // If there's already an instance on this element, clean it up first.
   unmountSigil(el)
 
-  // Inject container dimensions into options so sketches can size correctly
+  const width = el.clientWidth || 200
+  const height = el.clientHeight || 200
+  const renderer: RendererType = (options?.renderer as RendererType) || '2d'
+
+  // Inject container dimensions and coordinate helper into options
   const enhancedOptions: P5Options = {
     ...options,
-    _containerWidth: el.clientWidth || 200,
-    _containerHeight: el.clientHeight || 200,
+    _containerWidth: width,
+    _containerHeight: height,
     _container: el,
+    renderer,
   }
 
   const sketch = (p: p5) => {
-    factory(p, enhancedOptions)
+    // Create coordinate helper and inject it
+    const coords = new CoordinateHelper(p, width, height, renderer)
+    const optsWithCoords = {
+      ...enhancedOptions,
+      _coords: coords,
+    }
+    factory(p, optsWithCoords)
   }
 
   const instance = new p5(sketch, el)
   activeInstances.set(el, instance)
+  
+  // Log renderer type for debugging
+  if (import.meta.env?.MODE !== 'production') {
+    console.log(`RadiantForge: Mounted sigil with ${renderer.toUpperCase()} renderer`, { width, height, el })
+  }
+  
   return instance
 }
 

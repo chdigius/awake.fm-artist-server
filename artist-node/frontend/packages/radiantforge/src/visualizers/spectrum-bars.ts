@@ -4,10 +4,10 @@
 // Classic frequency spectrum visualization with vertical bars.
 //
 import type p5 from 'p5'
-import type { SigilFactory, SigilOptions } from '../engine/registry'
+import type { VisualizerFactory, VisualizerOptions } from '../engine/registry'
 import type { FrequencyBands } from '../audio/analyzer'
 
-interface SpectrumBarsOptions extends SigilOptions {
+interface SpectrumBarsOptions extends VisualizerOptions {
   // Injected by runner
   _containerWidth?: number
   _containerHeight?: number
@@ -36,7 +36,7 @@ function parseColor(p: p5, color?: string): [number, number, number] {
   }
 }
 
-export const spectrumBarsSigil: SigilFactory = (p: p5, options?: SigilOptions) => {
+export const spectrumBarsVisualizer: VisualizerFactory = (p: p5, options?: VisualizerOptions) => {
   const opts = (options || {}) as SpectrumBarsOptions
   
   const barCount = opts.barCount || 32
@@ -180,5 +180,5 @@ export const spectrumBarsSigil: SigilFactory = (p: p5, options?: SigilOptions) =
   }
 }
 
-export default spectrumBarsSigil
+export default spectrumBarsVisualizer
 

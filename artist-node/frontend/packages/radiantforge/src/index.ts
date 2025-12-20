@@ -7,7 +7,14 @@
 //
 
 // === CORE REGISTRY ===
-export type { P5Options, P5Factory } from './engine/registry'
+export type {
+  P5Options,
+  P5Factory,
+  SigilOptions,
+  SigilFactory,
+  VisualizerOptions as VisualizerOptionsRegistry,
+  VisualizerFactory,
+} from './engine/registry'
 export {
   register,
   unregister,
@@ -15,6 +22,10 @@ export {
   has,
   list,
 } from './engine/registry'
+
+// === COORDINATE HELPER ===
+export type { RendererType } from './engine/coordinate-helper'
+export { CoordinateHelper } from './engine/coordinate-helper'
 
 // === P5 RUNNER (mounts p5 sketches to DOM) ===
 export {
@@ -48,20 +59,23 @@ export {
 export { awakeNode001Sigil } from './sigils/awake-node-001'
 
 // === BUILT-IN VISUALIZERS (audio-reactive) ===
-export { spectrumBarsSigil } from './visualizers/spectrum-bars'
-export { gforceFlowSigil } from './visualizers/gforce-flow'
+export { spectrumBarsVisualizer } from './visualizers/spectrum-bars'
+export { gforceFlowVisualizer } from './visualizers/gforce-flow'
+export { nebulaFlightVisualizer } from './visualizers/nebula-flight'
 
 // === BOOTSTRAP: register all built-ins ===
 import { register } from './engine/registry'
 import { awakeNode001Sigil } from './sigils/awake-node-001'
-import { spectrumBarsSigil } from './visualizers/spectrum-bars'
-import { gforceFlowSigil } from './visualizers/gforce-flow'
+import { spectrumBarsVisualizer } from './visualizers/spectrum-bars'
+import { gforceFlowVisualizer } from './visualizers/gforce-flow'
+import { nebulaFlightVisualizer } from './visualizers/nebula-flight'
 
 export function registerBuiltins(): void {
   // Static sigils
   register('node-001', awakeNode001Sigil)
   
   // Audio visualizers
-  register('spectrum-bars', spectrumBarsSigil)
-  register('gforce-flow', gforceFlowSigil)
+  register('spectrum-bars', spectrumBarsVisualizer)
+  register('gforce-flow', gforceFlowVisualizer)
+  register('nebula-flight', nebulaFlightVisualizer)
 }

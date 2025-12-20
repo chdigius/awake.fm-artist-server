@@ -4,15 +4,19 @@
 // Inspired by the classic G-Force visualizer - fluid, organic, psychedelic.
 // Radial waveforms, color cycling, particle trails, beat pulses.
 //
+// Now GPU-accelerated with WebGL!
+//
 import type p5 from 'p5'
-import type { SigilFactory, SigilOptions } from '../engine/registry'
+import type { VisualizerFactory, VisualizerOptions } from '../engine/registry'
+import type { CoordinateHelper } from '../engine/coordinate-helper'
 import type { FrequencyBands } from '../audio/analyzer'
 
-interface GForceOptions extends SigilOptions {
+interface GForceOptions extends VisualizerOptions {
   _containerWidth?: number
   _containerHeight?: number
   _container?: HTMLElement
   _getAudioData?: () => FrequencyBands
+  _coords?: CoordinateHelper
   
   // User options
   colorSpeed?: number
@@ -22,7 +26,7 @@ interface GForceOptions extends SigilOptions {
   mode?: 'radial' | 'spiral' | 'mirror'
 }
 
-export const gforceFlowSigil: SigilFactory = (p: p5, options?: SigilOptions) => {
+export const gforceFlowVisualizer: VisualizerFactory = (p: p5, options?: VisualizerOptions) => {
   const opts = (options || {}) as GForceOptions
   
   const sensitivity = opts.sensitivity || 1.0
@@ -30,6 +34,13 @@ export const gforceFlowSigil: SigilFactory = (p: p5, options?: SigilOptions) => 
   const trailLength = opts.trailLength || 0.15
   const particleCount = opts.particleCount || 60
   const mode = opts.mode || 'radial'
+  
+  // Default to 2D renderer for best performance
+  // This visualizer uses trail buffer with heavy pixel copying (p.get(), image()),
+  // which is faster on CPU than GPU due to CPU-GPU transfer overhead.
+  // Can be overridden with opts.renderer = 'webgl' if desired.
+  // The runner sets opts._renderer based on config, defaulting to '2d'
+  const isWebGL = opts._renderer === 'webgl'
   
   let time = 0
   let hueOffset = 0
@@ -54,14 +65,16 @@ export const gforceFlowSigil: SigilFactory = (p: p5, options?: SigilOptions) => 
   p.setup = () => {
     const w = opts._containerWidth || 400
     const h = opts._containerHeight || 400
-    const canvas = p.createCanvas(w, h)
+    
+    // Use the renderer specified in options (WebGL or 2D)
+    const canvas = isWebGL ? p.createCanvas(w, h, p.WEBGL) : p.createCanvas(w, h)
     canvas.style('display', 'block')
     
     p.colorMode(p.HSB, 360, 100, 100, 100)
     p.background(0)
     
-    // Create trail buffer
-    trailBuffer = p.createGraphics(w, h)
+    // Create trail buffer with same renderer
+    trailBuffer = isWebGL ? p.createGraphics(w, h, p.WEBGL) : p.createGraphics(w, h)
     trailBuffer.colorMode(p.HSB, 360, 100, 100, 100)
     trailBuffer.background(0)
     
@@ -79,8 +92,14 @@ export const gforceFlowSigil: SigilFactory = (p: p5, options?: SigilOptions) => 
   }
 
   p.draw = () => {
-    const cx = p.width / 2
-    const cy = p.height / 2
+    // Get center point using CoordinateHelper (handles renderer differences)
+    if (!opts._coords) {
+      throw new Error('gforce-flow: CoordinateHelper not provided by runner')
+    }
+    const center = opts._coords.center()
+    const cx = center.x
+    const cy = center.y
+    const origin = opts._coords.getOrigin() // Reuse this throughout the function
     const maxRadius = Math.min(p.width, p.height) * 0.45
     
     time += p.deltaTime * 0.001
@@ -120,19 +139,15 @@ export const gforceFlowSigil: SigilFactory = (p: p5, options?: SigilOptions) => 
     // === TRAIL EFFECT ===
     // Draw fading trail from previous frame
     trailBuffer.background(0, 0, 0, trailLength * 100)
-    p.image(trailBuffer, 0, 0)
     
-    // Draw to both main canvas and buffer
-    const drawToBuffer = (fn: () => void) => {
-      fn()
-      trailBuffer.push()
-      trailBuffer.translate(cx, cy)
-      fn.call(trailBuffer)
-      trailBuffer.pop()
-    }
+    // Position trail buffer using CoordinateHelper (handles renderer differences)
+    p.image(trailBuffer, origin.x, origin.y)
     
     p.push()
-    p.translate(cx, cy)
+    // In 2D mode, translate to center; WebGL is already centered
+    if (!isWebGL) {
+      p.translate(cx, cy)
+    }
     
     // === RADIAL WAVEFORM ===
     const wavePoints = 128
@@ -232,21 +247,21 @@ export const gforceFlowSigil: SigilFactory = (p: p5, options?: SigilOptions) => 
     
     p.pop()
     
-    // Copy to trail buffer
-    trailBuffer.image(p.get(), 0, 0)
+    // Copy to trail buffer (position depends on renderer)
+    trailBuffer.image(p.get(), origin.x, origin.y)
   }
 
   p.windowResized = () => {
     const container = opts._container
     if (container) {
       p.resizeCanvas(container.clientWidth, container.clientHeight)
-      // Recreate trail buffer at new size
-      trailBuffer = p.createGraphics(p.width, p.height)
+      // Recreate trail buffer at new size (same renderer as main canvas)
+      trailBuffer = isWebGL ? p.createGraphics(p.width, p.height, p.WEBGL) : p.createGraphics(p.width, p.height)
       trailBuffer.colorMode(p.HSB, 360, 100, 100, 100)
       trailBuffer.background(0)
     }
   }
 }
 
-export default gforceFlowSigil
+export default gforceFlowVisualizer
 

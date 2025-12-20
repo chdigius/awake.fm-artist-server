@@ -6,6 +6,7 @@
 
 import p5 from 'p5'
 import { get, type P5Options } from '../engine/registry'
+import { CoordinateHelper, type RendererType } from '../engine/coordinate-helper'
 import { AudioAnalyzer, getGlobalAnalyzer, type FrequencyBands, type AnalyzerConfig } from './analyzer'
 
 /**
@@ -68,6 +69,10 @@ export function mountVisualizer(
   // Clean up any existing visualizer on this element
   unmountVisualizer(el)
 
+  const width = el.clientWidth || 200
+  const height = el.clientHeight || 200
+  const renderer: RendererType = (options?.renderer as RendererType) || '2d'
+
   // Create or get analyzer
   const analyzer = new AudioAnalyzer(analyzerConfig)
   analyzer.connectElement(audioSource)
@@ -75,15 +80,22 @@ export function mountVisualizer(
   // Build enhanced options with audio data getter
   const enhancedOptions: VisualizerOptions = {
     ...options,
-    _containerWidth: el.clientWidth || 200,
-    _containerHeight: el.clientHeight || 200,
+    _containerWidth: width,
+    _containerHeight: height,
     _container: el,
     _getAudioData: () => analyzer.getFrequencyBands(),
     _analyzer: analyzer,
+    renderer,
   }
 
   const sketch = (p: p5) => {
-    factory(p, enhancedOptions)
+    // Create coordinate helper and inject it
+    const coords = new CoordinateHelper(p, width, height, renderer)
+    const optsWithCoords = {
+      ...enhancedOptions,
+      _coords: coords,
+    }
+    factory(p, optsWithCoords)
   }
 
   const instance = new p5(sketch, el)
@@ -93,6 +105,11 @@ export function mountVisualizer(
     analyzer,
     ownAnalyzer: true,
   })
+
+  // Log renderer type for debugging
+  if (import.meta.env?.MODE !== 'production') {
+    console.log(`RadiantForge: Mounted visualizer with ${renderer.toUpperCase()} renderer`, { width, height, el })
+  }
 
   return instance
 }
@@ -126,20 +143,31 @@ export function mountVisualizerShared(
 
   unmountVisualizer(el)
 
+  const width = el.clientWidth || 200
+  const height = el.clientHeight || 200
+  const renderer: RendererType = (options?.renderer as RendererType) || '2d'
+
   // Use provided analyzer or global
   const sharedAnalyzer = analyzer || getGlobalAnalyzer()
 
   const enhancedOptions: VisualizerOptions = {
     ...options,
-    _containerWidth: el.clientWidth || 200,
-    _containerHeight: el.clientHeight || 200,
+    _containerWidth: width,
+    _containerHeight: height,
     _container: el,
     _getAudioData: () => sharedAnalyzer.getFrequencyBands(),
     _analyzer: sharedAnalyzer,
+    renderer,
   }
 
   const sketch = (p: p5) => {
-    factory(p, enhancedOptions)
+    // Create coordinate helper and inject it
+    const coords = new CoordinateHelper(p, width, height, renderer)
+    const optsWithCoords = {
+      ...enhancedOptions,
+      _coords: coords,
+    }
+    factory(p, optsWithCoords)
   }
 
   const instance = new p5(sketch, el)
