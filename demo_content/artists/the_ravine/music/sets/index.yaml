@@ -1,0 +1,18 @@
+title: "Live Performances"
+tagline: "Recorded live sets and performances"
+
+content:
+  - type: section
+    id: sets
+    label: "Live Sets"
+    blocks:
+      - type: markdown
+        body: |
+          **Live at The Void** (2024-03-15)
+          Full 45-minute set recorded at The Void in Brooklyn. Raw, uncompromising, 
+          and utterly immersive. The room shook.
+          
+          **Roadburn Festival 2023**
+          The Ravine's European debut. A career-defining performance that left 
+          the audience in stunned silence before erupting into applause.
+

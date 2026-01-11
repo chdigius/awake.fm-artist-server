@@ -1,0 +1,15 @@
+layout: page
+display_name: Tracks
+
+blocks:
+  - type: section
+    label: Released Tracks
+    blocks:
+      - type: markdown
+        content: |
+          # Beatport Releases
+
+          50+ tracks released through various drum & bass labels, available on Beatport and other digital platforms.
+
+          Tracks will be added with full metadata, artwork, and streaming links.
+

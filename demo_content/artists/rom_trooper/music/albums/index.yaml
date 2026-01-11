@@ -1,0 +1,13 @@
+# content/artists/rom_trooper/music/albums/index.yaml
+
+title: "Albums"
+tagline: "Listen to ROM Trooper's albums."
+
+content:
+  - type: hero
+    heading: "ROM Trooper Albums"
+    subheading: "Full-length releases from ROM Trooper."
+    body: |
+      Full-length releases from ROM Trooper.
+      Explore the discography.
+

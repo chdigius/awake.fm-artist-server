@@ -1,0 +1,12 @@
+# content/artists/zol/tracks/index.yaml
+
+title: "Tracks"
+tagline: "Listen to ZØL's tracks."
+
+content:
+  - type: hero
+    heading: "ZØL Tracks"
+    subheading: "Latest tracks from ZØL."
+    body: |
+      Latest tracks from ZØL.
+      Listen to the latest tracks from ZØL.

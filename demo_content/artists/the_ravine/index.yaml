@@ -1,0 +1,46 @@
+# content/artists/the_ravine/index.yaml
+
+title: "The Ravine"
+tagline: "Atmospheric post-metal. Heavy, slow, crushing beauty."
+
+preview:
+  # image: "assets/the-ravine-preview.jpg"
+  caption: "The Ravine — Atmospheric post-metal."
+  badge: "Artist"
+  blurb: "Crushing walls of distortion meet delicate ambient passages. Post-metal that breathes like a living organism—heavy, slow, and devastatingly beautiful."
+
+content:
+  - type: section
+    id: music
+    label: "Music"
+    blocks:
+      - type: subpage
+        ref: artists/the_ravine/music/albums
+        label: "Albums"
+        nav: true
+
+      - type: subpage
+        ref: artists/the_ravine/music/tracks
+        label: "Tracks"
+        nav: true
+
+      - type: subpage
+        ref: artists/the_ravine/music/sets
+        label: "Live Performances"
+        nav: true
+
+  - type: section
+    id: about
+    label: "About"
+    blocks:
+      - type: markdown
+        body: |
+          **The Ravine** emerged from the depths of experimental metal and ambient drone, 
+          forging a sound that balances crushing heaviness with ethereal beauty. 
+          
+          Drawing influence from Neurosis, Isis, and Godspeed You! Black Emperor, 
+          The Ravine creates expansive sonic landscapes where distorted guitars 
+          cascade like avalanches and quiet moments shimmer with tension.
+          
+          Each composition is a journey—patient, deliberate, and emotionally devastating.
+

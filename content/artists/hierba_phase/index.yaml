@@ -1,0 +1,30 @@
+# content/artists/zol/index.yaml
+
+title: "Hierba Phase"
+tagline: "Groove driven, drop tuned heavy metal"
+
+preview:
+  # image: "assets/ishimura-preview.jpg"  # TODO: add preview image
+  caption: "Hierba Phase — Groove driven, drop tuned heavy metal"
+  badge: "Artist"
+  blurb: "Groove driven, drop tuned heavy metal"
+
+content:
+  - type: section
+    id: music
+    label: "Music"
+    blocks:
+      - type: subpage
+        ref: artists/hierba_phase/music/albums
+        label: "Albums"
+        nav: true
+
+      - type: subpage
+        ref: artists/hierba_phase/music/tracks
+        label: "Tracks"
+        nav: true
+
+      - type: subpage
+        ref: artists/hierba_phase/music/sets
+        label: "Live Sets"
+        nav: true

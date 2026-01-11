@@ -1,0 +1,12 @@
+# content/artists/zol/tracks/index.yaml
+
+title: "Sets"
+tagline: "Listen to ZØL's sets."
+
+content:
+  - type: hero
+    heading: "ZØL Sets"
+    subheading: "Latest sets from ZØL."
+    body: |
+      Latest sets from ZØL.
+      Listen to the latest sets from ZØL.

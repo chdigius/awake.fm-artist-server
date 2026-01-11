@@ -1,0 +1,6 @@
+display_name: Bassdrive Radio Archive
+theme: dark
+effects:
+  - scanlines
+  - chromatic-aberration
+

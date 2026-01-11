@@ -1,0 +1,12 @@
+# content/artists/zol/tracks/index.yaml
+
+title: "Sets"
+tagline: "Listen to Ishimura's sets."
+
+content:
+  - type: hero
+    heading: "Ishimura Sets"
+    subheading: "Latest sets from Ishimura."
+    body: |
+      Latest sets from Ishimura.
+      Listen to the latest sets from Ishimura.

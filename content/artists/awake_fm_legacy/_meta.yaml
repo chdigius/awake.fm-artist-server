@@ -1,0 +1,7 @@
+theme: retro-dnb
+display_name: "Awake.fm Legacy"
+effects:
+  - scanlines
+  - chromatic-aberration
+  - vhs
+

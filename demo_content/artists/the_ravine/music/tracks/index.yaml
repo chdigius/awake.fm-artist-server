@@ -1,0 +1,22 @@
+title: "Tracks"
+tagline: "Singles and standalone compositions"
+
+content:
+  - type: section
+    id: tracks
+    label: "Tracks"
+    blocks:
+      - type: markdown
+        body: |
+          **Descent** (2024) - 8:47
+          A slow-burning journey into darkness. Layers of distorted guitars build over droning bass, 
+          culminating in a crushing climax before dissolving into ambient whispers.
+          
+          **Echoes in Stone** (2024) - 11:23  
+          Post-metal at its most patient. Delicate clean guitars weave through feedback and delay, 
+          gradually giving way to monolithic riffs that shake the foundation.
+          
+          **The Weight of Silence** (2023) - 6:15
+          An instrumental meditation on loss. Sparse, haunting melodies drift over rumbling low-end, 
+          creating space for reflection and catharsis.
+

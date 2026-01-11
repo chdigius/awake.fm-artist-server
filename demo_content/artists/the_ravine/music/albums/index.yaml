@@ -1,0 +1,11 @@
+title: "Albums"
+tagline: "Full-length releases from The Ravine"
+
+content:
+  - type: section
+    id: albums
+    label: "Albums"
+    blocks:
+      - type: markdown
+        body: "Albums coming soon. The Ravine is currently working on their debut full-length."
+

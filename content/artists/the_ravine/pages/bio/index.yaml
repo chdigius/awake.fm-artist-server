@@ -1,0 +1,40 @@
+title: "Biography"
+tagline: "The story behind The Ravine"
+
+content:
+  - type: section
+    id: bio
+    label: "Biography"
+    blocks:
+      - type: markdown
+        body: |
+          ## Origins
+          
+          The Ravine began in 2022 as a solo project exploring the intersection of 
+          post-metal, drone, and ambient music. What started as bedroom experiments 
+          with layered guitars and field recordings evolved into a fully-realized 
+          sonic identity.
+          
+          ## Philosophy
+          
+          The music of The Ravine is built on contrasts: beauty and brutality, 
+          silence and noise, patience and catharsis. Each composition is designed 
+          to be experienced as a complete journey, demanding attention and rewarding 
+          those who surrender to its flow.
+          
+          ## Influences
+          
+          - Neurosis
+          - Isis
+          - Godspeed You! Black Emperor
+          - Sunn O)))
+          - Earth
+          - Pelican
+          - Russian Circles
+          
+          ## Current
+          
+          Currently working on debut full-length album "Descent Into Form" 
+          (expected 2025). The Ravine performs select live shows, transforming 
+          intimate venues into cathedrals of sound.
+

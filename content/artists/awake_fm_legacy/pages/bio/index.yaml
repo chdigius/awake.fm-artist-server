@@ -1,0 +1,29 @@
+layout: page
+display_name: Biography
+
+blocks:
+  - type: section
+    label: The Story
+    blocks:
+      - type: markdown
+        content: |
+          # From Bedroom Producer to Bassdrive
+
+          The Awake.fm story begins in [YEAR], when [YOUR STORY HERE - we can fill this in together].
+
+          ## The Bassdrive Years (2010-2015)
+
+          [Your journey on Bassdrive - how you got the show, memorable moments, community]
+
+          ## The Music
+
+          [Your production style, influences, what drove your sound]
+
+          ## The Labels
+
+          [Labels you worked with, notable releases]
+
+          ## Evolution
+
+          [How Awake.fm evolved from artist name to network concept]
+

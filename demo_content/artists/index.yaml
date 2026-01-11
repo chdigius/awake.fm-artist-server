@@ -1,0 +1,39 @@
+# content/artists/index.yaml
+meta:
+  layout: "artists"
+  slug: "artists"
+  display_name: "Artists"
+
+title: "Artists"
+tagline: "The roster."
+
+content:
+  - type: section
+    id: roster
+    label: "Artists"
+    blocks:
+      - type: subpage
+        ref: "artists/zol"
+        label: "ZØL"
+        nav: true
+
+      - type: subpage
+        ref: "artists/rom_trooper"
+        label: "ROM Trooper"
+        nav: true
+
+      - type: subpage
+        ref: "artists/ishimura"
+        label: "Ishimura"
+        nav: true
+
+      # This one will NOT show in the nav (nav: false)
+      - type: subpage
+        ref: "artists/hierba_phase"
+        label: "Hierba Phase"
+        nav: true
+
+      - type: subpage
+        ref: "artists/the_ravine"
+        label: "The Ravine"
+        nav: true

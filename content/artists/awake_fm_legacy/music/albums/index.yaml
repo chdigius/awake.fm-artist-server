@@ -1,0 +1,15 @@
+layout: page
+display_name: Albums & EPs
+
+blocks:
+  - type: section
+    label: Albums & EPs
+    blocks:
+      - type: markdown
+        content: |
+          # Discography
+
+          Full-length releases and EPs from the Awake.fm catalog.
+
+          Albums will be added with full tracklists, artwork, and release information.
+

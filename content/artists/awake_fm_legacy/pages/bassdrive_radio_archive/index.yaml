@@ -1,0 +1,53 @@
+layout: page
+slug: bassdrive_radio_archive
+display_name: Bassdrive Radio Archive
+
+preview:
+  title: "Bassdrive Radio Archive"
+  caption: "2018-2021"
+  badge: "50+ SETS"
+  blurb: "3 years of liquid drum & bass sessions from one of the world's premier DnB radio stations"
+
+content:
+  - type: hero
+    heading: "Bassdrive Sessions"
+    subheading: "2018-2021 • 50+ Live Sets"
+    sigil:
+      type: p5
+      id: node-001
+      options:
+        seed: 2018
+
+  - type: markdown
+    body: |
+      # The Residency
+
+      From 2018 to 2021, Awake.fm held a residency on **Bassdrive.com**, one of the world's most respected drum & bass radio stations. 
+      Broadcasting to listeners worldwide, these sessions showcased the deepest cuts in liquid, atmospheric, and intelligent drum & bass.
+
+      Each set was recorded in two versions:
+      - **Live Sessions** - Original broadcasts with voiceovers, shoutouts, and DJ personality
+      - **Music-Only Sets** - Pure mix flow for uninterrupted listening
+
+      ## Archive Note
+
+      This archive is currently being compiled. Check back soon for the complete collection of sets, tracklists, and download links.
+
+  - type: section
+    label: "Live Sessions (Original Broadcasts)"
+    align:
+      horizontal: center
+    content:
+      - type: markdown
+        body: |
+          *Archive coming soon - 50+ live sessions from 2018-2021*
+
+  - type: section
+    label: "Music-Only Sets"
+    align:
+      horizontal: center
+    content:
+      - type: markdown
+        body: |
+          *Archive coming soon - Pure mix flow versions*
+

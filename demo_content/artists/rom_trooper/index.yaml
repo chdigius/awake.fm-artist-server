@@ -1,0 +1,28 @@
+title: "ROM Trooper"
+tagline: "Neon ghosts in a dying circuit grid."
+
+preview:
+  # image: "assets/rom-trooper-preview.jpg"  # TODO: add preview image
+  caption: "ROM Trooper — Neon-drenched Synthwave"
+  badge: "Artist"
+  blurb: "Dreamy VHS haze, distorted tape memories, and ultraviolet synthwave drifting through broken timelines."
+
+content:
+  - type: section
+    id: music
+    label: "Music"
+    blocks:
+      - type: subpage
+        ref: artists/rom_trooper/music/albums
+        label: "Albums"
+        nav: true
+
+      - type: subpage
+        ref: artists/rom_trooper/music/tracks
+        label: "Tracks"
+        nav: true
+
+      - type: subpage
+        ref: artists/rom_trooper/music/sets
+        label: "Live Sets"
+        nav: true

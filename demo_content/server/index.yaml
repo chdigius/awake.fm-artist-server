@@ -1,0 +1,159 @@
+title: "Awake FM Node 001"
+tagline: "Artist-owned. Algorithm-free. Built for humans."
+# background: '/content/assets/backgrounds/starfield_1.jpg'
+
+content:
+  - type: hero
+    heading: "Awake FM Node 001"
+    subheading: "A sovereign music server on the Awake.fm network."
+    # background: '/content/assets/backgrounds/hero_background_1.jpg'
+    body: |
+      A self-hosted artist node running on the Awake.fm decentralized protocol.
+      No shareholders. No engagement farming. No algorithms.
+      Just music, ownership, and creative autonomy.
+    sigil:
+      type: "p5"
+      id: "node-001"
+      options:
+        seed: "awake-node-001"
+        variant: "orbit"
+    cta:
+      label: "Meet the Artists"
+      target: "#artists-grid"
+
+  # --- ARTISTS: GRID LAYOUT (primary directory style) ---
+  - type: section
+    id: artists-grid
+    label: "Artists — Grid"
+    blocks:
+      - type: collection
+        source: folder
+        path: "artists"
+        card: "artist"
+        layout:
+          mode: "grid"          # grid | list | carousel
+          columns:
+            xl: 5
+            lg: 4
+            md: 3
+            sm: 2
+            xs: 1
+          gap:
+            row: "1.5rem"
+            column: "1.5rem"
+          align:
+            horizontal: "center"  # stretch | center | start
+            vertical: "center"      # start | center
+          # Optional max rows before pagination / "View All"
+          max_rows: 3
+        # sort: "name_asc"  # Commented out to use collection_order from artists/_meta.yaml
+        limit: 120                  # hard cap if someone really goes wild
+        paging:
+          enabled: true
+          page_size: 24             # items per page for this grid
+          mode: "load_more"         # "load_more" | "pages"
+        empty_state:
+          heading: "No artists yet."
+          body: "When this node onboards artists, they’ll appear here in a responsive grid."
+
+  # --- ARTISTS: LIST LAYOUT (text-focused, compact) ---
+  - type: section
+    id: artists-list
+    label: "Artists — List"
+    align:
+      horizontal: "center"  # Override: label centered even though collection is left-aligned
+    blocks:
+      - type: collection
+        source: folder
+        path: "artists"
+        card: "artist"
+        layout:
+          mode: "list"
+          max_width: "800px"   # constrain list width for readability
+          gap: "1rem"          # vertical gap between items
+          align:
+            horizontal: "left"  # center the list in its container
+        # sort: "name_asc"  # Commented out to use collection_order from artists/_meta.yaml
+        limit: 200
+        paging:
+          enabled: true
+          page_size: 40        # lists can show more per page comfortably
+          mode: "pages"        # numbered pages if you want, or still treat as load-more
+        empty_state:
+          heading: "No artists listed."
+          body: "This list view is ideal for text-first browsing and quick scanning."
+
+  # --- ARTISTS: CAROUSEL LAYOUT (featured strip) ---
+  - type: section
+    id: artists-carousel
+    label: "Artists — Carousel"
+    blocks:
+      - type: collection
+        source: folder
+        path: "artists"
+        card: "artist"
+        layout:
+          mode: "carousel"
+          slides_per_view:
+            xl: 5
+            lg: 4
+            md: 3
+            sm: 2
+            xs: 1
+          spacing: "1rem"        # gap between slides
+          loop: true
+          autoplay:
+            enabled: true
+            interval_ms: 8000
+            pause_on_hover: true
+          controls:
+            arrows: true
+            dots: true
+          snap_align: "center"   # start | center
+          # Optional: constrain width for hero-style strips
+          max_width: "100%"
+        # sort: "random"         # Commented out to use collection_order from artists/_meta.yaml
+        limit: 12
+        paging:
+          enabled: false         # carousels usually just loop a fixed set
+          page_size: 12
+          mode: "load_more"
+        empty_state:
+          heading: "No featured artists yet."
+          body: "Once artists are onboarded, you can spotlight them in a smooth carousel."
+
+  # --- EXISTING / OTHER SERVER-LEVEL SECTIONS ---
+
+  - type: section
+    id: releases
+    label: "Releases"
+    blocks:
+      - type: subpage
+        ref: "server/pages/releases"
+        label: "All Releases"
+
+  - type: section
+    id: store
+    label: "Store"
+    blocks:
+      - type: subpage
+        ref: "server/pages/store"
+        label: "Merch & Digital"
+
+  - type: section
+    id: about
+    label: "About This Node"
+    blocks:
+      - type: markdown
+        body: |
+          This node is independently operated and fully artist-owned.
+          It participates in the Awake.fm network to distribute music,
+          host server-level releases, and offer merch without corporate
+          intermediaries.
+
+          All content is managed through a flat-file content graph.  
+          Every folder is a node.  
+          Every artist has a home.  
+          Every release lives forever.
+
+          Welcome to the future of digital autonomy.

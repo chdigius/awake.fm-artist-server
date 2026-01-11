@@ -1,0 +1,30 @@
+# content/artists/zol/index.yaml
+
+title: "Ishimura"
+tagline: "Atmospheric drum and bass."
+
+preview:
+  # image: "assets/ishimura-preview.jpg"  # TODO: add preview image
+  caption: "Ishimura — Atmospheric drum and bass."
+  badge: "Artist"
+  blurb: "Atmospheric drum and bass."
+
+content:
+  - type: section
+    id: music
+    label: "Music"
+    blocks:
+      - type: subpage
+        ref: artists/ishimura/music/albums
+        label: "Albums"
+        nav: true
+
+      - type: subpage
+        ref: artists/ishimura/music/tracks
+        label: "Tracks"
+        nav: true
+
+      - type: subpage
+        ref: artists/ishimura/music/sets
+        label: "Live Sets"
+        nav: true

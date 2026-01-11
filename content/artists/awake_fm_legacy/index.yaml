@@ -1,0 +1,103 @@
+layout: artist
+slug: awake-fm-legacy
+display_name: "Awake.fm"
+# title: "Awake.fm"
+# tagline: "Music released before the Awake.fm network was born."
+
+preview:
+  title: "Awake.fm Legacy"
+  image: 'content\artists\awake_fm_legacy\assets\logo.png'
+  caption: "Awake.fm — Drum & Bass Legacy"
+  badge: "Artist"
+  blurb: "Music released before the Awake.fm network was born."
+
+content:
+  - type: hero
+    heading: Awake.fm
+    subheading: "Drum & Bass | Synthwave | Techno | Bassdrive | 2010-2022"
+    # background: '/content/assets/backgrounds/hero_background_1.jpg'
+    sigil:
+      type: "image"
+      src: "/content/artists/awake_fm_legacy/assets/logo.png"
+      alt: "Awake.fm Legacy Logo"
+
+  - type: section
+    label: History
+    align:
+      horizontal: center
+    blocks:
+      - type: markdown
+        body: |
+          # The Legacy
+
+          Before Awake.fm became a decentralized artist network, it was the moniker of a drum & bass producer and DJ who spent 5 years on the airwaves of **Bassdrive.com**, one of the world's premier drum & bass radio stations.
+
+          With **50+ releases** on Beatport through various labels and countless hours of live radio, this archive represents a chapter of electronic music history from the golden age of liquid drum & bass.
+
+          **Genre**: Liquid Drum & Bass, Atmospheric DnB, Intelligent DnB  
+          **Years Active**: 2010-2015  
+          **Radio**: Bassdrive.com  
+          **Releases**: 50+ tracks across multiple labels
+
+      # - type: subpage
+      #   ref: "artists/awake_fm_legacy"
+      #   label: "AwakeFM Legacy"
+      #   nav: true
+  - type: section
+    label: "Bassdrive Radio Archive"
+    align:
+      horizontal: center
+    blocks:
+      - type: subpage
+        ref: "artists/awake_fm_legacy/pages/bassdrive_radio_archive"
+        title: "Click to view the full archive"
+        badge: "50+ SETS"
+        size: large
+        transform: uppercase
+
+  - type: section
+    label: Released Tracks
+    align:
+      horizontal: center
+    blocks:
+      - type: collection
+        source: folder
+        path: /artists/awake_fm_legacy/music/tracks
+        card: track
+        layout:
+          mode: grid
+          columns:
+            xs: 1
+            sm: 2
+            md: 3
+            lg: 4
+          gap: 1.5rem
+          align:
+            horizontal: center
+        paging:
+          mode: load_more
+          per_page: 24
+
+  - type: section
+    label: Albums & EPs
+    align:
+      horizontal: center
+    blocks:
+      - type: collection
+        source: folder
+        path: /artists/awake_fm_legacy/music/albums
+        card: album
+        layout:
+          mode: grid
+          columns:
+            xs: 1
+            sm: 2
+            md: 3
+            lg: 4
+          gap: 1.5rem
+          align:
+            horizontal: center
+        paging:
+          mode: load_more
+          per_page: 12
+
