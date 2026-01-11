@@ -60,28 +60,25 @@ content:
   - type: section
     id: artists-list
     label: "Artists — List"
+    align:
+      horizontal: "center"  # Override: label centered even though collection is left-aligned
     blocks:
       - type: collection
         source: folder
         path: "artists"
         card: "artist"
         layout:
-          mode: "list"          # vertical list, good for text-heavy views
-          dense: false          # if true, tighter vertical padding
-          show_dividers: true
-          show_avatar: true
-          show_meta: true       # e.g., genres, location, project counts
-          # Alignment within list rows
+          mode: "list"
+          max_width: "800px"   # constrain list width for readability
+          gap: "1rem"          # vertical gap between items
           align:
-            vertical: "center"
-          # Optional max items before "View All" link (frontend hint)
-          max_items: 20
+            horizontal: "left"  # center the list in its container
         sort: "name_asc"
         limit: 200
         paging:
           enabled: true
-          page_size: 40          # lists can show more per page comfortably
-          mode: "pages"          # numbered pages if you want, or still treat as load-more
+          page_size: 40        # lists can show more per page comfortably
+          mode: "pages"        # numbered pages if you want, or still treat as load-more
         empty_state:
           heading: "No artists listed."
           body: "This list view is ideal for text-first browsing and quick scanning."

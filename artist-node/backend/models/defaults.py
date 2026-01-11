@@ -22,11 +22,9 @@ DEFAULT_COLLECTION_LAYOUTS: Dict[str, Dict[str, Any]] = {
   },
   "list": {
     "mode": "list",
-    "dense": False,
-    "show_dividers": True,
-    "show_avatar": True,
-    "show_meta": True,
-    "align": {"vertical": "center"},
+    "max_width": "100%",
+    "gap": "1rem",
+    "align": {"horizontal": "stretch"},
   },
   "carousel": {
     "mode": "carousel",

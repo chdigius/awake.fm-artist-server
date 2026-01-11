@@ -6,6 +6,7 @@
         :key="item.path"
         :is="cardComponent"
         :item="item"
+        mode="grid"
       />
     </div>
   </div>

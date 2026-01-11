@@ -1,10 +1,10 @@
 <template>
-  <router-link :to="`/${item.path}`" class="artist-card">
+  <router-link :to="`/${item.path}`" :class="['artist-card', `artist-card--${mode}`]">
     <!-- Custom image -->
     <div v-if="item.preview?.image" class="artist-card__image">
       <img :src="item.preview.image" :alt="item.display_name || item.preview.title" />
     </div>
-    
+
     <!-- Custom p5 sigil -->
     <div v-else-if="item.preview?.sigil" class="artist-card__image">
       <RadiantForgeSigil
@@ -12,7 +12,7 @@
         :options="item.preview.sigil.options"
       />
     </div>
-    
+
     <!-- Generative default sigil -->
     <div v-else class="artist-card__image">
       <RadiantForgeSigil
@@ -20,7 +20,7 @@
         :options="defaultSigilOptions"
       />
     </div>
-    
+
     <div class="artist-card__content">
       <h3 class="artist-card__title">
         {{ item.display_name || item.preview?.title || item.slug }}
@@ -59,9 +59,12 @@ interface ArtistCardProps {
       };
     };
   };
+  mode?: 'grid' | 'list' | 'carousel';
 }
 
-const props = defineProps<ArtistCardProps>();
+const props = withDefaults(defineProps<ArtistCardProps>(), {
+  mode: 'grid',
+});
 
 // Debug: log item data
 console.log('[ArtistCard] Item:', props.item);
@@ -100,16 +103,15 @@ const defaultSigilOptions = computed(() => {
 </script>
 
 <style scoped>
+/* Base card styles */
 .artist-card {
   display: flex;
-  flex-direction: column;
   background: var(--color-surface);
   border-radius: var(--radius-md);
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   text-decoration: none;
   color: inherit;
-  height: 100%;
 }
 
 .artist-card:hover {
@@ -117,10 +119,18 @@ const defaultSigilOptions = computed(() => {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
-.artist-card__image {
+/* === GRID MODE (vertical layout) === */
+.artist-card--grid {
+  flex-direction: column;
+  height: 100%;
+}
+
+.artist-card--grid .artist-card__image {
   position: relative;
   width: 100%;
-  padding-bottom: 5%; /* Minimal height for sigils */
+  max-width: 180px;
+  aspect-ratio: 1 / 1;
+  margin: 1rem auto 0;
   background: var(--color-bg-secondary);
   overflow: hidden;
   display: flex;
@@ -128,6 +138,46 @@ const defaultSigilOptions = computed(() => {
   justify-content: center;
 }
 
+.artist-card--grid .artist-card__content {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+/* === LIST MODE (horizontal layout) === */
+.artist-card--list {
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+}
+
+.artist-card--list .artist-card__image {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.artist-card--list .artist-card__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  text-align: left;
+}
+
+/* === IMAGE & SIGIL RENDERING === */
 .artist-card__image img {
   position: absolute;
   top: 0;
@@ -146,16 +196,7 @@ const defaultSigilOptions = computed(() => {
   height: 100%;
 }
 
-.artist-card__content {
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 0.5rem;
-  flex: 1;
-}
-
+/* === TEXT STYLES === */
 .artist-card__title {
   font-size: 1.125rem;
   font-weight: 600;
@@ -164,11 +205,19 @@ const defaultSigilOptions = computed(() => {
   line-height: 1.3;
 }
 
+.artist-card--list .artist-card__title {
+  font-size: 1rem;
+}
+
 .artist-card__subtitle {
   font-size: 0.875rem;
   color: var(--color-text-secondary);
   margin: 0;
   line-height: 1.4;
+}
+
+.artist-card--list .artist-card__subtitle {
+  font-size: 0.8125rem;
 }
 
 .artist-card__blurb {
@@ -181,6 +230,53 @@ const defaultSigilOptions = computed(() => {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.artist-card--list .artist-card__blurb {
+  font-size: 0.75rem;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+/* === CAROUSEL MODE (compact vertical cards for horizontal scroll) === */
+.artist-card--carousel {
+  flex-direction: column;
+  height: 100%;
+}
+
+.artist-card--carousel .artist-card__image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: var(--color-bg-secondary);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.artist-card--carousel .artist-card__content {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.artist-card--carousel .artist-card__title {
+  font-size: 0.9375rem;
+}
+
+.artist-card--carousel .artist-card__subtitle {
+  font-size: 0.8125rem;
+}
+
+.artist-card--carousel .artist-card__blurb {
+  font-size: 0.75rem;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 </style>
 

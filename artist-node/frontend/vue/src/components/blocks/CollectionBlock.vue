@@ -56,6 +56,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import CollectionGrid from '@/components/collections/CollectionGrid.vue';
+import CollectionList from '@/components/collections/CollectionList.vue';
+import CollectionCarousel from '@/components/collections/CollectionCarousel.vue';
 
 interface CollectionItem {
   path: string;
@@ -109,8 +111,10 @@ const layoutComponent = computed(() => {
   switch (layout.value.mode) {
     case 'grid':
       return CollectionGrid;
-    // Future: case 'list': return CollectionList;
-    // Future: case 'carousel': return CollectionCarousel;
+    case 'list':
+      return CollectionList;
+    case 'carousel':
+      return CollectionCarousel;
     default:
       return CollectionGrid;
   }

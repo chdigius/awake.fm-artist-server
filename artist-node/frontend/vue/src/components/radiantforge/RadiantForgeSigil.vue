@@ -10,6 +10,7 @@ import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import {
   mountSigil,
   unmountSigil,
+  resizeSigil,
   type SigilOptions,
 } from '@awake/radiantforge'
 
@@ -19,6 +20,7 @@ const props = defineProps<{
 }>()
 
 const host = ref<HTMLElement | null>(null)
+let resizeObserver: ResizeObserver | null = null
 
 /**
  * (Re)mount the sigil for the current props into the host element.
@@ -36,9 +38,28 @@ function renderSigil() {
 
 onMounted(() => {
   renderSigil()
+
+  // Set up ResizeObserver to handle container size changes
+  if (host.value && typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(() => {
+      if (host.value) {
+        // Small delay to let CSS finish transitioning
+        setTimeout(() => {
+          resizeSigil(host.value)
+        }, 10)
+      }
+    })
+    resizeObserver.observe(host.value)
+  }
 })
 
 onBeforeUnmount(() => {
+  // Clean up ResizeObserver
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  }
+
   if (host.value) {
     unmountSigil(host.value)
   }
@@ -56,10 +77,10 @@ watch(
 
 <style scoped>
 .radiantforge-sigil {
-  /* square flag / badge shape */
-  width: clamp(6rem, 12vw, 9rem);
-  aspect-ratio: 1 / 1;
-  display: inline-block;
+  /* Fill parent container - parent controls size */
+  width: 100%;
+  height: 100%;
+  display: block;
 
   /* make sure p5 canvas fills it nicely */
   position: relative;

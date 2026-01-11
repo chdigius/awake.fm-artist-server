@@ -107,20 +107,30 @@ function forwardCta(target: string) {
   emit('cta', target)
 }
 
-// Get text-align style for section label based on collection layout alignment
-function getSectionLabelStyle(block: any) {
-  // Check if this section contains a collection block with alignment settings
+// Get text-align style for section label with inheritance-with-override pattern
+function getSectionLabelStyle(block: any): Record<string, string> {
+  // PRIORITY 1: Explicit section.align takes precedence
+  if (block.align?.horizontal) {
+    const align = block.align.horizontal;
+    const textAlign = align === 'center' ? 'center' :
+                      align === 'end' || align === 'right' ? 'right' :
+                      'left';
+    return { textAlign };
+  }
+
+  // PRIORITY 2: Inherit from first child block if it has alignment
   if (block.blocks && block.blocks.length > 0) {
     const firstChild = block.blocks[0];
     if (firstChild.type === 'collection' && firstChild.layout?.align?.horizontal) {
       const align = firstChild.layout.align.horizontal;
-      return {
-        textAlign: align === 'center' ? 'center' :
-                   align === 'end' ? 'right' :
-                   'left'
-      };
+      const textAlign = align === 'center' ? 'center' :
+                        align === 'end' || align === 'right' ? 'right' :
+                        'left';
+      return { textAlign };
     }
   }
+
+  // PRIORITY 3: Default (no explicit style)
   return {};
 }
 </script>

@@ -128,6 +128,7 @@ class ContentNode:
           id=b.get("id"),
           label=b.get("label"),
           blocks=[],  # TODO: support nested blocks
+          align=b.get("align"),
         ))
       elif btype == "markdown":
         blocks.append(MarkdownBlock(

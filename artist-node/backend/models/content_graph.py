@@ -231,6 +231,7 @@ class ContentGraph:
         id=data.get("id"),
         label=data.get("label"),
         blocks=inner_blocks,
+        align=data.get("align"),
       )
 
     if btype == "markdown":

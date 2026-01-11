@@ -117,7 +117,8 @@ def parse_block(raw: Dict[str, Any]) -> Block:
     return SectionBlock(
       id=raw.get("id"),
       label=raw.get("label", ""),
-      blocks=child_blocks
+      blocks=child_blocks,
+      align=raw.get("align"),
     )
 
   if block_type == "markdown":
