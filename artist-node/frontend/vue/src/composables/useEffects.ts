@@ -11,16 +11,20 @@ const EFFECTS_REGISTRY: Record<string, string[]> = {
   // CRT monitor effects
   'crt': ['fx-crt'],
   'scanlines': ['fx-crt'],  // alias
-  
+
   // Chromatic aberration (color fringing)
   'chroma': ['fx-chroma'],
   'chromatic': ['fx-chroma'],  // alias
+  'chromatic-aberration': ['fx-chroma'],  // full name alias
   'chroma-block': ['fx-chroma-block'],
-  
+
+  // VHS tape effects (combine CRT + chroma + grain)
+  'vhs': ['fx-crt', 'fx-chroma', 'fx-grain'],
+
   // Glow effects
   'glow': ['fx-glow'],
   'glow-block': ['fx-glow-block'],
-  
+
   // Film grain
   'grain': ['fx-grain'],
   'film-grain': ['fx-grain'],  // alias

@@ -165,6 +165,7 @@ class ContentGraph:
         display_name=meta_data.get("display_name"),
         theme=meta_data.get("theme"),
         effects=meta_data.get("effects") or [],
+        collection_order=meta_data.get("collection_order"),
         extra=meta_data.get("extra", {}),
       )
 
@@ -241,7 +242,16 @@ class ContentGraph:
       return SubpageBlock(
         ref=data.get("ref", ""),
         label=data.get("label"),
+        title=data.get("title"),
+        badge=data.get("badge"),
         nav=data.get("nav", False),
+        align=data.get("align"),
+        size=data.get("size"),
+        weight=data.get("weight"),
+        decoration=data.get("decoration"),
+        transform=data.get("transform"),
+        font=data.get("font"),
+        icon=data.get("icon"),
       )
 
     if btype == "collection":

@@ -128,7 +128,16 @@ def parse_block(raw: Dict[str, Any]) -> Block:
     return SubpageBlock(
       ref=raw.get("ref"),
       label=raw.get("label"),
-      nav=raw.get("nav", False)
+      title=raw.get("title"),
+      badge=raw.get("badge"),
+      nav=raw.get("nav", False),
+      align=raw.get("align"),
+      size=raw.get("size"),
+      weight=raw.get("weight"),
+      decoration=raw.get("decoration"),
+      transform=raw.get("transform"),
+      font=raw.get("font"),
+      icon=raw.get("icon"),
     )
 
   if block_type == "collection":
@@ -242,6 +251,7 @@ def build_node_from_directory(node_dir: Path, content_root: Path) -> ContentNode
     display_name = folder_meta.get("display_name"),
     theme = folder_meta.get("theme"),  # per-node theme override
     effects = folder_meta.get("effects", []),  # visual FX layers: ["crt", "chroma", "glow"]
+    collection_order = folder_meta.get("collection_order"),  # explicit child node ordering
     # NOTE - CJD - Extra is intentionally not used for now, decide later if we want to handle random user defined attributes
   )
 

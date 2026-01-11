@@ -11,6 +11,7 @@ content:
       A self-hosted artist node running on the Awake.fm decentralized protocol.
       No shareholders. No engagement farming. No algorithms.
       Just music, ownership, and creative autonomy.
+    # background: '/content/assets/backgrounds/hero_background_1.jpg'
     sigil:
       type: "p5"
       id: "node-001"
@@ -46,7 +47,7 @@ content:
             vertical: "center"      # start | center
           # Optional max rows before pagination / "View All"
           max_rows: 3
-        sort: "name_asc"
+        # sort: "name_asc"  # Commented out to use collection_order from artists/_meta.yaml
         limit: 120                  # hard cap if someone really goes wild
         paging:
           enabled: true
@@ -73,7 +74,7 @@ content:
           gap: "1rem"          # vertical gap between items
           align:
             horizontal: "left"  # center the list in its container
-        sort: "name_asc"
+        # sort: "name_asc"  # Commented out to use collection_order from artists/_meta.yaml
         limit: 200
         paging:
           enabled: true
@@ -112,7 +113,7 @@ content:
           snap_align: "center"   # start | center
           # Optional: constrain width for hero-style strips
           max_width: "100%"
-        sort: "random"           # could also be 'featured_first' later
+        # sort: "random"         # Commented out to use collection_order from artists/_meta.yaml
         limit: 12
         paging:
           enabled: false         # carousels usually just loop a fixed set

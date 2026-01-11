@@ -65,7 +65,7 @@ class CollectionResolver:
     candidates = self._resolve_candidates(temp_block, current_node_path=current_node_path)
 
     # Sort + limit
-    candidates = self._apply_sort(candidates, sort=sort)
+    candidates = self._apply_sort(candidates, sort=sort, parent_path=path)
 
     if isinstance(limit, int) and limit > 0:
       candidates = candidates[:limit]
@@ -121,7 +121,7 @@ class CollectionResolver:
     candidates = self._resolve_candidates(block, current_node_path=current_node_path)
 
     # ---- 3) Apply sort + limit ----
-    candidates = self._apply_sort(candidates, sort=block.sort)
+    candidates = self._apply_sort(candidates, sort=block.sort, parent_path=block.path)
 
     if isinstance(block.limit, int) and block.limit > 0:
       candidates = candidates[:block.limit]
@@ -215,11 +215,16 @@ class CollectionResolver:
       out.append(p)
 
     return out
-  
-  def _apply_sort(self, paths: List[str], sort: Optional[str]) -> List[str]:
-    """Apply sorting to collection items."""
-    sort = sort or "name_asc"
 
+  def _apply_sort(self, paths: List[str], sort: Optional[str], parent_path: Optional[str] = None) -> List[str]:
+    """Apply sorting to collection items.
+
+    Priority:
+    1. Explicit sort parameter (e.g., "random", "name_desc")
+    2. collection_order from parent node's _meta.yaml
+    3. Default: name_asc
+    """
+    # PRIORITY 1: Explicit sort parameter overrides everything
     if sort == "random":
       import random
       out = paths[:]
@@ -236,7 +241,26 @@ class CollectionResolver:
     # if sort == "created_at_desc": ...
     # if sort == "release_date_desc": ...
 
-    return paths
+    # PRIORITY 2: Check for collection_order in parent node's meta
+    if parent_path:
+      parent_node = self.graph.get_node(parent_path)
+      if parent_node and parent_node.meta.collection_order:
+        order_map = {slug: idx for idx, slug in enumerate(parent_node.meta.collection_order)}
+
+        # Sort by collection_order, with unlisted items at the end (alphabetically)
+        def sort_key(path: str):
+          # Extract slug from path (last segment)
+          slug = path.split('/')[-1]
+          # If in order map, use its index; otherwise use a high number + alphabetical
+          if slug in order_map:
+            return (0, order_map[slug], "")
+          else:
+            return (1, 999999, self._sort_title(path).lower())
+
+        return sorted(paths, key=sort_key)
+
+    # PRIORITY 3: Default to name_asc
+    return sorted(paths, key=lambda p: self._sort_title(p).lower())
   
   def _sort_title(self, node_path: str) -> str:
     """Get the sortable title for a node."""

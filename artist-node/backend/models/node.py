@@ -28,6 +28,7 @@ class NodeMeta:
   display_name: Optional[str] = None
   theme: Optional[str] = None  # "dark", "vapor", "crt", "minimal" - inherits from parent if None
   effects: List[str] = field(default_factory=list)  # ["crt", "chroma", "glow"] - visual FX layers
+  collection_order: Optional[List[str]] = None  # Explicit order for child nodes in collections
   extra: Dict[str, Any] = field(default_factory=dict)
   # extra can hold things like imprints, roster, status, etc.
 
@@ -138,7 +139,16 @@ class ContentNode:
         blocks.append(SubpageBlock(
           ref=b.get("ref", ""),
           label=b.get("label"),
+          title=b.get("title"),
+          badge=b.get("badge"),
           nav=b.get("nav", False),
+          align=b.get("align"),
+          size=b.get("size"),
+          weight=b.get("weight"),
+          decoration=b.get("decoration"),
+          transform=b.get("transform"),
+          font=b.get("font"),
+          icon=b.get("icon"),
         ))
       elif btype == "collection":
         # Parse layout config if present

@@ -29,6 +29,16 @@ content:
 
       # This one will NOT show in the nav (nav: false)
       - type: subpage
-        ref: "artists/hidden"
-        label: "Hidden"
-        nav: false
+        ref: "artists/hierba_phase"
+        label: "Hierba Phase"
+        nav: true
+
+      - type: subpage
+        ref: "artists/the_ravine"
+        label: "The Ravine"
+        nav: true
+
+      - type: subpage
+        ref: "artists/awake_fm_legacy"
+        label: "AwakeFM Legacy"
+        nav: true

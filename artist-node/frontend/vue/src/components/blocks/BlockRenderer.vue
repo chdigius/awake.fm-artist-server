@@ -28,27 +28,36 @@
         :key="cIdx"
         class="section-child"
       >
-        <!-- Recursively render child blocks -->
-        <BlockRenderer :block="child" @cta="forwardCta" />
+        <!-- Recursively render child blocks, passing down section alignment -->
+        <BlockRenderer 
+          :block="child" 
+          :parent-align="block.align?.horizontal"
+          @cta="forwardCta" 
+        />
       </div>
     </section>
 
     <!-- SUBPAGE -->
-    <RouterLink
+    <SubpageLink
       v-else-if="block.type === 'subpage'"
-      :to="toPath(block.ref)"
-      class="block-subpage-link"
-    >
-      {{ block.label || block.ref }}
-    </RouterLink>
+      :page-ref="block.ref"
+      :title="block.title || block.label"
+      :badge="block.badge"
+      :align="block.align || parentAlign"
+      :size="block.size"
+      :weight="block.weight"
+      :decoration="block.decoration"
+      :transform="block.transform"
+      :font="block.font"
+      :icon="block.icon"
+    />
 
     <!-- MARKDOWN -->
     <section
       v-else-if="block.type === 'markdown'"
       class="block-markdown"
-    >
-      <p>{{ block.body }}</p>
-    </section>
+      v-html="renderMarkdown(block.body)"
+    ></section>
 
     <!-- AUDIO PLAYER -->
     <AudioPlayerBlock
@@ -82,12 +91,15 @@ defineOptions({ name: 'BlockRenderer' })
 
 import { onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
+import { marked } from 'marked'
 import HeroBlock from './HeroBlock.vue'
 import AudioPlayerBlock from './AudioPlayerBlock.vue'
 import CollectionBlock from './CollectionBlock.vue'
+import SubpageLink from './SubpageLink.vue'
 
 const props = defineProps<{
   block: any
+  parentAlign?: string  // Inherited alignment from parent section
 }>()
 
 onMounted(() => {
@@ -105,6 +117,12 @@ function toPath(ref: string): string {
 
 function forwardCta(target: string) {
   emit('cta', target)
+}
+
+// Render markdown to HTML
+function renderMarkdown(markdown: string): string {
+  if (!markdown) return ''
+  return marked(markdown) as string
 }
 
 // Get text-align style for section label with inheritance-with-override pattern

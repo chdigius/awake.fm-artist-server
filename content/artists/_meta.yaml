@@ -4,3 +4,11 @@ display_name: "Artists"
 theme: "crt"
 effects:
   - grain
+
+collection_order:
+  - zol
+  - rom_trooper
+  - ishimura
+  - hierba_phase
+  - the_ravine
+  - awake_fm_legacy
