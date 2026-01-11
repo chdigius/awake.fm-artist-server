@@ -1,0 +1,13 @@
+# content/artists/rom_trooper/music/sets/index.yaml
+
+title: "Sets"
+tagline: "Listen to ROM Trooper's sets."
+
+content:
+  - type: hero
+    heading: "ROM Trooper Sets"
+    subheading: "Latest sets from ROM Trooper."
+    body: |
+      Latest sets from ROM Trooper.
+      Listen to the latest sets from ROM Trooper.
+

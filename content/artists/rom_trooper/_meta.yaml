@@ -1,0 +1,9 @@
+slug: dissolvr
+display_name: "ROM Trooper"
+theme: "vapor"
+
+layout: artist
+effects:
+  - crt
+  - chroma
+  - glow

@@ -1,0 +1,31 @@
+/* effects/fx-film-grain.css */
+
+@keyframes fx-grain-move {
+  0%   { transform: translate3d(0, 0, 0); }
+  25%  { transform: translate3d(-5%, -10%, 0); }
+  50%  { transform: translate3d(10%, 5%, 0); }
+  75%  { transform: translate3d(-5%, 10%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* Viewport-level film grain overlay */
+.fx-grain::before {
+  content: "";
+  position: fixed;
+  inset: -10%; /* overscan so edges don't show during animation */
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+  opacity: var(--fx-grain-opacity, 0.4);
+  background-image:
+    repeating-radial-gradient(
+      circle at 0 0,
+      #000,
+      #000 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  background-size: calc(80px * var(--fx-grain-scale, 1))
+                   calc(80px * var(--fx-grain-scale, 1));
+  animation: fx-grain-move calc(8s / var(--fx-grain-speed, 1)) steps(2, end) infinite;
+  z-index: 9998; /* just below scanlines */
+}

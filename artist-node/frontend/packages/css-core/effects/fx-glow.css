@@ -1,0 +1,16 @@
+/* effects/fx-glow.css */
+
+/* Text glow - applies to all text within the element */
+.fx-glow,
+.fx-glow * {
+  text-shadow:
+    0 0 calc(var(--fx-glow-radius, 8px) * 0.5) var(--fx-glow-color, currentColor),
+    0 0 var(--fx-glow-radius, 8px) var(--fx-glow-color, currentColor);
+}
+
+/* Block-level glow variant */
+.fx-glow-block {
+  box-shadow:
+    0 0 calc(var(--fx-glow-radius, 8px) * 0.5) var(--fx-glow-color, currentColor),
+    0 0 var(--fx-glow-radius, 8px) var(--fx-glow-color, currentColor);
+}

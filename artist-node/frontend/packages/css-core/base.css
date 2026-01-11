@@ -1,0 +1,133 @@
+:root {
+  /* Typeography */
+  --font-body: 'Inter', sans-serif;
+  --font-heading: 'Inter', sans-serif;
+
+  /* Colors */
+  --color-bg: #ffffff;
+  --color-fg: #111111;
+  --color-mutes: #666666;
+  --color-accent: #0077ff;
+  --color-border: rgba(0,0,0,0.1);
+  --color-error: #ff4444;
+  --color-text-secondary: #666666;
+  --color-text-tertiary: #999999;
+
+  /* Layout */
+  --radius: 6px;
+  --nav-height: 60px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-slow: 300ms ease;
+
+  /* -- Effects knobs, all 'off' by default--- */
+  /* --- CRT Scanlines --- */
+  --fx-crt-scanline-opacity: 0.8;   /* 0 = off, ~0.05–0.2 is nice */
+  --fx-crt-scanline-thickness: 1px;
+  --fx-crt-scanline-spacing: 2px;    /* distance between lines */
+  --fx-crt-scanline-tilt: 0deg;      /* small tilt like 0.5deg if you want */
+
+  /* --- Chromatic Aberration --- */
+  --fx-chroma-offset-x: 1px;         /* base offset for RGB channels */
+  --fx-chroma-offset-y: 0px;
+  --fx-chroma-alpha: 0.4;            /* 0–1, strength of tinted edges */
+
+  /* --- Film Grain --- */
+  --fx-grain-opacity: 0.4;          /* 0 = off, 0.1–0.2 feels good */
+  --fx-grain-scale: 1;               /* 1 = normal, >1 = bigger specks */
+  --fx-grain-speed: 1;               /* multiplier for animation speed */
+
+  /* --- Glow / Bloom --- */
+  --fx-glow-strength: 0.4;           /* 0 = off, ~0.3–0.7 is good */
+  --fx-glow-radius: 12px;            /* blur radius for glow */
+  --fx-glow-color: rgba(255, 255, 255, 0.8);
+}
+
+/*-- DISPLAY MODE TOKENS --- */
+:root {
+  /* layout tokens */
+  --page-max-width: 1200px;
+  --page-padding-x: 1.5rem;
+  --page-padding-y: 1.5rem;
+  --page-gutter: 1.5rem;
+  --page-grid-gap: 1.5rem;
+
+  /* typography-ish */
+  --page-font-size-base: 1rem;
+  --page-font-size-lg: 1.125rem;
+  --page-font-size-xxl: 2rem;
+
+  --page-flow-width: 70ch; /* default; tweak to taste */
+}
+
+/* Optional — default view mode if no JS */
+:root {
+  --view-mode: fixed;
+}
+
+/* MOBILE (pure CSS safety net) */
+@media (max-width: 767px) {
+  :root {
+    --page-max-width: 100%;
+    --page-padding-x: 1rem;
+    --page-font-size-base: 0.95rem;
+    --page-flow-width: 100%; /* full width on small screens */
+    --view-mode: mobile;
+  }
+}
+
+/* DESKTOP / FIXED BASELINE */
+@media (min-width: 768px) and (max-width: 1439px) {
+  :root {
+    --page-max-width: 1200px;
+    --page-padding-x: 2rem;
+    --page-font-size-base: 1rem;
+    --page-flow-width: 70ch;
+    --view-mode: fixed;
+  }
+}
+
+/* CINEMATIC DEFAULT FOR HUGE SCREENS */
+@media (min-width: 1440px) {
+  :root {
+    --page-max-width: 1800px;
+    --page-padding-x: 3rem;
+    --page-font-size-base: 1.05rem;
+    --page-font-size-xxl: 2.4rem;
+    --page-flow-width: 90ch; /* let it breathe more on ultrawide */
+    --view-mode: cinematic;
+  }
+}
+
+
+/* Global Normalization */
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-fg);
+  transition: background var(--transition-slow), color var(--transition-slow);
+}
+
+/* Universal Nav styling skeleton */
+.main-nav {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  height: var(--nav-height);
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+  transition: background var(--transition-slow), border-color var(--transition-slow);
+}
+
+.main-nav a {
+  text-decoration: none;
+  color: var(--color-fg);
+  transition: color var(--transition-fast);
+}
+
+.main-nav a:hover {
+  color: var(--color-accent);
+}

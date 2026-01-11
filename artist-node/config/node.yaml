@@ -1,0 +1,19 @@
+# config/node.yaml
+node_id: awake-fm-node-001
+
+network:
+  mothership_base_url: "https://api.awake.fm"
+  register_on_start: true
+
+endpoints:
+  public_base_url: "https://awake-fm-node-001.awake.fm"   # ALB / DNS
+  api_base_url: "https://awake-fm-node-001.awake.fm/api"  # ALB / DNS
+
+content:
+  root: "../content/"
+
+features:
+  auth: true          # enable local accounts / dashboards
+
+security:
+  allow_scraping: false   # future tie-in with Blackveil

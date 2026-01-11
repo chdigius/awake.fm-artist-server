@@ -1,0 +1,13 @@
+# content/artists/rom_trooper/music/tracks/index.yaml
+
+title: "Tracks"
+tagline: "Listen to ROM Trooper's tracks."
+
+content:
+  - type: hero
+    heading: "ROM Trooper Tracks"
+    subheading: "Latest tracks from ROM Trooper."
+    body: |
+      Latest tracks from ROM Trooper.
+      Listen to the latest tracks from ROM Trooper.
+

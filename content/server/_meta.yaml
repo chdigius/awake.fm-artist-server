@@ -1,0 +1,25 @@
+# content/server/_meta.yaml
+slug: awake-fm-node-001
+display_name: "Awake FM Node 001"
+# theme: "minimal"
+
+layout: server
+effects:
+  - crt
+  - chroma
+  - glow
+  - grain
+
+features:
+  imprints: true
+  releases: true
+  store: true
+
+imprints:
+  - id: nocturne
+    slug: nocturne
+    label: "Nocturne Division"
+
+roster:
+  - artist_id: zol
+  - artist_id: dissolvr
