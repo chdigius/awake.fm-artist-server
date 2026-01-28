@@ -20,9 +20,10 @@
     >
       <component
         v-for="item in items"
-        :key="item.path"
+        :key="item.path || item.filename"
         :is="cardComponent"
         :item="item"
+        :visualizer="visualizer"
         mode="carousel"
         class="carousel-slide"
       />
@@ -56,12 +57,19 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import ArtistCard from '@/components/cards/ArtistCard.vue';
+import SetCard from '@/components/cards/SetCard.vue';
 
 interface CollectionItem {
+  type?: 'media_file' | string;
   path: string;
-  layout: string;
+  layout?: string;
   slug?: string;
   display_name?: string;
+  filename?: string;
+  extension?: string;
+  title?: string;
+  duration?: number;
+  metadata?: Record<string, any>;
   preview?: {
     title?: string;
     subtitle?: string;
@@ -91,6 +99,11 @@ interface CollectionCarouselProps {
     max_width?: string;
   };
   card?: string;
+  visualizer?: {
+    id?: string;
+    seed_from?: string[];
+    options?: Record<string, any>;
+  };
 }
 
 const props = withDefaults(defineProps<CollectionCarouselProps>(), {
@@ -98,6 +111,7 @@ const props = withDefaults(defineProps<CollectionCarouselProps>(), {
 });
 
 console.log('[CollectionCarousel] Layout config:', props.layout);
+console.log('[CollectionCarousel] Card type:', props.card);
 console.log('[CollectionCarousel] Item count:', props.items.length);
 
 const track = ref<HTMLElement | null>(null);
@@ -111,6 +125,8 @@ const cardComponent = computed(() => {
   switch (props.card) {
     case 'artist':
       return ArtistCard;
+    case 'set':
+      return SetCard;
     // Future: case 'album': return AlbumCard;
     // Future: case 'track': return TrackCard;
     default:

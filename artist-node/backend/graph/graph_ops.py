@@ -183,6 +183,7 @@ class GraphOps:
     sort: Optional[str] = None,
     limit: Optional[int] = None,
     card: Optional[str] = None,
+    pattern: Optional[str] = None,
     layout: Optional[Dict[str, Any]] = None,
   ) -> Optional[Dict[str, Any]]:
     """
@@ -212,6 +213,7 @@ class GraphOps:
     return self.graph.get_collection_payload(
       source=source or "folder",
       path=path,
+      pattern=pattern,
       page=page,
       page_size=page_size,
       sort=sort,

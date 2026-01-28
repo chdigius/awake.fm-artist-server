@@ -2,9 +2,10 @@
   <div class="collection-list" :style="listStyles">
     <component
       v-for="item in items"
-      :key="item.path"
+      :key="item.path || item.filename"
       :is="cardComponent"
       :item="item"
+      :visualizer="visualizer"
       mode="list"
     />
   </div>
@@ -13,12 +14,19 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import ArtistCard from '@/components/cards/ArtistCard.vue';
+import SetCard from '@/components/cards/SetCard.vue';
 
 interface CollectionItem {
+  type?: 'media_file' | string;
   path: string;
-  layout: string;
+  layout?: string;
   slug?: string;
   display_name?: string;
+  filename?: string;
+  extension?: string;
+  title?: string;
+  duration?: number;
+  metadata?: Record<string, any>;
   preview?: {
     title?: string;
     subtitle?: string;
@@ -39,6 +47,11 @@ interface CollectionListProps {
     };
   };
   card?: string;
+  visualizer?: {
+    id?: string;
+    seed_from?: string[];
+    options?: Record<string, any>;
+  };
 }
 
 const props = withDefaults(defineProps<CollectionListProps>(), {
@@ -47,12 +60,15 @@ const props = withDefaults(defineProps<CollectionListProps>(), {
 
 console.log('[CollectionList] Layout config:', props.layout);
 console.log('[CollectionList] Item count:', props.items.length);
+console.log('[CollectionList] Card type:', props.card);
 
 // Map card type to component
 const cardComponent = computed(() => {
   switch (props.card) {
     case 'artist':
       return ArtistCard;
+    case 'set':
+      return SetCard;
     // Future: case 'album': return AlbumCard;
     // Future: case 'track': return TrackCard;
     default:

@@ -14,7 +14,8 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@awake/css-core': fileURLToPath(new URL('../packages/css-core', import.meta.url)),
-      '@awake/radiantforge': fileURLToPath(new URL('../packages/radiantforge/src/index.ts', import.meta.url))
+      '@awake/radiantforge': fileURLToPath(new URL('../packages/radiantforge/src/index.ts', import.meta.url)),
+      '@awake/audio-player': fileURLToPath(new URL('../packages/audio-player/src/index.ts', import.meta.url))
     },
   },
   server: {

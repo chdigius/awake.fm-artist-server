@@ -15,6 +15,7 @@ from backend.models.blocks import (
   SigilConfig,
   CollectionLayout,
   CollectionPaging,
+  CollectionMedia,
   VisualizerConfig,
 )
 
@@ -175,7 +176,7 @@ class ContentNode:
             snap_align=layout_data.get("snap_align"),
             max_width=layout_data.get("max_width"),
           )
-        
+
         # Parse paging config if present
         paging_data = b.get("paging")
         paging = None
@@ -185,12 +186,24 @@ class ContentNode:
             page_size=paging_data.get("page_size"),
             mode=paging_data.get("mode", "load_more"),
           )
-        
+
+        # Parse media config if present (for audio/video collections)
+        media_data = b.get("media")
+        media = None
+        if media_data:
+          media = CollectionMedia(
+            type=media_data.get("type", "audio"),
+            player=media_data.get("player"),
+            visualizer=media_data.get("visualizer"),
+          )
+
         blocks.append(CollectionBlock(
           source=b.get("source", "folder"),
           path=b.get("path"),
+          pattern=b.get("pattern"),
           layout=layout,
           card=b.get("card"),
+          media=media,
           sort=b.get("sort"),
           sort_options=b.get("sort_options"),
           limit=b.get("limit"),

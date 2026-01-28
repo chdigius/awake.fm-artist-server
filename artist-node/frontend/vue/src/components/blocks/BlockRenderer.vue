@@ -70,12 +70,14 @@
       v-else-if="block.type === 'collection'"
       :source="block.source"
       :path="block.path"
+      :pattern="block.pattern"
       :layout="block.layout"
       :card="block.card"
       :sort="block.sort"
       :limit="block.limit"
       :paging="block.paging"
       :empty_state="block.empty_state"
+      :media="block.media"
       :items="block.items"
     />
 

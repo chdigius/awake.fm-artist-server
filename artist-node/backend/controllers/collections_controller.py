@@ -13,8 +13,9 @@ class CollectionsController(ArtistServerControllerBase):
     GET /api/collection
 
     Query params (v1):
-      - source: folder|roster|tag|query   (default: folder)
-      - path: required (e.g. "artists")
+      - source: folder|roster|tag|query|media_folder   (default: folder)
+      - path: required (e.g. "artists" or "music/sets/audio/bassdrive")
+      - pattern: optional file pattern for media_folder (e.g. "*.mp3")
       - page: int (default: 1)
       - page_size: int (default: 24)
       - sort: optional (e.g. "name_asc", "random")
@@ -41,6 +42,7 @@ class CollectionsController(ArtistServerControllerBase):
     # shaping
     sort = request.args.get("sort")
     card = request.args.get("card")
+    pattern = request.args.get("pattern")
 
     limit = None
     limit_raw = request.args.get("limit")
@@ -57,6 +59,7 @@ class CollectionsController(ArtistServerControllerBase):
     payload = self.get_graph_ops().get_collection(
       source=source,
       path=path,
+      pattern=pattern,
       page=page,
       page_size=page_size,
       sort=sort,

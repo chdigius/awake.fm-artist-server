@@ -6,7 +6,9 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
 
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@awake/audio-player": ["../packages/audio-player/src/index.ts"],
+      "@awake/radiantforge": ["../packages/radiantforge/src/index.ts"]
     }
   }
 }

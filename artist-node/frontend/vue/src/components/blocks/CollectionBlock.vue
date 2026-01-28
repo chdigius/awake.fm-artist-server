@@ -1,5 +1,5 @@
 <template>
-  <div class="collection-block">
+  <div ref="collectionRoot" class="collection-block">
     <!-- Loading state -->
     <div v-if="loading" class="collection-block__loading">
       <div class="spinner"></div>
@@ -24,20 +24,12 @@
         :items="items"
         :layout="layout"
         :card="card"
+        :visualizer="media?.visualizer"
       />
 
       <!-- Pagination controls -->
-      <div v-if="paging?.enabled && paging.has_more" class="collection-block__pagination">
-        <button
-          v-if="paging.mode === 'load_more'"
-          @click="loadMore"
-          :disabled="loadingMore"
-          class="collection-block__load-more"
-        >
-          {{ loadingMore ? 'Loading...' : 'Load More' }}
-        </button>
-
-        <div v-else-if="paging.mode === 'pages'" class="collection-block__pages">
+      <div v-if="paging?.enabled && paging.total_pages > 1" class="collection-block__pagination">
+        <div class="collection-block__pages">
           <button
             v-for="pageNum in visiblePages"
             :key="pageNum"
@@ -59,6 +51,8 @@ import CollectionGrid from '@/components/collections/CollectionGrid.vue';
 import CollectionList from '@/components/collections/CollectionList.vue';
 import CollectionCarousel from '@/components/collections/CollectionCarousel.vue';
 
+const collectionRoot = ref<HTMLElement | null>(null);
+
 interface CollectionItem {
   path: string;
   layout: string;
@@ -76,6 +70,7 @@ interface CollectionItem {
 interface CollectionBlockProps {
   source: string;
   path: string;
+  pattern?: string;
   layout?: any;
   card?: string;
   sort?: string;
@@ -89,6 +84,14 @@ interface CollectionBlockProps {
     heading?: string;
     body?: string;
   };
+  media?: {
+    type?: 'audio' | 'video';
+    visualizer?: {
+      id?: string;
+      seed_from?: string[];
+      options?: Record<string, any>;
+    };
+  };
   // If items are pre-embedded in page payload, use those instead of fetching
   items?: CollectionItem[];
 }
@@ -101,8 +104,7 @@ const props = withDefaults(defineProps<CollectionBlockProps>(), {
 const items = ref<CollectionItem[]>(props.items || []);
 const layout = ref(props.layout || { mode: 'grid' });
 const paging = ref<any>(null);
-const loading = ref(!props.items); // If items provided, skip loading
-const loadingMore = ref(false);
+const loading = ref(!props.items || props.items.length === 0); // Only skip loading if items exist AND have length
 const error = ref<string | null>(null);
 const emptyState = computed(() => props.empty_state);
 
@@ -129,6 +131,7 @@ async function fetchCollection(page: number = 1) {
       page: page.toString(),
     });
 
+    if (props.pattern) params.set('pattern', props.pattern);
     if (props.card) params.set('card', props.card);
     if (props.sort) params.set('sort', props.sort);
     if (props.limit) params.set('limit', props.limit.toString());
@@ -150,8 +153,14 @@ async function fetchCollection(page: number = 1) {
 
 // Load initial data
 async function loadInitial() {
-  if (props.items) {
+  if (props.items && props.items.length > 0) {
     // Items already provided in page payload
+    // Still need to set paging from props if embedded!
+    if (props.paging) {
+      paging.value = props.paging;
+    }
+    console.log('[CollectionBlock] Using embedded items:', props.items.length);
+    console.log('[CollectionBlock] Embedded paging:', paging.value);
     return;
   }
 
@@ -160,50 +169,38 @@ async function loadInitial() {
 
   try {
     const data = await fetchCollection(1);
+    console.log('[CollectionBlock] API response:', data);
     items.value = data.items || [];
     layout.value = data.layout || layout.value;
     paging.value = data.paging || null;
+    console.log('[CollectionBlock] After fetch - items:', items.value.length, 'layout:', layout.value.mode);
+    console.log('[CollectionBlock] Paging:', paging.value);
   } catch (err: any) {
+    console.error('[CollectionBlock] Fetch error:', err);
     error.value = err.message || 'Failed to load collection';
   } finally {
     loading.value = false;
   }
 }
 
-// Load more items (for load_more pagination mode)
-async function loadMore() {
-  if (!paging.value || loadingMore.value) return;
-
-  loadingMore.value = true;
-  error.value = null;
-
-  try {
-    const nextPage = (paging.value.page || 1) + 1;
-    const data = await fetchCollection(nextPage);
-    
-    // Append new items
-    items.value = [...items.value, ...(data.items || [])];
-    paging.value = data.paging || null;
-  } catch (err: any) {
-    error.value = err.message || 'Failed to load more items';
-  } finally {
-    loadingMore.value = false;
-  }
-}
-
-// Go to specific page (for pages pagination mode)
+// Go to specific page
 async function goToPage(pageNum: number) {
   loading.value = true;
   error.value = null;
 
   try {
     const data = await fetchCollection(pageNum);
-    items.value = data.items || [];
+    console.log('[CollectionBlock] Page change - fetched page', pageNum, 'with', data.items?.length, 'items');
+    items.value = data.items || []; // Replace, don't append!
     paging.value = data.paging || null;
+    console.log('[CollectionBlock] New paging state:', paging.value);
     
-    // Scroll to top of collection
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll to top of this collection block (not top of page)
+    if (collectionRoot.value) {
+      collectionRoot.value.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   } catch (err: any) {
+    console.error('[CollectionBlock] Page change error:', err);
     error.value = err.message || 'Failed to load page';
   } finally {
     loading.value = false;
@@ -216,10 +213,25 @@ const visiblePages = computed(() => {
   
   const current = paging.value.page || 1;
   const total = paging.value.total_pages || 1;
-  const range = 2; // Show 2 pages on each side of current
+  const maxVisible = 5; // Always show 5 buttons (or fewer if total < 5)
+  
+  // If total pages <= maxVisible, show all pages
+  if (total <= maxVisible) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  
+  // Calculate sliding window
+  const halfWindow = Math.floor(maxVisible / 2);
+  let start = Math.max(1, current - halfWindow);
+  let end = Math.min(total, start + maxVisible - 1);
+  
+  // Adjust start if we're near the end
+  if (end - start < maxVisible - 1) {
+    start = Math.max(1, end - maxVisible + 1);
+  }
   
   const pages: number[] = [];
-  for (let i = Math.max(1, current - range); i <= Math.min(total, current + range); i++) {
+  for (let i = start; i <= end; i++) {
     pages.push(i);
   }
   
@@ -230,6 +242,8 @@ onMounted(() => {
   console.log('[CollectionBlock] Mounted with props:', {
     source: props.source,
     path: props.path,
+    pattern: props.pattern,
+    card: props.card,
     hasItems: !!props.items,
     itemCount: props.items?.length || 0,
   });
@@ -292,28 +306,6 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   padding-top: 1rem;
-}
-
-.collection-block__load-more {
-  padding: 0.75rem 2rem;
-  background: var(--color-accent);
-  color: var(--color-text-on-accent, white);
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.collection-block__load-more:hover:not(:disabled) {
-  background: var(--color-accent-hover);
-  transform: translateY(-2px);
-}
-
-.collection-block__load-more:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .collection-block__pages {

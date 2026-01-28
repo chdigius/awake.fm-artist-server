@@ -17,6 +17,7 @@ from backend.models.blocks import (
   SigilConfig,
   CollectionLayout,
   CollectionPaging,
+  CollectionMedia,
   VisualizerConfig,
 )
 from backend.models.node import NodeMeta, NodePreview, ContentNode
@@ -50,6 +51,7 @@ class ContentGraph:
     limit: Optional[int] = None,
     layout: Optional[Dict[str, Any]] = None,
     card: Optional[str] = None,
+    pattern: Optional[str] = None,
     current_node_path: str = "server",
   ) -> Dict[str, Any]:
     """
@@ -60,6 +62,7 @@ class ContentGraph:
     return self._collection_resolver.resolve_collection(
       source=source,
       path=path,
+      pattern=pattern,
       page=page,
       page_size=page_size,
       sort=sort,
@@ -257,6 +260,7 @@ class ContentGraph:
     if btype == "collection":
       layout_data = data.get("layout") or None
       paging_data = data.get("paging") or None
+      media_data = data.get("media") or None
 
       layout = None
       if layout_data:
@@ -289,11 +293,21 @@ class ContentGraph:
           mode=paging_data.get("mode", "load_more"),
         )
 
+      media = None
+      if media_data:
+        media = CollectionMedia(
+          type=media_data.get("type", "audio"),
+          player=media_data.get("player"),
+          visualizer=media_data.get("visualizer"),
+        )
+
       return CollectionBlock(
         source=data.get("source", "folder"),
         path=data.get("path"),
+        pattern=data.get("pattern"),
         layout=layout,
         card=data.get("card"),
+        media=media,
         sort=data.get("sort"),
         sort_options=data.get("sort_options"),
         limit=data.get("limit"),

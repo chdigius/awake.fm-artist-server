@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+from pathlib import Path
 from typing import Dict, List, Optional, Any, TYPE_CHECKING
+import glob
 
 from backend.models.blocks import CollectionBlock, CollectionLayout, CollectionPaging
 from backend.models.defaults import DEFAULT_COLLECTION_LAYOUTS, _deep_merge
@@ -33,6 +35,7 @@ class CollectionResolver:
     limit: Optional[int] = None,
     layout: Optional[Dict[str, Any]] = None,
     card: Optional[str] = None,
+    pattern: Optional[str] = None,
     current_node_path: str = "server",
   ) -> Dict[str, Any]:
     """
@@ -48,6 +51,7 @@ class CollectionResolver:
     temp_block = CollectionBlock(
       source=source or "folder",
       path=path,
+      pattern=pattern,
       sort=sort,
       limit=limit,
       card=card,
@@ -78,7 +82,7 @@ class CollectionResolver:
     end = start + page_size
     page_paths = candidates[start:end]
 
-    items = [self._item_payload(p) for p in page_paths]
+    items = [self._item_payload(p, source_type=source) for p in page_paths]
 
     return {
       "type": "collection",
@@ -147,7 +151,7 @@ class CollectionResolver:
     page_paths = candidates[start:end] if page_size else []
 
     # ---- 5) Attach items payloads ----
-    data["items"] = [self._item_payload(p) for p in page_paths]
+    data["items"] = [self._item_payload(p, source_type=block.source) for p in page_paths]
 
     # ---- 6) Attach paging metadata (so UI can show Load More / page numbers) ----
     total_pages = 1
@@ -176,11 +180,15 @@ class CollectionResolver:
     
     Currently supports:
     - source="folder" + path="artists" → direct children under that node
+    - source="media_folder" + path="music/sets/audio" → scan filesystem for media files
     
     Future: source="roster", source="tag", source="query"
     """
     if block.source == "folder":
       return self._resolve_folder_source(block.path)
+    
+    if block.source == "media_folder":
+      return self._resolve_media_folder_source(block.path, block.pattern, current_node_path)
     
     # Future sources:
     # elif block.source == "roster":
@@ -196,7 +204,7 @@ class CollectionResolver:
     """Resolve collection items from a folder path (direct children only)."""
     if not path:
       return []
-    
+
     base = path.strip("/")
 
     # Fast path: if we have direct children index
@@ -215,6 +223,69 @@ class CollectionResolver:
       out.append(p)
 
     return out
+
+  def _resolve_media_folder_source(
+    self,
+    path: Optional[str],
+    pattern: Optional[str],
+    current_node_path: str
+  ) -> List[str]:
+    """
+    Scan filesystem for media files matching pattern.
+    
+    Returns list of file paths relative to content root.
+    Each file path can be used as a virtual 'item' in the collection.
+    """
+    if not path:
+      return []
+
+    # Default pattern if none specified
+    if not pattern:
+      pattern = "*.mp3"
+
+    # Resolve absolute filesystem path
+    # current_node_path is like "server" or "artists/awake_fm_legacy"
+    # path can be:
+    #   - Relative to current node: "music/sets/audio/bassdrive"
+    #   - Absolute from content root: "artists/awake_fm_legacy/music/sets/audio/bassdrive"
+    
+    # Find content directory (relative to backend module location)
+    # __file__ is at: awake.fm-artist-server/artist-node/backend/models/collection_resolver.py
+    # backend is at: awake.fm-artist-server/artist-node/backend/
+    # content is at: awake.fm-artist-server/content/
+    backend_dir = Path(__file__).parent.parent  # models -> backend
+    artist_node_dir = backend_dir.parent  # backend -> artist-node
+    repo_root = artist_node_dir.parent  # artist-node -> awake.fm-artist-server
+    content_root = repo_root / "content"
+    
+    # If path starts with a known top-level dir (server/artists/pages), treat as absolute from content root
+    # Otherwise, treat as relative to current_node_path
+    path_parts = path.split("/")
+    is_absolute_from_content_root = path_parts[0] in ["server", "artists", "pages"]
+    
+    if is_absolute_from_content_root:
+      # Path is absolute from content root, don't prepend current_node_path
+      media_dir = content_root / path
+    elif current_node_path:
+      # Path is relative to current node
+      media_dir = content_root / current_node_path / path
+    else:
+      # No current node, path is from content root
+      media_dir = content_root / path
+
+    if not media_dir.exists() or not media_dir.is_dir():
+      return []
+
+    # Scan for files matching pattern
+    files = []
+    for file_path in media_dir.glob(pattern):
+      if file_path.is_file():
+        # Return path relative to content root (for web-accessible URLs)
+        rel_path = file_path.relative_to(content_root)
+        # Store as string path that can be used as collection item identifier
+        files.append(str(rel_path))
+
+    return files
 
   def _apply_sort(self, paths: List[str], sort: Optional[str], parent_path: Optional[str] = None) -> List[str]:
     """Apply sorting to collection items.
@@ -271,11 +342,35 @@ class CollectionResolver:
       return node.title
     return node_path
   
-  def _item_payload(self, node_path: str) -> Dict[str, Any]:
-    """Return lightweight data for collection cards."""
-    node = self.graph.get_node(node_path)
+  def _item_payload(self, item_id: str, source_type: str = "folder") -> Dict[str, Any]:
+    """
+    Return lightweight data for collection cards.
+    
+    For source="folder": item_id is a node path, return node metadata
+    For source="media_folder": item_id is a file path, return file metadata
+    """
+    if source_type == "media_folder":
+      # Return media file metadata
+      # TODO: Extract ID3 tags, duration, etc. from actual file
+      # For now, return basic file info
+      file_path = Path(item_id)
+      return {
+        "type": "media_file",
+        "filename": file_path.name,
+        "path": str(file_path),
+        "title": file_path.stem,  # filename without extension
+        "extension": file_path.suffix,
+        # Future: ID3 metadata
+        # "artist": ...,
+        # "album": ...,
+        # "duration": ...,
+        # "artwork": ...,
+      }
+    
+    # Default: folder source - look up content node
+    node = self.graph.get_node(item_id)
     if not node:
-      return {"path": node_path}
+      return {"path": item_id}
 
     return {
       "path": node.meta.path,

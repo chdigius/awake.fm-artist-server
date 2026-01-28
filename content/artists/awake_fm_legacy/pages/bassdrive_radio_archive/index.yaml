@@ -37,17 +37,65 @@ content:
     label: "Live Sessions (Original Broadcasts)"
     align:
       horizontal: center
-    content:
-      - type: markdown
-        body: |
-          *Archive coming soon - 50+ live sessions from 2018-2021*
+    blocks:
+      - type: collection
+        source: media_folder
+        path: "artists/awake_fm_legacy/music/sets/audio/bassdrive"
+        pattern: "*.mp3"
+        card: "set"
+        media:
+          type: "audio"
+          visualizer:
+            id: "nebula-flight"
+            seed_from: ["filename", "duration"]
+            options:
+              renderer: "webgl"
+              particle_count: 5000
+        layout:
+          mode: "grid"
+          max_width: "900px"
+          gap: "1rem"
+          align:
+            horizontal: "center"
+        sort: "filename_desc"
+        paging:
+          enabled: true
+          page_size: 10
+          mode: "pages"
+        empty_state:
+          heading: "No live sessions yet."
+          body: "Live sessions with voiceovers and DJ personality will appear here."
 
   - type: section
     label: "Music-Only Sets"
     align:
       horizontal: center
-    content:
-      - type: markdown
-        body: |
-          *Archive coming soon - Pure mix flow versions*
+    blocks:
+      - type: collection
+        source: media_folder
+        path: "artists/awake_fm_legacy/music/sets/audio/youtube"
+        pattern: "*.mp3"
+        card: "set"
+        media:
+          type: "audio"
+          visualizer:
+            id: "gforce-flow"
+            seed_from: ["filename", "duration"]
+            options:
+              renderer: "2d"
+              trail_length: 50
+        layout:
+          mode: "list"
+          max_width: "900px"
+          gap: "1rem"
+          align:
+            horizontal: "center"
+        sort: "filename_desc"
+        paging:
+          enabled: true
+          page_size: 10
+          mode: "pages"
+        empty_state:
+          heading: "No music-only sets yet."
+          body: "Pure mix flow versions for uninterrupted listening will appear here."
 

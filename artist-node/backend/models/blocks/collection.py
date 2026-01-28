@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Literal, Any
 
 CollectionLayoutMode = Literal["grid", "list", "carousel"]
 CollectionPagingMode = Literal["load_more", "pages"]
+CollectionSourceType = Literal["folder", "roster", "tag", "query", "media_folder"]
 
 
 @dataclass
@@ -57,16 +58,33 @@ class CollectionPaging:
 
 
 @dataclass
+class CollectionMedia:
+  """
+  Media configuration for audio/video collections.
+
+  Defines how media files should be displayed and played, including
+  audio player settings and visualizer configuration.
+  """
+  type: Literal["audio", "video"] = "audio"       # media type
+  player: Optional[Dict[str, Any]] = None         # player config (autoplay, controls, etc.)
+  visualizer: Optional[Dict[str, Any]] = None     # visualizer config (id, seed_from, options)
+
+
+@dataclass
 class CollectionBlock:
   type: Literal["collection"] = "collection"
 
   # where the items come from
-  source: Literal["folder", "roster", "tag", "query"] = "folder"
-  path: Optional[str] = None          # when source == "folder", e.g. "artists"
+  source: CollectionSourceType = "folder"
+  path: Optional[str] = None          # filesystem path (folder: "artists", media_folder: "music/sets/audio/bassdrive")
+  pattern: Optional[str] = None       # file pattern for media_folder source (e.g. "*.mp3", "*.flac")
 
   # presentation + behavior
   layout: Optional[CollectionLayout] = None
   card: Optional[str] = None          # which card component/template to use, e.g. "artist"
+
+  # media configuration (for audio/video collections)
+  media: Optional[CollectionMedia] = None
 
   # data shaping
   sort: Optional[str] = None          # "name_asc", "random", etc.

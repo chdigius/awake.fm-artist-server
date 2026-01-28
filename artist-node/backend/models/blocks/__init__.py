@@ -9,8 +9,10 @@ from backend.models.blocks.collection import (
   CollectionBlock,
   CollectionLayout,
   CollectionPaging,
+  CollectionMedia,
   CollectionLayoutMode,
   CollectionPagingMode,
+  CollectionSourceType,
 )
 from backend.models.blocks.audio_player import AudioPlayerBlock, VisualizerConfig
 
@@ -48,11 +50,13 @@ __all__ = [
   "SigilConfig",
   "CollectionLayout",
   "CollectionPaging",
+  "CollectionMedia",
   "VisualizerConfig",
   # Types
   "Block",
   "BlockType",
   "CollectionLayoutMode",
   "CollectionPagingMode",
+  "CollectionSourceType",
 ]
 

@@ -165,3 +165,96 @@ class TestCollectionsController(ContentGraphTestBase):
     assert len(data['items']) == 0  # No items found
     assert data['paging']['total_items'] == 0
 
+  @pytest.mark.asyncio
+  async def test_media_folder_collection_endpoint(self, client, tmp_path, monkeypatch):
+    """Test that media_folder source scans filesystem for audio files."""
+    from pathlib import Path
+
+    # Create test media folder structure in temp directory
+    test_audio_dir = tmp_path / "test_collection" / "audio"
+    test_audio_dir.mkdir(parents=True, exist_ok=True)
+
+    # Create test MP3 files (empty files are fine for testing)
+    test_files = [
+      "test_track_001.mp3",
+      "test_track_002.mp3",
+      "test_track_003.mp3",
+    ]
+
+    for filename in test_files:
+      (test_audio_dir / filename).write_text("")
+
+    # Mock the content root path resolution to use tmp_path
+    def mock_resolve_media_folder(self, path, pattern, current_node_path):
+      """Mock version that uses tmp_path as content root."""
+      if not path:
+        return []
+
+      if not pattern:
+        pattern = "*.mp3"
+
+      # Use tmp_path as content root for testing
+      media_dir = tmp_path / path
+
+      if not media_dir.exists() or not media_dir.is_dir():
+        return []
+
+      files = []
+      for file_path in media_dir.glob(pattern):
+        if file_path.is_file():
+          rel_path = file_path.relative_to(media_dir)
+          files.append(str(rel_path))
+      return files
+
+    # Patch the resolver method
+    from backend.models.collection_resolver import CollectionResolver
+    monkeypatch.setattr(
+      CollectionResolver,
+      '_resolve_media_folder_source',
+      mock_resolve_media_folder
+    )
+
+    # Test media_folder collection endpoint
+    resp = await client.get(
+      "/api/collection?"
+      "source=media_folder&"
+      "path=test_collection/audio&"
+      "pattern=*.mp3&"
+      "page=1&"
+      "page_size=10"
+    )
+
+    assert resp.status_code == 200
+
+    data = await resp.get_json()
+
+    # Verify structure
+    assert data['type'] == 'collection'
+    assert data['source'] == 'media_folder'
+    assert data['path'] == 'test_collection/audio'
+
+    # Verify items
+    items = data['items']
+    assert isinstance(items, list)
+    assert len(items) == 3  # All 3 test files
+
+    # Verify media file item structure
+    first_item = items[0]
+    assert first_item['type'] == 'media_file'
+    assert 'filename' in first_item
+    assert 'path' in first_item
+    assert 'title' in first_item
+    assert 'extension' in first_item
+    assert first_item['extension'] == '.mp3'
+
+    # Verify filenames are in items
+    filenames = [item['filename'] for item in items]
+    assert 'test_track_001.mp3' in filenames
+    assert 'test_track_002.mp3' in filenames
+    assert 'test_track_003.mp3' in filenames
+
+    # Verify paging
+    paging = data['paging']
+    assert paging['total_items'] == 3
+    assert paging['page'] == 1
+    assert paging['has_more'] == False

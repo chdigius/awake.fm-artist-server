@@ -45,6 +45,7 @@ from backend.models.blocks import (
   CollectionBlock,
   CollectionLayout,
   CollectionPaging,
+  CollectionMedia,
   AudioPlayerBlock,
   SigilConfig,
   VisualizerConfig,
@@ -168,7 +169,7 @@ def parse_block(raw: Dict[str, Any]) -> Block:
         snap_align=layout_raw.get("snap_align"),
         max_width=layout_raw.get("max_width"),
       )
-    
+
     # Parse paging config if present
     paging_raw = raw.get("paging")
     paging = None
@@ -178,12 +179,24 @@ def parse_block(raw: Dict[str, Any]) -> Block:
         page_size=paging_raw.get("page_size"),
         mode=paging_raw.get("mode", "load_more"),
       )
-    
+
+    # Parse media config if present (for audio/video collections)
+    media_raw = raw.get("media")
+    media = None
+    if media_raw:
+      media = CollectionMedia(
+        type=media_raw.get("type", "audio"),
+        player=media_raw.get("player"),
+        visualizer=media_raw.get("visualizer"),
+      )
+
     return CollectionBlock(
       source=raw.get("source", "folder"),
       path=raw.get("path"),
+      pattern=raw.get("pattern"),
       layout=layout,
       card=raw.get("card"),
+      media=media,
       sort=raw.get("sort"),
       sort_options=raw.get("sort_options"),
       limit=raw.get("limit"),
