@@ -14,7 +14,9 @@
 import MainNav from '@/components/MainNav.vue'
 </script> -->
 <template>
-  <RouterView />
+  <div class="app-container" :style="{ paddingBottom: playerPadding }">
+    <RouterView />
+  </div>
 
   <!-- Global audio player (slides up from bottom) -->
   <GlobalPlayerBar :show-visualizer="true">
@@ -29,13 +31,23 @@ import MainNav from '@/components/MainNav.vue'
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useViewMode } from '@/composables/useViewMode';
-import { GlobalPlayerBar } from '@awake/audio-player';
+import { GlobalPlayerBar, usePlayerStore } from '@awake/audio-player';
 import PlayerVisualizer from '@/components/player/PlayerVisualizer.vue';
 
 useViewMode();
+
+// Add bottom padding when player is active (height of minimized player)
+const playerStore = usePlayerStore();
+const { hasTrack } = storeToRefs(playerStore);
+
+const playerPadding = computed(() => hasTrack.value ? '70px' : '0px');
 </script>
 
 <style>
-/* If you want any truly global app-level stuff, it goes here */
+.app-container {
+  transition: padding-bottom 0.3s ease;
+}
 </style>

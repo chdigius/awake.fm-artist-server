@@ -25,33 +25,17 @@ Currently both embedded AudioPlayerBlock and GlobalPlayerBar can play simultaneo
 - Needs tight iteration cycles to get UX right
 
 ### Advanced Global Player Display Options
-**Status:** Design discussion, not implemented  
-**Priority:** Low-Medium
+**Status:** ✅ COMPLETE - Hybrid approach implemented  
+**Priority:** ~~Low-Medium~~ DONE
 
-Global player currently overlays bottom of screen. Explore better content blocking solutions:
+**Implemented solution (2026-01-28):**
+- Page adds bottom padding (70px) when player appears - matches minimized player height
+- Full player overlays when expanded (no layout shift during minimize/expand)
+- Minimized player sits perfectly above page content (no blocking!)
+- Smooth CSS transition (0.3s ease) makes padding changes barely noticeable
+- Player closes (X button) removes padding - clean dismiss
 
-**Option A: Push Content Up**
-- Add dynamic bottom padding to main content area equal to player height
-- No content ever blocked by player
-- Cons: Page layout shifts when player appears/disappears
-
-**Option B: Floating/Draggable Player**
-- User can drag player anywhere on screen
-- Ultimate flexibility
-- Cons: Complex to build, mobile challenges, still blocks content
-
-**Option C: Smart Minimize Behavior**
-- Auto-minimize when user scrolls up
-- Full player when idle at bottom
-- Minimized player when actively browsing
-- Cons: Requires scroll tracking, may feel "magic" vs predictable
-
-**Option D: Hybrid Approach**
-- Full player: Always pushes content up (want to see visualizer)
-- Minimized player: Overlay mode (small enough not to block much)
-- Best of both worlds?
-
-**Current decision:** Keep simple overlay + dismiss button (X). Revisit advanced options after gathering user feedback.
+**Result:** Perfect balance of layout stability and immersive full player. Only 2 subtle layout shifts total (player appears, player closes). Feels smooth and natural! 🎉
 
 ---
 
