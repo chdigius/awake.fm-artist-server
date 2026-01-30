@@ -6,6 +6,7 @@
       :is="cardComponent"
       :item="item"
       :visualizer="visualizer"
+      :collection-metadata="collectionMetadata"
       mode="list"
     />
   </div>
@@ -51,6 +52,11 @@ interface CollectionListProps {
     id?: string;
     seed_from?: string[];
     options?: Record<string, any>;
+  };
+  collectionMetadata?: {
+    source: string;
+    path: string;
+    pattern?: string;
   };
 }
 

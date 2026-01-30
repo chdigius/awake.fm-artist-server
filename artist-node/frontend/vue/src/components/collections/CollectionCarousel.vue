@@ -24,6 +24,7 @@
         :is="cardComponent"
         :item="item"
         :visualizer="visualizer"
+        :collection-metadata="collectionMetadata"
         mode="carousel"
         class="carousel-slide"
       />
@@ -103,6 +104,11 @@ interface CollectionCarouselProps {
     id?: string;
     seed_from?: string[];
     options?: Record<string, any>;
+  };
+  collectionMetadata?: {
+    source: string;
+    path: string;
+    pattern?: string;
   };
 }
 

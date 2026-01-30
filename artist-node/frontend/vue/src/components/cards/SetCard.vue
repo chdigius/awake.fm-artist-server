@@ -1,5 +1,10 @@
 <template>
-  <div :class="['set-card', `set-card--${mode}`]" @click="handleClick">
+  <a
+    :id="`track-${trackId}`"
+    :href="`#track-${trackId}`"
+    :class="['set-card', `set-card--${mode}`]"
+    @click.prevent="handleClick"
+  >
     <!-- Placeholder thumbnail (visualizer only shown when playing) -->
     <div class="set-card__thumbnail">
       <div class="set-card__placeholder">
@@ -15,7 +20,7 @@
       <p v-if="displayDate" class="set-card__date">{{ displayDate }}</p>
       <p v-if="displayDuration" class="set-card__duration">{{ displayDuration }}</p>
     </div>
-  </div>
+  </a>
 </template>
 
 <script setup lang="ts">
@@ -41,6 +46,11 @@ interface SetCardProps {
     seed_from?: string[];
     options?: Record<string, any>;
   };
+  collectionMetadata?: {
+    source: string;
+    path: string;
+    pattern?: string;
+  };
 }
 
 const props = withDefaults(defineProps<SetCardProps>(), {
@@ -51,6 +61,16 @@ const playerStore = usePlayerStore();
 
 console.log('[SetCard] Item:', props.item);
 console.log('[SetCard] Visualizer config:', props.visualizer);
+
+// Generate URL-safe track ID from filename
+const trackId = computed(() => {
+  // Remove extension and make URL-safe
+  return props.item.filename
+    .replace(props.item.extension, '')
+    .replace(/[^a-zA-Z0-9-_]/g, '-') // Replace non-alphanumeric with dash
+    .replace(/-+/g, '-') // Collapse multiple dashes
+    .replace(/^-|-$/g, ''); // Remove leading/trailing dashes
+});
 
 // Parse filename for display info
 // Generic parsing - works with any artist's naming conventions
@@ -151,8 +171,25 @@ function handleClick() {
       filename: props.item.filename,
       extension: props.item.extension,
       date: displayDate.value,
+      // Store collection metadata for deep linking
+      collectionSource: props.collectionMetadata?.source,
+      collectionPath: props.collectionMetadata?.path,
+      collectionPattern: props.collectionMetadata?.pattern,
     },
   };
+
+  // Build URL hash with collection metadata
+  let hash = `#track-${trackId.value}`;
+  if (props.collectionMetadata) {
+    hash += `&source=${encodeURIComponent(props.collectionMetadata.source)}`;
+    hash += `&path=${encodeURIComponent(props.collectionMetadata.path)}`;
+    if (props.collectionMetadata.pattern) {
+      hash += `&pattern=${encodeURIComponent(props.collectionMetadata.pattern)}`;
+    }
+  }
+
+  // Update URL hash for deep linking (without page reload)
+  window.history.pushState(null, '', hash);
 
   playerStore.play(track, 'global');
 }
@@ -167,6 +204,9 @@ function handleClick() {
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
+  text-decoration: none; /* Remove underline from link */
+  color: inherit; /* Inherit text color */
+  scroll-margin-top: 100px; /* Space from top when scrolled to (for fixed player) */
 }
 
 .set-card:hover {

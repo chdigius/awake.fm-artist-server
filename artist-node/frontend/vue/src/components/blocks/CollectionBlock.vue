@@ -25,6 +25,11 @@
         :layout="layout"
         :card="card"
         :visualizer="media?.visualizer"
+        :collection-metadata="{
+          source: source,
+          path: path,
+          pattern: pattern
+        }"
       />
 
       <!-- Pagination controls -->
@@ -52,6 +57,13 @@ import CollectionList from '@/components/collections/CollectionList.vue';
 import CollectionCarousel from '@/components/collections/CollectionCarousel.vue';
 
 const collectionRoot = ref<HTMLElement | null>(null);
+
+// Global flag to ensure only one collection handles deep link
+// @ts-ignore
+if (!window.__deepLinkHandled) {
+  // @ts-ignore
+  window.__deepLinkHandled = false;
+}
 
 interface CollectionItem {
   path: string;
@@ -151,8 +163,104 @@ async function fetchCollection(page: number = 1) {
   }
 }
 
+// Check for deep link on mount
+async function checkDeepLink() {
+  const hash = window.location.hash;
+  if (!hash.startsWith('#track-')) return null;
+
+  // Check if another collection already handled this
+  // @ts-ignore
+  if (window.__deepLinkHandled) {
+    console.log(`[CollectionBlock:${props.path}] Deep link already handled by another collection, skipping`);
+    return null;
+  }
+
+  // Parse hash params
+  const hashParams = new URLSearchParams(hash.substring(1)); // Remove # and parse
+  const trackId = hashParams.get('track')?.replace('track-', '') || hash.split('&')[0].replace('#track-', '');
+  const hashSource = hashParams.get('source');
+  const hashPath = hashParams.get('path');
+  const hashPattern = hashParams.get('pattern');
+
+  console.log(`[CollectionBlock:${props.path}] Hash params:`, { trackId, hashSource, hashPath, hashPattern });
+
+  // Check if this hash is for THIS collection
+  if (hashSource && hashSource !== props.source) {
+    console.log(`[CollectionBlock:${props.path}] Source mismatch (${hashSource} vs ${props.source}), skipping`);
+    return null;
+  }
+  if (hashPath && hashPath !== props.path) {
+    console.log(`[CollectionBlock:${props.path}] Path mismatch (${hashPath} vs ${props.path}), skipping`);
+    return null;
+  }
+
+  console.log(`[CollectionBlock:${props.path}] ✅ This collection matches hash params, searching for track:`, trackId);
+
+  try {
+    const params = new URLSearchParams({
+      track_id: trackId,
+      source: props.source,
+      path: props.path,
+    });
+
+    if (props.pattern) params.set('pattern', props.pattern);
+    if (props.paging?.page_size) params.set('page_size', props.paging.page_size.toString());
+
+    const response = await fetch(`/api/collection/find-track?${params}`);
+    if (!response.ok) {
+      console.warn(`[CollectionBlock:${props.path}] Find track failed:`, response.statusText);
+      return null;
+    }
+
+    const data = await response.json();
+    if (data.found) {
+      console.log(`[CollectionBlock:${props.path}] ✅ Track found!`, data);
+      // Mark as handled so other collections skip
+      // @ts-ignore
+      window.__deepLinkHandled = true;
+      return data;
+    } else {
+      console.log(`[CollectionBlock:${props.path}] Track not found in this collection`);
+      return null;
+    }
+  } catch (err) {
+    console.error(`[CollectionBlock:${props.path}] Find track error:`, err);
+    return null;
+  }
+}
+
 // Load initial data
 async function loadInitial() {
+  // Check for deep link first
+  const deepLink = await checkDeepLink();
+
+  // If deep link found, ALWAYS fetch from API to get correct page
+  if (deepLink) {
+    console.log(`[CollectionBlock:${props.path}] Deep link found, loading page ${deepLink.page}...`);
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const data = await fetchCollection(deepLink.page);
+      console.log('[CollectionBlock] API response:', data);
+      items.value = data.items || [];
+      layout.value = data.layout || layout.value;
+      paging.value = data.paging || null;
+      console.log('[CollectionBlock] After fetch - items:', items.value.length, 'layout:', layout.value.mode);
+      console.log('[CollectionBlock] Paging:', paging.value);
+
+      // Scroll to track after items render
+      setTimeout(() => scrollToTrack(deepLink), 500);
+    } catch (err: any) {
+      console.error('[CollectionBlock] Fetch error:', err);
+      error.value = err.message || 'Failed to load collection';
+    } finally {
+      loading.value = false;
+    }
+    return;
+  }
+
+  // No deep link - use embedded items if available
   if (props.items && props.items.length > 0) {
     // Items already provided in page payload
     // Still need to set paging from props if embedded!
@@ -164,6 +272,7 @@ async function loadInitial() {
     return;
   }
 
+  // No deep link, no embedded items - fetch page 1
   loading.value = true;
   error.value = null;
 
@@ -180,6 +289,26 @@ async function loadInitial() {
     error.value = err.message || 'Failed to load collection';
   } finally {
     loading.value = false;
+  }
+}
+
+// Scroll to and optionally play track
+function scrollToTrack(deepLink: any) {
+  const hash = window.location.hash;
+  const trackId = hash.replace('#track-', '').split('&')[0];
+  const element = document.getElementById(`track-${trackId}`);
+
+  if (element) {
+    console.log('[CollectionBlock] Scrolling to track:', trackId);
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Auto-play after scroll
+    setTimeout(() => {
+      console.log('[CollectionBlock] Auto-clicking track:', trackId);
+      element.click();
+    }, 1000);
+  } else {
+    console.warn('[CollectionBlock] Track element not found:', trackId);
   }
 }
 
