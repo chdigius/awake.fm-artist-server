@@ -42,6 +42,13 @@
         </button>
       </div>
 
+      <!-- Toast notification for copy -->
+      <Transition name="fade">
+        <div v-if="showCopiedToast" class="copy-toast">
+          🔗 Link copied with timestamp!
+        </div>
+      </Transition>
+
       <!-- Controls container with solid background -->
       <div class="player-controls-container">
         <div class="player-container">
@@ -97,6 +104,14 @@
               :title="`Repeat: ${repeatMode}`"
             >
               🔁
+            </button>
+
+            <button
+              class="control-btn control-btn--small"
+              @click="shareTrack"
+              :title="shareButtonTitle"
+            >
+              🔗
             </button>
 
             <button
@@ -171,6 +186,15 @@ const visualizerRef = ref<any>(null);
 const visualizerContainerRef = ref<HTMLElement | null>(null);
 const isMinimized = ref(false);
 const isFullscreen = ref(false);
+const showCopiedToast = ref(false);
+
+// Share button tooltip with current timestamp
+const shareButtonTitle = computed(() => {
+  if (!currentTime.value || !duration.value) return 'Share track';
+  const minutes = Math.floor(currentTime.value / 60);
+  const seconds = Math.floor(currentTime.value % 60);
+  return `Share (at ${minutes}:${seconds.toString().padStart(2, '0')})`;
+});
 
 // Function to resume visualizer analyzer (passed to slot)
 function resumeVisualizerAnalyzer() {
@@ -246,7 +270,38 @@ function onLoadedMetadata() {
   if (audioElement.value) {
     playerStore.updateDuration(audioElement.value.duration);
     emit('audioReady', audioElement.value);
-    
+
+    // Check for pending timestamp from deep link
+    // @ts-ignore
+    if (window.__pendingSeekTimestamp) {
+      // @ts-ignore
+      const timestamp = window.__pendingSeekTimestamp;
+      console.log('[GlobalPlayerBar] Found pending timestamp, seeking before play:', timestamp);
+
+      // Parse timestamp - support both "47:23" (MM:SS) and "2843" (seconds)
+      let seconds = 0;
+      if (timestamp.includes(':')) {
+        const parts = timestamp.split(':').map(Number);
+        if (parts.length === 2) {
+          seconds = parts[0] * 60 + parts[1]; // MM:SS
+        } else if (parts.length === 3) {
+          seconds = parts[0] * 3600 + parts[1] * 60 + parts[2]; // HH:MM:SS
+        }
+      } else {
+        seconds = parseInt(timestamp, 10); // Raw seconds
+      }
+
+      if (seconds > 0) {
+        console.log(`[GlobalPlayerBar] Seeking to ${seconds}s before playback starts`);
+        audioElement.value.currentTime = seconds;
+        playerStore.updateTime(seconds);
+      }
+
+      // Clear the pending timestamp
+      // @ts-ignore
+      window.__pendingSeekTimestamp = null;
+    }
+
     // Auto-play if store says we should be playing
     if (isPlaying.value) {
       audioElement.value.play().catch((err) => {
@@ -404,6 +459,65 @@ function toggleRepeat() {
 
 function stop() {
   playerStore.close();
+}
+
+async function shareTrack() {
+  if (!currentTrack.value) return;
+
+  // Get current timestamp
+  const time = audioElement.value?.currentTime || 0;
+  const minutes = Math.floor(time / 60);
+  const seconds = Math.floor(time % 60);
+  const timestamp = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+  // Get current URL (should already have track hash from when it was clicked)
+  let shareUrl = window.location.href;
+
+  // If URL doesn't have a hash (shouldn't happen, but defensive), construct it
+  if (!shareUrl.includes('#track-')) {
+    const baseUrl = window.location.origin + window.location.pathname;
+    // Try to reconstruct from track metadata
+    const trackId = currentTrack.value.id || currentTrack.value.metadata?.filename || 'unknown';
+    const urlSafeId = trackId
+      .replace(/\.[^.]+$/, '') // Remove extension
+      .replace(/[^a-zA-Z0-9-_]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+
+    shareUrl = `${baseUrl}#track-${urlSafeId}`;
+
+    // Add collection metadata if available
+    if (currentTrack.value.metadata?.collectionSource) {
+      shareUrl += `&source=${encodeURIComponent(currentTrack.value.metadata.collectionSource)}`;
+    }
+    if (currentTrack.value.metadata?.collectionPath) {
+      shareUrl += `&path=${encodeURIComponent(currentTrack.value.metadata.collectionPath)}`;
+    }
+    if (currentTrack.value.metadata?.collectionPattern) {
+      shareUrl += `&pattern=${encodeURIComponent(currentTrack.value.metadata.collectionPattern)}`;
+    }
+  }
+
+  // Add/update timestamp parameter
+  if (shareUrl.includes('&t=')) {
+    // Replace existing timestamp
+    shareUrl = shareUrl.replace(/&t=[^&]+/, `&t=${timestamp}`);
+  } else {
+    // Add timestamp
+    shareUrl += `&t=${timestamp}`;
+  }
+
+  // Copy to clipboard
+  try {
+    await navigator.clipboard.writeText(shareUrl);
+    console.log('[GlobalPlayerBar] Copied to clipboard:', shareUrl);
+    showCopiedToast.value = true;
+    setTimeout(() => {
+      showCopiedToast.value = false;
+    }, 2000);
+  } catch (err) {
+    console.error('[GlobalPlayerBar] Failed to copy to clipboard:', err);
+  }
 }
 
 function onSeek(event: Event) {
@@ -703,5 +817,31 @@ function formatTime(seconds: number): string {
     order: 3;
     justify-content: center;
   }
+}
+
+/* Copy toast notification */
+.copy-toast {
+  position: fixed;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

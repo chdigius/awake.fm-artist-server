@@ -52,17 +52,29 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { usePlayerStore } from '@awake/audio-player';
 import CollectionGrid from '@/components/collections/CollectionGrid.vue';
 import CollectionList from '@/components/collections/CollectionList.vue';
 import CollectionCarousel from '@/components/collections/CollectionCarousel.vue';
 
 const collectionRoot = ref<HTMLElement | null>(null);
 
-// Global flag to ensure only one collection handles deep link
+// Global state for deep link handling
 // @ts-ignore
-if (!window.__deepLinkHandled) {
+if (typeof window.__deepLinkHandled === 'undefined') {
   // @ts-ignore
   window.__deepLinkHandled = false;
+  // @ts-ignore
+  window.__lastDeepLinkHash = '';
+}
+
+// Reset flag if hash has changed (new deep link)
+// @ts-ignore
+if (window.__lastDeepLinkHash !== window.location.hash) {
+  // @ts-ignore
+  window.__deepLinkHandled = false;
+  // @ts-ignore
+  window.__lastDeepLinkHash = window.location.hash;
 }
 
 interface CollectionItem {
@@ -175,22 +187,33 @@ async function checkDeepLink() {
     return null;
   }
 
-  // Parse hash params
-  const hashParams = new URLSearchParams(hash.substring(1)); // Remove # and parse
-  const trackId = hashParams.get('track')?.replace('track-', '') || hash.split('&')[0].replace('#track-', '');
-  const hashSource = hashParams.get('source');
-  const hashPath = hashParams.get('path');
-  const hashPattern = hashParams.get('pattern');
+  // Parse hash: #track-xxx&source=yyy&path=zzz&pattern=www&t=47:23
+  const hashParts = hash.substring(1).split('&'); // Remove # and split by &
+  const trackPart = hashParts[0]; // "track-xxx"
+  const trackId = trackPart.replace('track-', '');
 
-  console.log(`[CollectionBlock:${props.path}] Hash params:`, { trackId, hashSource, hashPath, hashPattern });
+  // Parse remaining params
+  const params = new URLSearchParams(hashParts.slice(1).join('&'));
+  const hashSource = params.get('source');
+  const hashPath = params.get('path');
+  const hashPattern = params.get('pattern');
+  const timestamp = params.get('t'); // e.g. "47:23" or "2843"
+
+  console.log(`[CollectionBlock:${props.path}] Hash params:`, { trackId, hashSource, hashPath, hashPattern, timestamp });
 
   // Check if this hash is for THIS collection
+  // If hash has collection params, they must match
   if (hashSource && hashSource !== props.source) {
     console.log(`[CollectionBlock:${props.path}] Source mismatch (${hashSource} vs ${props.source}), skipping`);
     return null;
   }
   if (hashPath && hashPath !== props.path) {
     console.log(`[CollectionBlock:${props.path}] Path mismatch (${hashPath} vs ${props.path}), skipping`);
+    return null;
+  }
+  // Pattern can be optional, only check if both exist
+  if (hashPattern && props.pattern && hashPattern !== props.pattern) {
+    console.log(`[CollectionBlock:${props.path}] Pattern mismatch (${hashPattern} vs ${props.pattern}), skipping`);
     return null;
   }
 
@@ -218,7 +241,8 @@ async function checkDeepLink() {
       // Mark as handled so other collections skip
       // @ts-ignore
       window.__deepLinkHandled = true;
-      return data;
+      // Add timestamp to result if present
+      return { ...data, timestamp };
     } else {
       console.log(`[CollectionBlock:${props.path}] Track not found in this collection`);
       return null;
@@ -295,20 +319,31 @@ async function loadInitial() {
 // Scroll to and optionally play track
 function scrollToTrack(deepLink: any) {
   const hash = window.location.hash;
-  const trackId = hash.replace('#track-', '').split('&')[0];
+  // Parse track ID correctly from hash
+  const hashParts = hash.substring(1).split('&');
+  const trackPart = hashParts[0]; // "track-xxx"
+  const trackId = trackPart.replace('track-', '');
+
   const element = document.getElementById(`track-${trackId}`);
 
   if (element) {
-    console.log('[CollectionBlock] Scrolling to track:', trackId);
+    console.log(`[CollectionBlock:${props.path}] Scrolling to track:`, trackId);
     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // If timestamp provided, store it globally so player can seek on load
+    if (deepLink.timestamp) {
+      console.log(`[CollectionBlock:${props.path}] Storing timestamp for player:`, deepLink.timestamp);
+      // @ts-ignore
+      window.__pendingSeekTimestamp = deepLink.timestamp;
+    }
 
     // Auto-play after scroll
     setTimeout(() => {
-      console.log('[CollectionBlock] Auto-clicking track:', trackId);
+      console.log(`[CollectionBlock:${props.path}] Auto-clicking track:`, trackId);
       element.click();
     }, 1000);
   } else {
-    console.warn('[CollectionBlock] Track element not found:', trackId);
+    console.warn(`[CollectionBlock:${props.path}] Track element not found:`, trackId);
   }
 }
 

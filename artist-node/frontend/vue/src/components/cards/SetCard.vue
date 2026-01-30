@@ -2,7 +2,7 @@
   <a
     :id="`track-${trackId}`"
     :href="`#track-${trackId}`"
-    :class="['set-card', `set-card--${mode}`]"
+    :class="['set-card', `set-card--${mode}`, { 'set-card--highlighted': isHighlighted }]"
     @click.prevent="handleClick"
   >
     <!-- Placeholder thumbnail (visualizer only shown when playing) -->
@@ -24,9 +24,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, onMounted, watch } from 'vue';
 import { usePlayerStore } from '@awake/audio-player';
-import type { AudioTrack } from '@awake/audio-player';
+import { useAudioCard } from '@/composables/useAudioCard';
 
 interface MediaFile {
   type: 'media_file';
@@ -57,20 +57,8 @@ const props = withDefaults(defineProps<SetCardProps>(), {
   mode: 'list',
 });
 
-const playerStore = usePlayerStore();
-
 console.log('[SetCard] Item:', props.item);
 console.log('[SetCard] Visualizer config:', props.visualizer);
-
-// Generate URL-safe track ID from filename
-const trackId = computed(() => {
-  // Remove extension and make URL-safe
-  return props.item.filename
-    .replace(props.item.extension, '')
-    .replace(/[^a-zA-Z0-9-_]/g, '-') // Replace non-alphanumeric with dash
-    .replace(/-+/g, '-') // Collapse multiple dashes
-    .replace(/^-|-$/g, ''); // Remove leading/trailing dashes
-});
 
 // Parse filename for display info
 // Generic parsing - works with any artist's naming conventions
@@ -120,79 +108,34 @@ const displayDuration = computed(() => {
   return `${minutes}m`;
 });
 
-// Hash function for seeding visualizer
-function hashString(str: string): number {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return Math.abs(hash);
-}
-
-// Build visualizer config from props + item metadata
-const visualizerConfig = computed(() => {
-  const config = props.visualizer || {};
-  const id = config.id || 'nebula-flight';
-  const options = { ...config.options };
-
-  // If seed_from specified, generate seed from item metadata
-  if (config.seed_from) {
-    let seedSource = '';
-    config.seed_from.forEach(source => {
-      if (source === 'filename') {
-        seedSource += props.item.filename;
-      } else if (source === 'duration' && props.item.duration) {
-        seedSource += props.item.duration.toString();
-      }
-    });
-
-    if (seedSource) {
-      options.seed = hashString(seedSource);
-    }
-  }
-
-  return { id, options };
+// Use shared audio card logic (deep linking, player integration, visualizer config)
+const { trackId, visualizerConfig, handleClick: originalHandleClick } = useAudioCard({
+  item: props.item,
+  collectionMetadata: props.collectionMetadata,
+  visualizer: props.visualizer,
+  displayTitle: displayTitle,
+  displayDate: displayDate,
 });
 
-// Handle card click - play this set
-function handleClick() {
-  // Normalize path: convert Windows backslashes to forward slashes for URLs
-  const normalizedPath = props.item.path.replace(/\\/g, '/');
+// Get player store to track current track
+const playerStore = usePlayerStore();
 
-  const track: AudioTrack = {
-    id: props.item.filename,
-    path: `/content/${normalizedPath}`,
-    title: displayTitle.value,
-    duration: props.item.duration,
-    visualizer: visualizerConfig.value,
-    metadata: {
-      filename: props.item.filename,
-      extension: props.item.extension,
-      date: displayDate.value,
-      // Store collection metadata for deep linking
-      collectionSource: props.collectionMetadata?.source,
-      collectionPath: props.collectionMetadata?.path,
-      collectionPattern: props.collectionMetadata?.pattern,
-    },
-  };
+// Computed: highlight if this track is currently playing
+const isHighlighted = computed(() => {
+  const currentTrack = playerStore.currentTrack;
+  if (!currentTrack) return false;
 
-  // Build URL hash with collection metadata
-  let hash = `#track-${trackId.value}`;
-  if (props.collectionMetadata) {
-    hash += `&source=${encodeURIComponent(props.collectionMetadata.source)}`;
-    hash += `&path=${encodeURIComponent(props.collectionMetadata.path)}`;
-    if (props.collectionMetadata.pattern) {
-      hash += `&pattern=${encodeURIComponent(props.collectionMetadata.pattern)}`;
-    }
-  }
+  // Match by filename - check both id and path
+  const isCurrentTrack = currentTrack.id === props.item.filename ||
+                         currentTrack.path.includes(props.item.filename);
 
-  // Update URL hash for deep linking (without page reload)
-  window.history.pushState(null, '', hash);
+  return isCurrentTrack;
+});
 
-  playerStore.play(track, 'global');
-}
+// Wrap handleClick
+const handleClick = () => {
+  originalHandleClick();
+};
 </script>
 
 <style scoped>
@@ -216,6 +159,43 @@ function handleClick() {
 
 .set-card:hover .set-card__play-overlay {
   opacity: 1;
+}
+
+/* Highlighted state for deep-linked tracks */
+.set-card--highlighted {
+  animation: highlight-pulse 2s ease-in-out infinite !important;
+  box-shadow: 0 0 0 3px var(--color-accent), 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+  position: relative;
+  z-index: 10;
+}
+
+.set-card--highlighted::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-accent);
+  opacity: 0.15;
+  pointer-events: none;
+  border-radius: var(--radius-md);
+  animation: highlight-fade 2s ease-in-out infinite;
+}
+
+@keyframes highlight-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 3px var(--color-accent), 0 4px 16px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 6px var(--color-accent), 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+}
+
+@keyframes highlight-fade {
+  0%, 100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.25;
+  }
 }
 
 /* === LIST MODE (horizontal layout) === */
