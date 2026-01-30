@@ -49,12 +49,68 @@
         </div>
       </Transition>
 
+      <!-- History dropdown -->
+      <Transition name="slide-down">
+        <div v-if="showHistoryDropdown" class="history-dropdown">
+          <div class="history-header">
+            <div class="history-header__left">
+              <h3>Play History</h3>
+              <span class="history-count">{{ history.length }} track{{ history.length !== 1 ? 's' : '' }}</span>
+            </div>
+            <div class="history-header__right">
+              <button
+                v-if="history.length > 0"
+                class="history-clear"
+                @click="clearHistory"
+                title="Clear history"
+              >
+                Clear
+              </button>
+              <button
+                class="history-close"
+                @click="showHistoryDropdown = false"
+                title="Close history"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+          <div class="history-list">
+            <a
+              v-for="(track, index) in displayHistory"
+              :key="`${track.id}-${index}`"
+              :href="getTrackDeepLink(track)"
+              :class="['history-item', { 'history-item--active': index === playerStore.historyIndex }]"
+              @click.prevent="playFromHistory(index)"
+            >
+              <div class="history-item__info">
+                <div class="history-item__title">{{ track.title }}</div>
+                <div v-if="track.artist" class="history-item__artist">{{ track.artist }}</div>
+              </div>
+              <div class="history-item__icon">▶</div>
+            </a>
+            <div v-if="history.length === 0" class="history-empty">
+              No tracks in history yet
+            </div>
+          </div>
+        </div>
+      </Transition>
+
       <!-- Controls container with solid background -->
       <div class="player-controls-container">
         <div class="player-container">
           <!-- Left: Track info -->
           <div class="player-info">
-            <div class="track-title">{{ currentTrack?.title || 'No track' }}</div>
+            <button
+              class="track-title track-title--clickable"
+              @click="toggleHistoryDropdown"
+              :title="history.length > 0 ? 'Show play history' : 'No history yet'"
+            >
+              {{ currentTrack?.title || 'No track' }}
+              <span v-if="history.length > 0" class="history-indicator">
+                {{ showHistoryDropdown ? '▲' : '▼' }}
+              </span>
+            </button>
             <div v-if="currentTrack?.artist" class="track-artist">{{ currentTrack.artist }}</div>
           </div>
 
@@ -179,6 +235,7 @@ const {
   canGoNext,
   canGoPrevious,
   hasTrack,
+  history,
 } = storeToRefs(playerStore);
 
 const audioElement = ref<HTMLAudioElement | null>(null);
@@ -187,6 +244,7 @@ const visualizerContainerRef = ref<HTMLElement | null>(null);
 const isMinimized = ref(false);
 const isFullscreen = ref(false);
 const showCopiedToast = ref(false);
+const showHistoryDropdown = ref(false);
 
 // Share button tooltip with current timestamp
 const shareButtonTitle = computed(() => {
@@ -196,10 +254,77 @@ const shareButtonTitle = computed(() => {
   return `Share (at ${minutes}:${seconds.toString().padStart(2, '0')})`;
 });
 
+// History in chronological order (oldest first, newest/current at bottom)
+const displayHistory = computed(() => {
+  return [...history.value]; // No reverse - chronological order
+});
+
 // Function to resume visualizer analyzer (passed to slot)
 function resumeVisualizerAnalyzer() {
   console.log('[GlobalPlayerBar] Resuming visualizer analyzer');
   // This will be called by the parent slot consumer
+}
+
+// Toggle history dropdown
+function toggleHistoryDropdown() {
+  if (history.value.length === 0) return;
+  showHistoryDropdown.value = !showHistoryDropdown.value;
+}
+
+// Play track from history
+function playFromHistory(index: number) {
+  // Index is already correct (chronological order)
+  const track = history.value[index];
+  
+  if (track) {
+    console.log('[GlobalPlayerBar] Playing from history index:', index);
+    // Update history index and play track
+    playerStore.historyIndex = index;
+    playerStore.currentTrack = track;
+    playerStore.currentTime = 0;
+    playerStore.isLoading = true;
+    playerStore.isPlaying = true;
+    playerStore.isPaused = false;
+    // Keep dropdown open for rapid track switching!
+  }
+}
+
+// Clear history
+function clearHistory() {
+  if (confirm('Clear all play history?')) {
+    playerStore.history = [];
+    playerStore.historyIndex = -1;
+    showHistoryDropdown.value = false;
+    console.log('[GlobalPlayerBar] History cleared');
+  }
+}
+
+// Generate deep link for track in history
+function getTrackDeepLink(track: any): string {
+  const baseUrl = window.location.origin + window.location.pathname;
+
+  // Generate track ID from filename (same logic as useAudioCard)
+  let trackId = track.id || track.metadata?.filename || 'unknown';
+  trackId = trackId
+    .replace(/\.[^.]+$/, '') // Remove extension
+    .replace(/[^a-zA-Z0-9-_]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+
+  let shareUrl = `${baseUrl}#track-${trackId}`;
+
+  // Add collection metadata if available
+  if (track.metadata?.collectionSource) {
+    shareUrl += `&source=${encodeURIComponent(track.metadata.collectionSource)}`;
+  }
+  if (track.metadata?.collectionPath) {
+    shareUrl += `&path=${encodeURIComponent(track.metadata.collectionPath)}`;
+  }
+  if (track.metadata?.collectionPattern) {
+    shareUrl += `&pattern=${encodeURIComponent(track.metadata.collectionPattern)}`;
+  }
+
+  return shareUrl;
 }
 
 // Toggle minimize/maximize
@@ -835,6 +960,198 @@ function formatTime(seconds: number): string {
   backdrop-filter: blur(10px);
 }
 
+/* History dropdown */
+.history-dropdown {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  max-height: 400px;
+  max-width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  box-sizing: border-box;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-header__left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.history-header__right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.history-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.history-count {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.history-clear {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  line-height: 1.5;
+}
+
+.history-clear:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-text);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.history-close {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background 0.2s ease, color 0.2s ease;
+  line-height: 1;
+}
+
+.history-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-text);
+}
+
+.history-list {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  max-width: 100%;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  text-align: left;
+  text-decoration: none; /* Remove underline from link */
+  box-sizing: border-box;
+}
+
+.history-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.history-item:hover .history-item__icon {
+  color: var(--color-accent);
+}
+
+.history-item--active {
+  background: rgba(255, 255, 255, 0.1);
+  border-left: 3px solid var(--color-accent);
+  padding-left: calc(1rem - 3px); /* Compensate for border */
+}
+
+.history-item--active .history-item__title {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.history-item--active .history-item__icon {
+  color: var(--color-accent);
+}
+
+.history-item__info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.history-item__title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.history-item__artist {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-top: 0.25rem;
+}
+
+.history-item__icon {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  transition: color 0.2s ease;
+  flex-shrink: 0; /* Prevent icon from shrinking */
+  min-width: 1rem; /* Ensure icon always has space */
+}
+
+.history-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Track title clickable */
+.track-title--clickable {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.2s ease;
+}
+
+.track-title--clickable:hover {
+  color: var(--color-accent);
+}
+
+.history-indicator {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;
@@ -842,6 +1159,17 @@ function formatTime(seconds: number): string {
 
 .fade-enter-from,
 .fade-leave-to {
+  opacity: 0;
+}
+
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.slide-down-enter-from,
+.slide-down-leave-to {
+  transform: translateY(-20px);
   opacity: 0;
 }
 </style>

@@ -9,22 +9,41 @@ This document tracks enhancement ideas and future features for the Artist Node s
 **Goal:** Solid, polished global audio player for first production release.
 
 ### Core Features (Must Have)
-- [ ] **Deep linking for tracks with timestamps** - Every track gets unique URL anchor for bookmarking/sharing
-  - Add `id="track-{trackId}"` to SetCard/TrackCard components
-  - Wrap cards in `<a href="#track-{trackId}">` for native right-click menu support
-  - Update URL hash when track plays (History API)
-  - On page load, check for hash → scroll to track → optionally auto-play
-  - **Timestamp support (YouTube-style):**
-    - Share button copies URL with current timestamp: `#track-xyz&t=47:23`
-    - On load, parse timestamp from URL → seek to position → auto-play
-    - Support both `47:23` (MM:SS) and `2843` (seconds) formats
-    - Share button tooltip shows current timestamp: "Share (at 47:23)"
-    - Optional: Update hash every 10s as track plays (debounced) for mid-play bookmarking
-    - Visual indicator when loading from timestamp: "▶ Starting at 47:23..."
-  - Browser back/forward buttons navigate track history
-  - **Why this matters:** DJs can share exact moments, producers reference specific sections, fans jump to drops instantly
-  - **Use cases:** Share sick drops, reference production techniques, create timestamped playlists, deep-link from blog posts
-- [ ] **History dropdown/combo selector** - Click track title → see play history → jump to any track
+- [x] **Deep linking for tracks with timestamps** - ✅ COMPLETE
+  - ✅ `id="track-{trackId}"` on SetCard components
+  - ✅ Wrapped in `<a href="#track-{trackId}">` for native right-click support
+  - ✅ URL hash updates when track plays (History API)
+  - ✅ Page load: parse hash → find page → scroll → auto-play
+  - ✅ **Timestamp support (YouTube-style):**
+    - ✅ Share button copies URL with timestamp: `#track-xyz&t=47:23`
+    - ✅ Parse timestamp from URL → seek BEFORE play starts
+    - ✅ Support both `47:23` (MM:SS) and `2843` (seconds) formats
+    - ✅ Share button tooltip shows current timestamp: "Share (at 47:23)"
+    - ✅ Copy toast notification
+  - ✅ **Active track highlighting** - Theme-aware pulsing glow on currently playing track
+  - ✅ Backend `/api/collection/find-track` endpoint for paginated collections
+  - ✅ `useAudioCard` composable for reusable track logic
+  - **Implementation notes:**
+    - Uses `window.__pendingSeekTimestamp` for pre-play seeking
+    - Highlight tied to `playerStore.currentTrack` (works across pages)
+    - CollectionBlock handles deep link detection and page loading
+    - SetCard highlight uses `var(--color-accent)` for theme integration
+- [x] **History dropdown/combo selector** - ✅ COMPLETE
+  - ✅ Click track title to open history panel
+  - ✅ Most recent tracks first (reversed order)
+  - ✅ Stays open for rapid track switching (power user mode)
+  - ✅ Close button in header (✕)
+  - ✅ Left-click track → plays immediately (no history reordering)
+  - ✅ Right-click track → native browser context menu (Copy Link, Open in New Tab)
+  - ✅ History items are proper `<a>` tags with `href` for deep links
+  - ✅ Theme-aware styling with glassmorphism
+  - ✅ Proper text truncation with visible play icons
+  - ✅ Slide-down animation
+  - ✅ Track count indicator
+  - **Implementation notes:**
+    - `playerStore.play(track, addToHistory: false)` prevents reordering when playing from history
+    - History limited to 50 tracks (configurable)
+    - Better UX than Beatport! 🔥
 - [ ] **Previous/Next navigation** - Walk through history with buttons
 - [ ] **Visual polish pass** - Smooth transitions, hover states, loading indicators
 - [ ] **Mobile responsive testing** - Ensure all controls work on touch devices
@@ -40,6 +59,313 @@ This document tracks enhancement ideas and future features for the Artist Node s
 - [ ] **Visualizer presets** - Let users cycle through different visualizers
 - [ ] **Track progress tooltips** - Hover over progress bar → show timestamp
 - [ ] **Playback speed control** - 0.5x to 2.0x for DJ sets/podcasts
+
+---
+
+## History → Playlist → Commerce Pipeline
+
+### History Persistence & Sync (v1.5)
+**Status:** Design phase  
+**Priority:** High (Post-v1.0)
+
+**Vision:** Two-tier history system: LocalStorage for anonymous users, Mothership sync for authenticated users.
+
+**Core Principle:** Artist node stays stateless. No user accounts, no database. History lives in browser (anonymous) or mothership (authenticated).
+
+---
+
+#### LocalStorage History (Anonymous Users)
+**No account needed. Privacy-first. Works offline.**
+
+**Features:**
+- [ ] **Store history in localStorage** - Per-artist key: `awake_fm_history_{artistSlug}`
+- [ ] **Restore on page load** - Check localStorage, populate playerStore.history
+- [ ] **Max 50 tracks** - Prevent localStorage bloat, FIFO eviction
+- [ ] **Clear button wipes localStorage** - Confirmation dialog, clears local history
+- [ ] **Separate history per artist** - Each artist node has its own localStorage key
+
+**Implementation:**
+```typescript
+// On mount (GlobalPlayerBar.vue or App.vue)
+const artistSlug = 'ishimura' // from route or config
+const storageKey = `awake_fm_history_${artistSlug}`
+const savedHistory = localStorage.getItem(storageKey)
+if (savedHistory) {
+  playerStore.history = JSON.parse(savedHistory)
+}
+
+// On track play (watch playerStore.history)
+watch(() => playerStore.history, (newHistory) => {
+  localStorage.setItem(storageKey, JSON.stringify(newHistory))
+}, { deep: true })
+```
+
+**Why this is great:**
+- **Zero friction:** No signup, just play music
+- **Privacy:** Data never leaves browser
+- **Offline-first:** Works even if artist node is static HTML
+- **Per-artist isolation:** Each artist's history is separate
+
+---
+
+#### Mothership Sync (Authenticated Users)
+**Optional. User creates account on mothership. History syncs across devices and artist nodes.**
+
+**Features:**
+- [ ] **Mothership user accounts** - Signup/login on awake.fm
+- [ ] **History API endpoints** - GET/POST /api/user/history/{artistSlug}
+- [ ] **Auth check on artist node** - Check if user logged in to mothership
+- [ ] **Fetch history from mothership** - On page load, if authenticated
+- [ ] **Sync history to mothership** - On track play, POST to mothership API
+- [ ] **Fallback to localStorage** - If mothership offline or user logged out
+- [ ] **Cross-device sync** - Same history on phone, laptop, work PC
+
+**Technical architecture:**
+- **Mothership API:**
+  ```yaml
+  GET /api/user/history/{artistSlug}
+    - Returns user's history for specific artist
+    - Artist node calls this on mount (if authenticated)
+    - Response: { history: [...], historyIndex: 5 }
+
+  POST /api/user/history/{artistSlug}
+    - Syncs history from artist node to mothership
+    - Called on track play, or on interval (debounced)
+    - Body: { history: [...], historyIndex: 5 }
+  ```
+
+- **Artist node integration:**
+  ```typescript
+  // On mount
+  const isAuthenticated = await checkMothershipAuth()
+  if (isAuthenticated) {
+    const { history } = await fetch(`https://awake.fm/api/user/history/${artistSlug}`)
+    playerStore.history = history
+  } else {
+    // Fallback to localStorage
+    const localHistory = localStorage.getItem(storageKey)
+    playerStore.history = JSON.parse(localHistory || '[]')
+  }
+
+  // On track play
+  if (isAuthenticated) {
+    await fetch(`https://awake.fm/api/user/history/${artistSlug}`, {
+      method: 'POST',
+      body: JSON.stringify({ history: playerStore.history })
+    })
+  } else {
+    localStorage.setItem(storageKey, JSON.stringify(playerStore.history))
+  }
+  ```
+
+- **Mothership user data model:**
+  ```json
+  {
+    "userId": "user_123",
+    "email": "fan@example.com",
+    "history": {
+      "ishimura": [
+        { "filename": "neon-dreams.mp3", "playedAt": "2026-01-27T..." }
+      ],
+      "rom_trooper": [
+        { "filename": "cyberpunk-rain.mp3", "playedAt": "2026-01-27T..." }
+      ]
+    },
+    "historyIndex": {
+      "ishimura": 5,
+      "rom_trooper": 2
+    }
+  }
+  ```
+
+**Why this is killer:**
+- **Roaming profile:** History follows user across devices
+- **Cross-server history:** See all plays across entire network
+- **Backup:** History survives browser clear/reinstall
+- **Artist node stays stateless:** No user DB, no auth system
+- **Optional:** Works standalone (localStorage) or networked (mothership)
+
+---
+
+### History Management & Curation (v1.5)
+**Status:** Design phase  
+**Priority:** High (Post-v1.0)
+
+**Vision:** Transform play history into curated, editable playlists that can be shared and monetized.
+
+**Features:**
+- [ ] **Delete individual history items** - X button on hover, removes from history array
+- [ ] **Drag-and-drop reordering** - Rearrange tracks to perfect the flow
+- [ ] **Copy history as text** - Button in header copies formatted tracklist with deep links
+  - Format: `1. Artist - Title (link)`
+  - Paste anywhere: Discord, Twitter, blog posts
+  - Deep links work across entire Awake.fm network
+- [ ] **Rename history/playlist** - Give your curated list a name
+- [ ] **Save multiple playlists** - Store in localStorage (or mothership if authenticated)
+
+**Implementation notes:**
+- Drag-and-drop: Use Vue Draggable or native HTML5 drag API
+- Copy format: Markdown-style with deep links
+- History becomes "active playlist" that can be saved/loaded
+- localStorage: `awake_fm_playlists_${artistSlug}` (anonymous)
+- Mothership: POST /api/user/playlists (authenticated)
+
+---
+
+### Shareable Playlists (v2.0)
+**Status:** Design phase  
+**Priority:** High (Network effect feature)
+
+**Vision:** Users create playlists, share them across the network, others can listen/fork/buy.
+
+**Features:**
+- [ ] **Share button** - Generates shareable playlist page
+- [ ] **Playlist page** - Dedicated URL showing all tracks with cards
+- [ ] **Fork playlist** - Copy someone's playlist to your history
+- [ ] **Playlist metadata** - Title, description, creator, cover art
+- [ ] **Playlist discovery** - Browse trending/popular playlists on mothership
+
+**Technical architecture:**
+- **Artist node:** Export playlist as JSON
+- **Mothership:** Host playlist pages, handle discovery
+- **Playlist URL:** `awake.fm/playlists/{id}`
+- **Playlist format:**
+  ```json
+  {
+    "id": "abc123",
+    "title": "Ishimura's Favorites",
+    "creator": "Ishimura",
+    "creatorNode": "awake.fm/artists/ishimura",
+    "description": "My top picks from 2025",
+    "coverArt": "https://...",
+    "tracks": [
+      {
+        "artist": "Rom Trooper",
+        "title": "Neon Dreams",
+        "deepLink": "awake.fm/artists/rom_trooper#track-neon-dreams",
+        "duration": 240,
+        "price": 1.00
+      }
+    ]
+  }
+  ```
+
+**Why this is killer:**
+- DJs share set tracklists with fans
+- Producers curate "influences" playlists
+- Fans discover music through trusted curators
+- Cross-artist discovery (network effect!)
+- Viral potential (share on social media)
+
+---
+
+### Commerce Integration (v2.5)
+**Status:** Design phase  
+**Priority:** Medium-High (Monetization)
+
+**Vision:** Direct artist-to-fan sales. Artist node = complete commerce stack. No middleman.
+
+**Core Principle:** Artist server handles checkout. Artist keeps 97%+ (Stripe fee only). Full sovereignty.
+
+---
+
+#### Artist Node Commerce (Direct Sales)
+**User on artist server** → **checkout on artist server** → **artist gets paid directly**
+
+**Features:**
+- [ ] **Per-track pricing** - Artists set prices in YAML
+- [ ] **Shopping cart component** - Add tracks, view cart, update quantities
+- [ ] **Stripe Connect integration** - Artist connects their Stripe account
+- [ ] **Checkout flow** - Payment form, order confirmation
+- [ ] **Download delivery** - Secure download links after purchase
+- [ ] **License key generation** - Optional DRM-free license keys
+- [ ] **Order history** - Customer account with past purchases
+
+**Technical architecture:**
+- **Artist YAML:**
+  ```yaml
+  tracks:
+    - title: "Neon Dreams"
+      price: 1.00
+      download_formats: [mp3, flac, wav]
+      license: "Creative Commons BY-NC-SA"
+  ```
+- **Backend (Quart):**
+  - `/api/cart` - Cart management
+  - `/api/checkout` - Stripe payment intent
+  - `/api/orders` - Order history
+  - `/api/download/{token}` - Secure download
+- **Frontend (Vue):**
+  - `ShoppingCart.vue` - Cart UI
+  - `CheckoutFlow.vue` - Payment form
+  - `DownloadPage.vue` - Post-purchase downloads
+- **Payment flow:**
+  1. User browses artist's music on their server
+  2. Adds tracks to cart (localStorage)
+  3. Checkout on artist's server
+  4. Stripe payment → artist's Stripe Connect account
+  5. Artist server generates download tokens
+  6. User downloads directly from artist server
+  7. **Artist keeps 97%+ (Stripe fee only)**
+
+**Pricing models:**
+- Pay-what-you-want (minimum $1)
+- Fixed price per track
+- Album bundles (discount for full album)
+- Playlist bundles (buy entire history/playlist)
+
+---
+
+#### Mothership Commerce (Cross-Artist Discovery)
+**User on mothership** → **discovers multiple artists** → **checkout on mothership** → **payment split to each artist**
+
+**Features:**
+- [ ] **Cross-artist cart** - Add tracks from multiple artist nodes
+- [ ] **Unified checkout** - Single payment for multi-artist cart
+- [ ] **Payment splitting** - Mothership splits payment to each artist's Stripe Connect
+- [ ] **Distributed downloads** - Each artist serves their own files
+- [ ] **Platform fee** - Optional 3-5% for discovery/coordination
+
+**Technical architecture:**
+- **Mothership:**
+  - Aggregates cart items from multiple artist nodes
+  - Single Stripe checkout
+  - Splits payment to each artist via Stripe Connect
+  - Coordinates download tokens from each artist
+- **Artist node:**
+  - Exposes cart API for mothership integration
+  - Receives payment notification from mothership
+  - Generates download token
+  - Serves file to customer
+- **Payment flow:**
+  1. User browses mothership, discovers playlist with 5 artists
+  2. Adds tracks to mothership cart
+  3. Checkout on mothership (single payment)
+  4. Mothership splits payment to each artist's Stripe Connect
+  5. Each artist generates download token
+  6. User downloads from each artist's server
+  7. **Artist keeps 92-94% (Stripe + small platform fee)**
+
+**Artist choice:**
+- Self-hosted only? Direct sales, 97% revenue, no platform fee
+- Join network? More discovery, 92-94% revenue, small platform fee
+- Both? Best of both worlds
+
+---
+
+**Why this is killer:**
+- **Full sovereignty:** Artist node = complete business (no dependencies)
+- **Optional network:** Join for discovery, leave anytime
+- **Direct payments:** Artist's Stripe account, not platform wallet
+- **No lock-in:** Direct sales always work, even if mothership disappears
+- **Transparent fees:** Stripe 2.9% + 30¢, optional platform 3-5%
+- **Artist control:** Pricing, licensing, formats, everything
+
+**Use cases:**
+1. **Solo artist** → Self-host node → Direct sales → Keep 97%
+2. **DJ plays live set** → Share tracklist → Fans buy on artist server → 97%
+3. **Network discovery** → Fan finds playlist on mothership → Buys from 5 artists → Each keeps 92-94%
+4. **Producer curates playlist** → Shares on mothership → Students buy → Artists get paid directly
 
 ---
 
@@ -284,6 +610,83 @@ Build `TrackCard.vue` for track collections:
 - Title, artist, duration
 - Play button inline
 - Grid/list mode variants
+
+---
+
+## Navigation & UX
+
+### Breadcrumb Navigation
+**Status:** Not started  
+**Priority:** High (v1.0 - Core UX)
+
+**Vision:** Clean, theme-aware breadcrumb trail showing current location in site hierarchy.
+
+**Hierarchy structure:**
+```
+Server → Artist → Project/Album/Page → Subpage → Track
+```
+
+**Example breadcrumbs:**
+- `Awake.fm Network > Ishimura > Music > Tracks > Neon Dreams`
+- `Awake.fm Network > Awake.fm Legacy > Bassdrive Archive > 2015-11-01 Set`
+- `Awake.fm Network > Rom Trooper > About`
+
+**Features:**
+- ✅ Auto-generated from current route/content graph
+- ✅ Each segment is clickable link (except current page)
+- ✅ Separator: `>` or `/` (configurable per theme)
+- ✅ Theme-aware styling (uses `--color-text-secondary` and `--color-accent`)
+- ✅ Mobile responsive: collapse middle segments on small screens
+- ✅ Hover states on links
+- ✅ Current page styled differently (bold, accent color, or no link)
+
+**Placement:**
+- Below header/hero, above main content
+- Sticky option: stays visible on scroll
+- Optional: integrate into page header component
+
+**Technical implementation:**
+- Vue component: `Breadcrumb.vue`
+- Props: `segments: Array<{label: string, path: string, isCurrent: boolean}>`
+- Auto-generate from Vue Router current route
+- Backend: content graph already has hierarchy (server → artist → pages)
+- Frontend: parse route params to build breadcrumb trail
+
+**YAML configuration (optional per-page override):**
+```yaml
+breadcrumb:
+  enabled: true
+  custom_label: "Radio Archive"  # Override auto-generated label
+  hide_ancestors: false          # Show/hide parent segments
+```
+
+**Styling considerations:**
+- Subtle, not distracting
+- Consistent spacing and sizing
+- Use theme accent color for hover/active states
+- Icon support: home icon for server root, folder icons, etc.
+
+**Mobile behavior:**
+- Full breadcrumbs on desktop
+- Collapse to: `... > Parent > Current` on mobile
+- Or: dropdown menu showing full hierarchy
+
+**Why this matters:**
+- Users always know where they are in deep content hierarchies
+- Easy navigation back to parent pages
+- Professional UX polish (every modern site has this)
+- SEO benefits (structured data for breadcrumbs)
+- Reduces "lost in the site" feeling
+
+**Use cases:**
+- User deep-links to track → sees full path back to artist homepage
+- Browsing subpages → quick jump back to main artist page
+- Exploring multiple artists → breadcrumb shows which artist's content you're viewing
+
+**Implementation priority:**
+- Build basic breadcrumb component first (v1.0)
+- Add sticky/collapse features later (v1.5)
+- SEO structured data (v2.0)
 
 ---
 

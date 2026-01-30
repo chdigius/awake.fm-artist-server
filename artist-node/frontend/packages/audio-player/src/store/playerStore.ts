@@ -13,6 +13,7 @@ export const usePlayerStore = defineStore('audioPlayer', {
     isMuted: false,
     queue: [],
     history: [],
+    historyIndex: -1, // Current position in history (-1 = no history)
     repeatMode: 'off',
     shuffleEnabled: false,
   }),
@@ -24,25 +25,35 @@ export const usePlayerStore = defineStore('audioPlayer', {
       return (state.currentTime / state.duration) * 100;
     },
     queueLength: (state) => state.queue.length,
-    canGoNext: (state) => state.queue.length > 0 || state.repeatMode !== 'off',
-    canGoPrevious: (state) => state.history.length > 0,
+    // Can go next if we're not at the end of history
+    canGoNext: (state) => state.historyIndex < state.history.length - 1,
+    // Can go previous if we're not at the start of history
+    canGoPrevious: (state) => state.historyIndex > 0,
   },
 
   actions: {
     // Play a new track (or resume current if no track provided)
-    async play(track?: AudioTrack) {
+    async play(track?: AudioTrack, addToHistory: boolean = true) {
       if (track) {
         // Stop current track if playing
         if (this.currentTrack && this.isPlaying) {
           this.pause();
         }
 
-        // Add current track to history
-        if (this.currentTrack) {
-          this.history.push(this.currentTrack);
+        if (addToHistory) {
+          // If we're in the middle of history (went back), truncate future history
+          if (this.historyIndex < this.history.length - 1) {
+            this.history = this.history.slice(0, this.historyIndex + 1);
+          }
+
+          // Add new track to history
+          this.history.push(track);
+          this.historyIndex = this.history.length - 1;
+
           // Keep history limited to last 50 tracks
           if (this.history.length > 50) {
             this.history.shift();
+            this.historyIndex = this.history.length - 1;
           }
         }
 
@@ -54,7 +65,7 @@ export const usePlayerStore = defineStore('audioPlayer', {
       this.isPlaying = true;
       this.isPaused = false;
 
-      console.log('[PlayerStore] Playing track:', this.currentTrack?.title);
+      console.log('[PlayerStore] Playing track:', this.currentTrack?.title, 'historyIndex:', this.historyIndex);
     },
 
     pause() {
@@ -137,30 +148,38 @@ export const usePlayerStore = defineStore('audioPlayer', {
     },
 
     next() {
-      if (this.queue.length === 0) {
-        console.warn('[PlayerStore] No tracks in queue');
-        return;
-      }
+      // Move forward in history
+      if (this.historyIndex < this.history.length - 1) {
+        this.historyIndex++;
+        const nextTrack = this.history[this.historyIndex];
 
-      const nextTrack = this.queue.shift();
-      if (nextTrack) {
-        this.play(nextTrack);
+        this.currentTrack = nextTrack;
+        this.currentTime = 0;
+        this.isLoading = true;
+        this.isPlaying = true;
+        this.isPaused = false;
+
+        console.log('[PlayerStore] Next - historyIndex:', this.historyIndex);
+      } else {
+        console.warn('[PlayerStore] No next track in history');
       }
     },
 
     previous() {
-      if (this.history.length === 0) {
-        console.warn('[PlayerStore] No tracks in history');
-        return;
-      }
+      // Move backward in history
+      if (this.historyIndex > 0) {
+        this.historyIndex--;
+        const previousTrack = this.history[this.historyIndex];
 
-      const previousTrack = this.history.pop();
-      if (previousTrack) {
-        // Add current track back to front of queue
-        if (this.currentTrack) {
-          this.queue.unshift(this.currentTrack);
-        }
-        this.play(previousTrack);
+        this.currentTrack = previousTrack;
+        this.currentTime = 0;
+        this.isLoading = true;
+        this.isPlaying = true;
+        this.isPaused = false;
+
+        console.log('[PlayerStore] Previous - historyIndex:', this.historyIndex);
+      } else {
+        console.warn('[PlayerStore] No previous track in history');
       }
     },
 

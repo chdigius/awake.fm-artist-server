@@ -31,7 +31,8 @@ export interface PlayerState {
   volume: number;                // 0.0 to 1.0
   isMuted: boolean;
   queue: AudioTrack[];           // upcoming tracks
-  history: AudioTrack[];         // previously played
+  history: AudioTrack[];         // all played tracks
+  historyIndex: number;          // current position in history (-1 = no history)
   repeatMode: 'off' | 'one' | 'all';
   shuffleEnabled: boolean;
 }
