@@ -69,6 +69,7 @@ import { awakeNode001Sigil } from './sigils/awake-node-001'
 import { spectrumBarsVisualizer } from './visualizers/spectrum-bars'
 import { gforceFlowVisualizer } from './visualizers/gforce-flow'
 import { nebulaFlightVisualizer } from './visualizers/nebula-flight'
+import { galaxyFlightVisualizer } from './visualizers/galaxy-flight'
 
 export function registerBuiltins(): void {
   // Static sigils
@@ -78,4 +79,5 @@ export function registerBuiltins(): void {
   register('spectrum-bars', spectrumBarsVisualizer)
   register('gforce-flow', gforceFlowVisualizer)
   register('nebula-flight', nebulaFlightVisualizer)
+  register('galaxy-flight', galaxyFlightVisualizer)
 }

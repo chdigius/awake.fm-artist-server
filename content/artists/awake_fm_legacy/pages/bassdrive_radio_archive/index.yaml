@@ -46,7 +46,7 @@ content:
         media:
           type: "audio"
           visualizer:
-            id: "nebula-flight"
+            id: "galaxy-flight"
             seed_from: ["filename", "duration"]
             options:
               renderer: "webgl"

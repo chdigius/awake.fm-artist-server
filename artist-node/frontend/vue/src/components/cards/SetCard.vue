@@ -154,8 +154,7 @@ function handleClick() {
     },
   };
 
-  console.log('[SetCard] Playing track:', track);
-  playerStore.play(track);
+  playerStore.play(track, 'global');
 }
 </script>
 

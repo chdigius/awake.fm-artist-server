@@ -7,6 +7,7 @@ import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import {
   mountVisualizerShared,
   unmountVisualizer,
+  resizeVisualizer,
   getGlobalAnalyzer,
   type VisualizerOptions,
 } from '@awake/radiantforge';
@@ -48,13 +49,41 @@ function renderVisualizer() {
   );
 }
 
+// Resize function (exposed for manual calls)
+function resize() {
+  resizeVisualizer(host.value);
+}
+
+// ResizeObserver to handle container size changes (e.g., fullscreen)
+let resizeObserver: ResizeObserver | null = null;
+
 onMounted(() => {
   renderVisualizer();
+  
+  // Watch for container size changes
+  if (host.value) {
+    resizeObserver = new ResizeObserver(() => {
+      // Small delay to let CSS transitions complete
+      setTimeout(() => {
+        resize();
+      }, 10);
+    });
+    resizeObserver.observe(host.value);
+  }
+});
+
+// Expose resize for parent components
+defineExpose({
+  resize,
+  resumeAnalyzer: () => globalAnalyzer.ensureResumed(),
 });
 
 onBeforeUnmount(() => {
   if (host.value) {
     unmountVisualizer(host.value);
+  }
+  if (resizeObserver) {
+    resizeObserver.disconnect();
   }
 });
 

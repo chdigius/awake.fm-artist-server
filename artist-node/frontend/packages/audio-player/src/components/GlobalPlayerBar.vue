@@ -12,13 +12,27 @@
       />
 
       <!-- Visualizer panel (on top) - hidden when minimized -->
-      <div v-if="!isMinimized && showVisualizer && currentTrack?.visualizer && audioElement" class="player-visualizer">
+      <div 
+        v-if="!isMinimized && showVisualizer && currentTrack?.visualizer && audioElement"
+        ref="visualizerContainerRef"
+        class="player-visualizer"
+        :class="{ 'is-fullscreen': isFullscreen }"
+        @dblclick="toggleFullscreen"
+      >
         <slot
           name="visualizer"
           :config="currentTrack.visualizer"
           :audio-element="audioElement"
           :resume-analyzer="resumeVisualizerAnalyzer"
         />
+        <button 
+          type="button"
+          class="fullscreen-toggle"
+          @click.stop="toggleFullscreen"
+          :title="isFullscreen ? 'Exit fullscreen' : 'Fullscreen'"
+        >
+          {{ isFullscreen ? '⤓' : '⤢' }}
+        </button>
       </div>
 
       <!-- Controls container with solid background -->
@@ -114,7 +128,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { storeToRefs } from 'pinia';
 import { usePlayerStore } from '../store/playerStore';
 
@@ -147,7 +161,9 @@ const {
 
 const audioElement = ref<HTMLAudioElement | null>(null);
 const visualizerRef = ref<any>(null);
+const visualizerContainerRef = ref<HTMLElement | null>(null);
 const isMinimized = ref(false);
+const isFullscreen = ref(false);
 
 // Function to resume visualizer analyzer (passed to slot)
 function resumeVisualizerAnalyzer() {
@@ -159,6 +175,30 @@ function resumeVisualizerAnalyzer() {
 function toggleMinimize() {
   isMinimized.value = !isMinimized.value;
 }
+
+// Fullscreen controls
+function toggleFullscreen() {
+  if (!visualizerContainerRef.value) return;
+
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+  } else {
+    visualizerContainerRef.value.requestFullscreen();
+  }
+}
+
+function onFullscreenChange() {
+  isFullscreen.value = !!document.fullscreenElement;
+}
+
+// Listen for fullscreen changes (including Escape key exit)
+onMounted(() => {
+  document.addEventListener('fullscreenchange', onFullscreenChange);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('fullscreenchange', onFullscreenChange);
+});
 
 // Watch for track changes
 watch(currentTrack, (newTrack, oldTrack) => {
@@ -198,9 +238,14 @@ watch(currentTime, (time) => {
 function onLoadedMetadata() {
   if (audioElement.value) {
     playerStore.updateDuration(audioElement.value.duration);
-    console.log('[GlobalPlayerBar] Loaded:', currentTrack.value?.title, duration.value);
-    console.log('[GlobalPlayerBar] Audio element ready:', audioElement.value);
     emit('audioReady', audioElement.value);
+    
+    // Auto-play if store says we should be playing
+    if (isPlaying.value) {
+      audioElement.value.play().catch((err) => {
+        console.error('[GlobalPlayerBar] Autoplay blocked:', err);
+      });
+    }
   }
 }
 
@@ -306,6 +351,54 @@ function formatTime(seconds: number): string {
   height: 200px;
   background: rgba(0, 0, 0, 0.8);
   border-bottom: 1px solid var(--color-border);
+  position: relative;
+  cursor: pointer;
+}
+
+.player-visualizer.is-fullscreen {
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+  background: #000;
+  border: none;
+}
+
+/* Fullscreen toggle button */
+.fullscreen-toggle {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  width: 32px;
+  height: 32px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: var(--color-fg, #fff);
+  font-size: 1rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 150ms ease, background 150ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-visualizer:hover .fullscreen-toggle {
+  opacity: 1;
+}
+
+.fullscreen-toggle:hover {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: var(--color-accent, #00ff99);
+}
+
+.player-visualizer.is-fullscreen .fullscreen-toggle {
+  opacity: 1;
+  bottom: 1rem;
+  right: 1rem;
+  width: 48px;
+  height: 48px;
+  font-size: 1.5rem;
 }
 
 /* Controls container with solid/tinted background */

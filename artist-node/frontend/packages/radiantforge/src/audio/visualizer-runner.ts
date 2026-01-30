@@ -221,14 +221,20 @@ export function getVisualizerAnalyzer(el: HTMLElement): AudioAnalyzer | null {
  * This uses p5's resizeCanvas() which preserves the instance and audio connection.
  */
 export function resizeVisualizer(el: HTMLElement | null | undefined): void {
-  if (!el) return
-  const entry = activeVisualizers.get(el)
-  if (!entry) return
+  if (!el) return;
+  const entry = activeVisualizers.get(el);
+  if (!entry) return;
 
-  const newWidth = el.clientWidth || 200
-  const newHeight = el.clientHeight || 200
+  const newWidth = el.clientWidth || 200;
+  const newHeight = el.clientHeight || 200;
 
   // Call p5's resizeCanvas - this preserves the instance and audio connection
-  entry.instance.resizeCanvas(newWidth, newHeight)
+  entry.instance.resizeCanvas(newWidth, newHeight);
+  
+  // Remove aspect-ratio that p5 sets - it prevents proper resizing
+  const canvas = entry.instance.canvas;
+  if (canvas && canvas.style) {
+    canvas.style.aspectRatio = '';
+  }
 }
 

@@ -1,5 +1,11 @@
 # Awake.fm Artist Node - Feature Backlog
 
+Audio Player Ideas:
+Shareable link
+Viewable playlist (store in browser storage for artist nodes?)
+Shareable Playlist
+
+
 This document tracks enhancement ideas and future features for the Artist Node system.
 
 ---
@@ -81,6 +87,56 @@ Generate unique visualizers per track using file metadata:
 - Pass seed to RadiantForge visualizer config
 - Each set gets unique animated identity
 - Consistent across plays (deterministic)
+
+### Waveform Generation & Display
+**Status:** Not started  
+**Priority:** High
+
+Generate waveform graphics for audio files during build process:
+
+**Generation pipeline:**
+- Integrate into `builder.py` - scan audio files during content graph build
+- Use `audiowaveform` (BBC tool) or `librosa` (Python) for peak extraction
+- Generate multiple formats: PNG (thumbnails), SVG (interactive), JSON (data)
+- Cache generated waveforms in `content/artists/{artist}/music/.waveforms/`
+- Multiple sizes: thumbnail (80px height for cards), full (200px for player)
+- Skip regeneration if waveform already exists (performance)
+
+**Display integration:**
+- SetCard: Show mini waveform preview instead of placeholder box
+- GlobalPlayerBar: Full waveform with playback progress overlay
+- AudioPlayerBlock: Embedded player waveform display
+- Interactive seeking: Click waveform to jump to position (SoundCloud-style)
+
+**YAML configuration:**
+```yaml
+media:
+  type: audio
+  waveform:
+    enabled: true
+    color: "#4da3ff"           # waveform color
+    progress_color: "#00ff99"  # played portion color
+    height: 80                 # thumbnail height
+    style: "bars"              # bars | line | gradient
+```
+
+**Technical options:**
+- **audiowaveform** (BBC, C++, super fast, generates PNG/JSON/DAT)
+- **librosa** (Python, full control, spectral analysis, slower)
+- **wavesurfer.js** (client-side, requires loading full audio, not ideal for 2hr sets)
+
+**Benefits:**
+- Visual preview of track/set before playing
+- Professional look (Spotify/SoundCloud level polish)
+- Helps users navigate long DJ sets (see drops, buildups, breaks)
+- Differentiates Awake.fm from basic music platforms
+- "Wow factor" that makes artists want to use the platform
+
+**Implementation notes:**
+- For 128 Bassdrive sets (25GB), generation might take 10-30 minutes first run
+- Waveforms should be gitignored (generated assets, not source)
+- Consider progressive generation: generate on-demand when track first accessed
+- Could expose as API endpoint: `/api/waveform?path=...` for dynamic generation
 
 ### Album Card Component
 **Status:** Not started  
