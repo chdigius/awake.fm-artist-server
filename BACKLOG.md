@@ -1,16 +1,94 @@
 # Awake.fm Artist Node - Feature Backlog
 
-Audio Player Ideas:
-Shareable link
-Viewable playlist (store in browser storage for artist nodes?)
-Shareable Playlist
-
-
 This document tracks enhancement ideas and future features for the Artist Node system.
 
 ---
 
+## Audio Player v1.0 TODO
+
+**Goal:** Solid, polished global audio player for first production release.
+
+### Core Features (Must Have)
+- [ ] **Deep linking for tracks with timestamps** - Every track gets unique URL anchor for bookmarking/sharing
+  - Add `id="track-{trackId}"` to SetCard/TrackCard components
+  - Wrap cards in `<a href="#track-{trackId}">` for native right-click menu support
+  - Update URL hash when track plays (History API)
+  - On page load, check for hash → scroll to track → optionally auto-play
+  - **Timestamp support (YouTube-style):**
+    - Share button copies URL with current timestamp: `#track-xyz&t=47:23`
+    - On load, parse timestamp from URL → seek to position → auto-play
+    - Support both `47:23` (MM:SS) and `2843` (seconds) formats
+    - Share button tooltip shows current timestamp: "Share (at 47:23)"
+    - Optional: Update hash every 10s as track plays (debounced) for mid-play bookmarking
+    - Visual indicator when loading from timestamp: "▶ Starting at 47:23..."
+  - Browser back/forward buttons navigate track history
+  - **Why this matters:** DJs can share exact moments, producers reference specific sections, fans jump to drops instantly
+  - **Use cases:** Share sick drops, reference production techniques, create timestamped playlists, deep-link from blog posts
+- [ ] **History dropdown/combo selector** - Click track title → see play history → jump to any track
+- [ ] **Previous/Next navigation** - Walk through history with buttons
+- [ ] **Visual polish pass** - Smooth transitions, hover states, loading indicators
+- [ ] **Mobile responsive testing** - Ensure all controls work on touch devices
+- [ ] **Keyboard shortcuts** - Spacebar (play/pause), arrow keys (seek), M (mute)
+- [ ] **Volume slider** - Replace mute toggle with full volume control
+- [ ] **Loading states** - Show spinner/progress during track load
+- [ ] **Error handling** - Graceful failures for missing files, network issues
+- [ ] **Accessibility** - ARIA labels, keyboard navigation, screen reader support
+
+### Nice to Have (If Time Allows)
+- [ ] **Browser media session API** - Show in OS media controls (Windows/Mac/mobile)
+- [ ] **Persist player state** - Remember volume, position on page refresh (localStorage)
+- [ ] **Visualizer presets** - Let users cycle through different visualizers
+- [ ] **Track progress tooltips** - Hover over progress bar → show timestamp
+- [ ] **Playback speed control** - 0.5x to 2.0x for DJ sets/podcasts
+
+---
+
 ## Audio Player
+
+### Queue Management & Shareable Playlists
+**Status:** Design phase, not implemented  
+**Priority:** Post-v1.0 (High priority for v2.0)
+
+**Vision:** Transform play history into curated, shareable playlists that work across the entire Awake.fm network.
+
+**v2.0 Features:**
+- **Explicit queue functionality** - Users can add tracks without playing them immediately
+- **Multi-action track controls** - Play now | Add to queue | Play next (insert at front)
+- **Queue UI panel** - See upcoming tracks, reorder via drag-and-drop, remove items
+- **Queue persistence** - Store in localStorage/IndexedDB, survives page refresh
+- **Shareable playlists (local)** - Share a playlist link for single artist node
+- **Cross-network playlists** - Curate tracks from multiple artist nodes, share via mothership
+- **Playlist metadata** - Name, description, cover art, creator attribution
+- **Social features** - Like/fork playlists, follow curators, discover trending
+
+**UX Considerations:**
+- **Desktop:** Hover over SetCard → show play/queue/next buttons
+- **Mobile:** Tap SetCard → reveal control panel → tap specific action
+- **Behavior:** Click when nothing playing → play immediately; click when playing → add to queue (or toggle via setting)
+- **Queue mode toggle:** Explicit "Queue Mode" button for clear intent
+
+**Technical Architecture:**
+- Extend `playerStore` with `queue: AudioTrack[]` array
+- Add actions: `addToQueue()`, `playNext()`, `removeFromQueue()`, `reorderQueue()`
+- Playlist format: JSON with track metadata + URLs (absolute paths for cross-network)
+- Mothership integration: POST playlist → get shareable ID → retrieve via GET
+- localStorage key: `awake_fm_playlist_${artistSlug}` per artist node
+- Cross-network: `awake_fm_playlist_network` for mothership playlists
+
+**Why This Is Killer:**
+- **No other platform does this well** - cross-artist discovery playlists that work seamlessly
+- **Artist sovereignty** - Artists control their content, users curate freely
+- **Network effect** - More artists = more discovery = more value
+- **Viral potential** - Shareable playlists become marketing for entire network
+- **Monetization path** - Premium playlists, curated collections, exclusive content
+
+**Implementation Phases:**
+1. **Phase 1 (v2.0):** Queue functionality on single artist node + local persistence
+2. **Phase 2 (v2.1):** Shareable playlists within single artist node
+3. **Phase 3 (v2.2):** Cross-network playlists via mothership integration
+4. **Phase 4 (v3.0):** Social features (like/fork/follow/discover)
+
+---
 
 ### Mutual Exclusion: Embedded + Global Player
 **Status:** Partially implemented, needs refinement  
