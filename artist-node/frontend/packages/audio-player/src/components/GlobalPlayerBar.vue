@@ -5,10 +5,17 @@
       <audio
         ref="audioElement"
         :src="currentTrack?.path"
+        preload="metadata"
         @loadedmetadata="onLoadedMetadata"
         @timeupdate="onTimeUpdate"
         @ended="onEnded"
         @error="onError"
+        @play="onPlay"
+        @pause="onPause"
+        @stalled="onStalled"
+        @waiting="onWaiting"
+        @canplay="onCanPlay"
+        @playing="onPlaying"
       />
 
       <!-- Visualizer panel (on top) - hidden when minimized -->
@@ -262,6 +269,110 @@ function onEnded() {
 function onError(event: Event) {
   console.error('[GlobalPlayerBar] Audio error:', event);
   playerStore.stop();
+}
+
+function onPlay() {
+  console.log('[GlobalPlayerBar] Audio element fired PLAY event');
+}
+
+function onPause() {
+  console.log('[GlobalPlayerBar] Audio element fired PAUSE event');
+}
+
+let stallRecoveryAttempts = 0;
+let stallRecoveryTimeout: number | null = null;
+
+function onStalled() {
+  console.warn('[GlobalPlayerBar] Audio STALLED - network issue or buffering problem');
+  
+  if (!isPlaying.value || !audioElement.value) return;
+  
+  const readyState = audioElement.value.readyState;
+  const paused = audioElement.value.paused;
+  const currentTime = audioElement.value.currentTime;
+  console.log('[GlobalPlayerBar] Attempting to recover from stall... readyState:', readyState, 'paused:', paused, 'time:', currentTime);
+  
+  // Clear any existing recovery timeout
+  if (stallRecoveryTimeout) {
+    clearTimeout(stallRecoveryTimeout);
+    stallRecoveryTimeout = null;
+  }
+  
+  stallRecoveryAttempts = 0;
+  
+  // Try recovery immediately
+  attemptStallRecovery();
+}
+
+function attemptStallRecovery() {
+  if (!audioElement.value || !isPlaying.value || !currentTrack.value) return;
+  
+  stallRecoveryAttempts++;
+  console.log(`[GlobalPlayerBar] Stall recovery attempt ${stallRecoveryAttempts}/5...`);
+  
+  const currentTime = audioElement.value.currentTime;
+  const audio = audioElement.value;
+  const originalSrc = currentTrack.value.path;
+  
+  console.log('[GlobalPlayerBar] Forcing new range request by reloading src...');
+  
+  // Force a new HTTP request with cache-busting parameter
+  // This triggers a fresh range request from current position
+  const cacheBuster = `?t=${Date.now()}`;
+  audio.src = originalSrc + cacheBuster;
+  
+  // Seek to current position (browser will request from this byte offset)
+  audio.currentTime = currentTime + 0.1;
+  
+  // Load and play
+  audio.load();
+  audio.play().then(() => {
+    console.log('[GlobalPlayerBar] Play resumed successfully with fresh request! ✅');
+    stallRecoveryAttempts = 0;
+    if (stallRecoveryTimeout) {
+      clearTimeout(stallRecoveryTimeout);
+      stallRecoveryTimeout = null;
+    }
+  }).catch((err) => {
+    console.error('[GlobalPlayerBar] Failed to resume:', err);
+    // Try again if we haven't hit max attempts
+    if (stallRecoveryAttempts < 5) {
+      console.log('[GlobalPlayerBar] Scheduling retry in 3 seconds...');
+      stallRecoveryTimeout = window.setTimeout(() => {
+        attemptStallRecovery();
+      }, 3000);
+    } else {
+      console.error('[GlobalPlayerBar] Stall recovery failed after 5 attempts');
+    }
+  });
+}
+
+function onWaiting() {
+  console.log('[GlobalPlayerBar] Audio WAITING - buffering...');
+}
+
+function onCanPlay() {
+  const paused = audioElement.value?.paused;
+  const readyState = audioElement.value?.readyState;
+  console.log('[GlobalPlayerBar] Audio CAN PLAY - enough data buffered (paused:', paused, 'readyState:', readyState, ')');
+  // If we're supposed to be playing but audio is paused (due to stall), resume
+  if (isPlaying.value && audioElement.value && audioElement.value.paused) {
+    console.log('[GlobalPlayerBar] Auto-resuming playback after buffer recovery');
+    audioElement.value.play().catch((err) => {
+      console.error('[GlobalPlayerBar] Failed to auto-resume:', err);
+    });
+  }
+}
+
+function onPlaying() {
+  console.log('[GlobalPlayerBar] Audio PLAYING - playback has started/resumed ✅');
+  // Clear stall recovery timeout if playback resumed
+  if (stallRecoveryTimeout) {
+    console.log('[GlobalPlayerBar] Clearing stall recovery timeout - playback resumed!');
+    clearTimeout(stallRecoveryTimeout);
+    stallRecoveryTimeout = null;
+    stallRecoveryAttempts = 0;
+  }
 }
 
 // Control handlers

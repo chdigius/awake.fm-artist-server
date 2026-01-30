@@ -166,9 +166,57 @@ Generate unique visualizers per track using file metadata:
 - Each set gets unique animated identity
 - Consistent across plays (deterministic)
 
+### HLS Streaming for Large Audio Files
+**Status:** Not started  
+**Priority:** High (v2.0 - Audio Pre-processing Phase)
+
+**Problem:** Large audio files (100MB+ 2-hour DJ sets) cause buffering stalls every ~10-12 minutes when served as single MP3s. Browser downloads entire file but connection drops/throttles mid-stream, causing playback to stall waiting for data that never arrives.
+
+**Current workaround (v1.0):** Auto-recovery system that detects stalls and triggers pause/seek/play cycle to request fresh buffer. Works but not ideal for long-form content.
+
+**Proper solution:** HLS (HTTP Live Streaming) adaptive streaming protocol.
+
+**Implementation:**
+- **Build-time transcoding:** `builder.py` detects large audio files (>50MB threshold)
+- **ffmpeg chunking:** Split MP3 into 10-second HLS segments (.ts files)
+- **Generate playlist:** Create .m3u8 manifest file listing all segments
+- **Player detection:** Frontend checks for .m3u8, uses HLS.js library for playback
+- **Fallback:** Smaller files (<50MB) continue using direct MP3 streaming
+- **Storage:** Chunks stored alongside original: `audio/track.mp3` + `audio/track.m3u8` + `audio/track/segment-*.ts`
+
+**Benefits:**
+- ✅ No buffering stalls - continuous chunk requests
+- ✅ Faster start time - only loads first chunk
+- ✅ Adaptive bitrate - quality adjusts to connection speed
+- ✅ Better seeking - jump to any chunk instantly
+- ✅ Works with existing MP3s - transcoding is one-time build step
+
+**Technical notes:**
+- HLS.js library for browser support (native HLS only in Safari)
+- ffmpeg command: `ffmpeg -i input.mp3 -codec:a aac -b:a 128k -f hls -hls_time 10 -hls_list_size 0 output.m3u8`
+- Consider multiple bitrates for true adaptive streaming (128k, 192k, 320k)
+- Integrate with media_folder scanner for automatic detection
+- Add progress indicator during build for transcoding time
+
+**Synergy with other features:**
+- Combine with waveform generation in single audio pre-processing pipeline
+- Both run during `builder.py` content graph build
+- Cache results to avoid re-processing on every build
+- Could add MP3 normalization, metadata extraction, thumbnail generation
+
+**v2.0 Audio Pre-processing Pipeline:**
+1. Scan media_folder for audio files
+2. Extract ID3 metadata (artist, album, artwork)
+3. Generate waveforms (PNG + JSON)
+4. Transcode large files to HLS chunks
+5. Cache all generated assets
+6. Update content graph with asset references
+
+---
+
 ### Waveform Generation & Display
 **Status:** Not started  
-**Priority:** High
+**Priority:** High (v2.0 - Audio Pre-processing Phase)
 
 Generate waveform graphics for audio files during build process:
 
