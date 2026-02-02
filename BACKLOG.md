@@ -8,7 +8,10 @@ This document tracks enhancement ideas and future features for the Artist Node s
 
 **Goal:** Solid, polished global audio player for first production release.
 
-### Core Features (Must Have)
+**Status:** Core functionality COMPLETE! ✅ (2026-02-03)  
+**Remaining items:** Polish/accessibility/hardening phase before alpha deploy.
+
+### Core Features (Must Have) - ✅ COMPLETE
 - [x] **Deep linking for tracks with timestamps** - ✅ COMPLETE
   - ✅ `id="track-{trackId}"` on SetCard components
   - ✅ Wrapped in `<a href="#track-{trackId}">` for native right-click support
@@ -44,11 +47,19 @@ This document tracks enhancement ideas and future features for the Artist Node s
     - `playerStore.play(track, addToHistory: false)` prevents reordering when playing from history
     - History limited to 50 tracks (configurable)
     - Better UX than Beatport! 🔥
-- [ ] **Previous/Next navigation** - Walk through history with buttons
+- ✅ **Previous/Next navigation** - Walk through history with buttons
+- ✅ **Auto-play next track in history** - Loop to first track when playlist complete (repeat modes: Off/One/All)
+- ✅ **Volume slider** - Full volume control with contextual pop-out menu (🔇🔈🔉🔊)
+- ✅ **Repeat/Loop controls** - Contextual menu (Off/One/All) with visual feedback
+- ✅ **Close confirmation** - Prevent accidental player closure
+- ✅ **One menu at a time** - Clean UX (opening one menu closes others)
+
+### Polish/Hardening Phase (Pre-Alpha Deploy)
+**Note:** Core functionality complete! These items for final hardening pass before alpha.
+
 - [ ] **Visual polish pass** - Smooth transitions, hover states, loading indicators
 - [ ] **Mobile responsive testing** - Ensure all controls work on touch devices
 - [ ] **Keyboard shortcuts** - Spacebar (play/pause), arrow keys (seek), M (mute)
-- [ ] **Volume slider** - Replace mute toggle with full volume control
 - [ ] **Loading states** - Show spinner/progress during track load
 - [ ] **Error handling** - Graceful failures for missing files, network issues
 - [ ] **Accessibility** - ARIA labels, keyboard navigation, screen reader support
@@ -56,9 +67,151 @@ This document tracks enhancement ideas and future features for the Artist Node s
 ### Nice to Have (If Time Allows)
 - [ ] **Browser media session API** - Show in OS media controls (Windows/Mac/mobile)
 - [ ] **Persist player state** - Remember volume, position on page refresh (localStorage)
-- [ ] **Visualizer presets** - Let users cycle through different visualizers
 - [ ] **Track progress tooltips** - Hover over progress bar → show timestamp
 - [ ] **Playback speed control** - 0.5x to 2.0x for DJ sets/podcasts
+
+---
+
+## Artist-Controlled Visualizer Selection
+
+### Visualizer Selection (v1.5)
+**Status:** Design phase
+**Priority:** Medium (Post-v1.0 polish)
+
+**Vision:** Artist nodes and mothership have different philosophies for visualizer selection.
+
+**Core Principle:** Artist node = artist curates their digital space. Mothership = user customizes their discovery portal.
+
+---
+
+#### Artist Node: Artist-Curated Visualizers
+**Artist controls which visualizers fit their brand/aesthetic.**
+
+**Features:**
+- [ ] Support `visualizers` array (plural) in track/collection metadata
+- [ ] Show visualizer selector button only if multiple options provided
+- [ ] Single visualizer = no selector UI (artist's deliberate choice)
+- [ ] Multiple visualizers = enable selection menu (artist offers choices)
+- [ ] Persist user selection in localStorage per track
+- [ ] Switch visualizers without stopping playback
+- [ ] Artist can set default visualizer
+- [ ] Collection-level visualizer lists (applies to all tracks)
+
+**YAML schema:**
+```yaml
+# Single visualizer (no selector UI - artist's deliberate choice)
+visualizer:
+  id: galaxy-flight
+
+# Multiple visualizers (enable selector UI - artist offers choices)
+visualizers:
+  - id: galaxy-flight
+    label: "Galaxy"
+  - id: gforce-flow
+    label: "G-Force"
+  - id: spectrum-bars
+    label: "Spectrum"
+default_visualizer: galaxy-flight
+
+# Collection-level (applies to all tracks)
+collections:
+  - id: bassdrive-sets
+    visualizers:
+      - galaxy-flight
+      - nebula-flight
+      - spectrum-bars
+```
+
+**UI behavior:**
+- **Single visualizer:** No button shown (artist chose this specific one)
+- **Multiple visualizers:** `[🎨 Galaxy ▼]` button with contextual menu
+- **No visualizer:** No button, no visualizer (artist's choice for minimal aesthetic)
+
+**Why this works:**
+- Artist curates the experience to match their brand
+- Cyberpunk artist → galaxy/nebula visualizers only
+- 90s DnB artist → G-Force retro aesthetic only
+- Ambient artist → no visualizers (minimal)
+- User can switch between artist-approved options
+
+---
+
+#### Mothership: User-Customized Portal
+**User controls their view into the network.**
+
+**Features:**
+- [ ] User preference: "Always use Spectrum Bars" (override artist choice)
+- [ ] User preference: "Respect artist's choice" (default)
+- [ ] User preference: "Disable visualizers" (mobile data saver)
+- [ ] Global visualizer selector (all available visualizers)
+- [ ] Per-artist override (use artist's choice for specific artists)
+- [ ] Accessibility mode (disable motion for seizure safety)
+
+**User settings:**
+```typescript
+userSettings: {
+  visualizerMode: 'respect_artist',  // 'respect_artist' | 'always_use' | 'disabled'
+  preferredVisualizer: 'spectrum-bars',  // used if mode = 'always_use'
+  perArtistOverrides: {
+    'ishimura': 'galaxy-flight',  // override for specific artists
+    'rom_trooper': null  // disable for specific artist
+  },
+  accessibilityMode: false  // disable motion/flashing
+}
+```
+
+**UI on mothership:**
+```
+[🎨 Settings]
+
+┌─────────────────────────────────┐
+│ Visualizer Preferences          │
+├─────────────────────────────────┤
+│ ○ Respect artist's choice       │
+│ ● Always use:                   │
+│   [▼ Spectrum Bars          ]   │
+│ ○ Disable visualizers           │
+│                                 │
+│ ☑ Accessibility mode            │
+│   (Disable motion/flashing)     │
+└─────────────────────────────────┘
+```
+
+**Why this works:**
+- User's portal, user's choice
+- Can override for personal preference
+- Accessibility needs respected
+- Still defaults to artist's vision
+
+---
+
+### The Philosophy 🎯
+
+**Artist Node (Artist's Digital Space):**
+- Artist curates which visualizers appear
+- Part of their brand/aesthetic
+- "Galaxy Flight fits my cyberpunk vibe"
+- User selects from artist-approved options
+
+**Mothership Portal (User's Discovery Tool):**
+- User customizes their entire view
+- "I love Spectrum Bars, use it everywhere"
+- "Disable visualizers on mobile"
+- User choice overrides artist choice (their portal)
+
+**Both respect sovereignty:**
+- Artist controls their space
+- User controls their portal
+- Network respects both
+
+---
+
+**Implementation notes:**
+- Backend: parse `visualizers` array in track/collection metadata
+- Frontend (artist node): conditionally render button if list length > 1
+- Frontend (mothership): always show global selector with user preferences
+- Store: add `availableVisualizers` and `selectedVisualizer` to playerStore
+- Switching: unmount current visualizer, mount new one (preserve analyzer)
 
 ---
 

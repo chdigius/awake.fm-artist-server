@@ -79,7 +79,8 @@ content:
         media:
           type: "audio"
           visualizer:
-            id: "gforce-flow"
+            # id: "gforce-flow"
+            id: "spectrum-bars"
             seed_from: ["filename", "duration"]
             options:
               renderer: "2d"

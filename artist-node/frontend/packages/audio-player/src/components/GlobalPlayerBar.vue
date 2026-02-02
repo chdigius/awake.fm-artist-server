@@ -49,6 +49,23 @@
         </div>
       </Transition>
 
+      <!-- Close confirmation dialog -->
+      <Transition name="fade">
+        <div v-if="showCloseConfirmation" class="confirmation-overlay" @click="showCloseConfirmation = false">
+          <div class="confirmation-dialog" @click.stop>
+            <h3 class="confirmation-title">Close Player?</h3>
+            <div class="confirmation-buttons">
+              <button class="confirmation-btn confirmation-btn--cancel" @click="showCloseConfirmation = false">
+                Cancel
+              </button>
+              <button class="confirmation-btn confirmation-btn--confirm" @click="confirmClose">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+
       <!-- History dropdown -->
       <Transition name="slide-down">
         <div v-if="showHistoryDropdown" class="history-dropdown">
@@ -145,22 +162,97 @@
 
           <!-- Right: Volume & extras -->
           <div class="player-extras">
-            <button
-              class="control-btn control-btn--small"
-              @click="toggleMute"
-              title="Mute/Unmute"
-            >
-              {{ isMuted ? '🔇' : '🔊' }}
-            </button>
+            <!-- Volume slider with contextual pop-out -->
+            <div class="control-menu-group">
+              <button
+                class="control-btn control-btn--small control-btn--menu"
+                @click="toggleVolumeMenu"
+                :title="`Volume: ${Math.round(volume * 100)}%`"
+              >
+                <span class="control-icon">{{ volumeIcon }}</span>
+              </button>
 
-            <button
-              class="control-btn control-btn--small"
-              @click="toggleRepeat"
-              :class="{ active: repeatMode !== 'off' }"
-              :title="`Repeat: ${repeatMode}`"
-            >
-              🔁
-            </button>
+              <!-- Volume menu pop-out -->
+              <Transition name="menu-popup">
+                <div v-if="showVolumeMenu" class="control-menu control-menu--volume" @click.stop>
+                  <div class="volume-slider-container">
+                    <!-- Mute/unmute button -->
+                    <button
+                      class="volume-icon-btn"
+                      @click="toggleMute"
+                      :title="isMuted ? 'Unmute' : 'Mute'"
+                    >
+                      {{ volumeIcon }}
+                    </button>
+
+                    <!-- Vertical volume slider -->
+                    <input
+                      type="range"
+                      class="volume-slider"
+                      orient="vertical"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      :value="isMuted ? 0 : volume"
+                      @input="onVolumeChange"
+                      @mousedown.stop
+                    />
+
+                    <!-- Volume percentage label -->
+                    <div class="volume-label">
+                      {{ isMuted ? '0%' : Math.round(volume * 100) + '%' }}
+                    </div>
+                  </div>
+                </div>
+              </Transition>
+            </div>
+
+            <!-- Repeat menu with contextual pop-out -->
+            <div class="control-menu-group">
+              <button
+                class="control-btn control-btn--small control-btn--menu"
+                :class="{ 
+                  'active': repeatMode !== 'off',
+                  'inactive': repeatMode === 'off'
+                }"
+                @click="toggleRepeatMenu"
+                :title="`Repeat: ${repeatLabel}`"
+              >
+                <span class="control-icon">{{ repeatIcon }}</span>
+              </button>
+
+              <!-- Repeat menu pop-out -->
+              <Transition name="menu-popup">
+                <div v-if="showRepeatMenu" class="control-menu" @click.stop>
+                  <button
+                    class="menu-item"
+                    :class="{ 'menu-item--active': repeatMode === 'off' }"
+                    @click="setRepeat('off')"
+                  >
+                    <span class="menu-item__indicator">{{ repeatMode === 'off' ? '●' : '○' }}</span>
+                    <span class="menu-item__label">No Repeat</span>
+                  </button>
+
+                  <button
+                    class="menu-item"
+                    :class="{ 'menu-item--active': repeatMode === 'one' }"
+                    @click="setRepeat('one')"
+                  >
+                    <span class="menu-item__indicator">{{ repeatMode === 'one' ? '●' : '○' }}</span>
+                    <span class="menu-item__label">Repeat One</span>
+                  </button>
+
+                  <button
+                    class="menu-item"
+                    :class="{ 'menu-item--active': repeatMode === 'all' }"
+                    @click="setRepeat('all')"
+                  >
+                    <span class="menu-item__indicator">{{ repeatMode === 'all' ? '●' : '○' }}</span>
+                    <span class="menu-item__label">Repeat All</span>
+                  </button>
+                </div>
+              </Transition>
+            </div>
 
             <button
               class="control-btn control-btn--small"
@@ -175,7 +267,7 @@
               @click="toggleMinimize"
               :title="isMinimized ? 'Expand player' : 'Minimize player'"
             >
-              {{ isMinimized ? '⌃' : '⌄' }}
+              {{ isMinimized ? '⏶' : '⏷' }}
             </button>
 
             <button
@@ -230,6 +322,7 @@ const {
   isPaused,
   currentTime,
   duration,
+  volume,
   isMuted,
   repeatMode,
   canGoNext,
@@ -245,6 +338,9 @@ const isMinimized = ref(false);
 const isFullscreen = ref(false);
 const showCopiedToast = ref(false);
 const showHistoryDropdown = ref(false);
+const showRepeatMenu = ref(false);
+const showVolumeMenu = ref(false);
+const showCloseConfirmation = ref(false);
 
 // Share button tooltip with current timestamp
 const shareButtonTitle = computed(() => {
@@ -257,6 +353,31 @@ const shareButtonTitle = computed(() => {
 // History in chronological order (oldest first, newest/current at bottom)
 const displayHistory = computed(() => {
   return [...history.value]; // No reverse - chronological order
+});
+
+// Volume icon based on level
+const volumeIcon = computed(() => {
+  if (isMuted.value || volume.value === 0) return '🔇';
+  if (volume.value < 0.33) return '🔈';
+  if (volume.value < 0.67) return '🔉';
+  return '🔊';
+});
+
+// Repeat mode icon and label
+const repeatIcon = computed(() => {
+  switch (repeatMode.value) {
+    case 'one': return '🔂';
+    case 'all': return '🔁';
+    default: return '🔁';
+  }
+});
+
+const repeatLabel = computed(() => {
+  switch (repeatMode.value) {
+    case 'one': return 'One';
+    case 'all': return 'All';
+    default: return 'Off';
+  }
 });
 
 // Function to resume visualizer analyzer (passed to slot)
@@ -347,13 +468,31 @@ function onFullscreenChange() {
   isFullscreen.value = !!document.fullscreenElement;
 }
 
-// Listen for fullscreen changes (including Escape key exit)
+// Click outside handler to close menus
+function handleClickOutside(event: MouseEvent) {
+  const target = event.target as HTMLElement;
+
+  // Close menus if clicking outside their respective groups
+  const menuGroup = target.closest('.control-menu-group');
+  
+  if (showRepeatMenu.value && !menuGroup) {
+    showRepeatMenu.value = false;
+  }
+  
+  if (showVolumeMenu.value && !menuGroup) {
+    showVolumeMenu.value = false;
+  }
+}
+
+// Listen for fullscreen changes (including Escape key exit) and click outside
 onMounted(() => {
   document.addEventListener('fullscreenchange', onFullscreenChange);
+  document.addEventListener('click', handleClickOutside);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('fullscreenchange', onFullscreenChange);
+  document.removeEventListener('click', handleClickOutside);
 });
 
 // Watch for track changes
@@ -376,6 +515,13 @@ watch(isPlaying, (playing) => {
   }
 });
 
+// Watch for volume changes
+watch(volume, (newVolume) => {
+  if (audioElement.value) {
+    audioElement.value.volume = newVolume;
+  }
+});
+
 // Watch for mute state changes
 watch(isMuted, (muted) => {
   if (audioElement.value) {
@@ -393,6 +539,10 @@ watch(currentTime, (time) => {
 // Audio element event handlers
 function onLoadedMetadata() {
   if (audioElement.value) {
+    // Set initial volume and mute state
+    audioElement.value.volume = volume.value;
+    audioElement.value.muted = isMuted.value;
+    
     playerStore.updateDuration(audioElement.value.duration);
     emit('audioReady', audioElement.value);
 
@@ -578,11 +728,49 @@ function toggleMute() {
   playerStore.toggleMute();
 }
 
-function toggleRepeat() {
-  playerStore.toggleRepeat();
+// Volume menu functions
+function toggleVolumeMenu() {
+  showVolumeMenu.value = !showVolumeMenu.value;
+  // Close other menus
+  if (showVolumeMenu.value) {
+    showRepeatMenu.value = false;
+  }
+}
+
+function onVolumeChange(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const newVolume = parseFloat(target.value);
+  playerStore.setVolume(newVolume);
+  
+  // Unmute if user drags slider while muted
+  if (isMuted.value && newVolume > 0) {
+    playerStore.isMuted = false;
+  }
+}
+
+// Repeat menu functions
+function toggleRepeatMenu() {
+  showRepeatMenu.value = !showRepeatMenu.value;
+  // Close other menus
+  if (showRepeatMenu.value) {
+    showVolumeMenu.value = false;
+  }
+}
+
+function setRepeat(mode: 'off' | 'one' | 'all') {
+  playerStore.repeatMode = mode;
+  showRepeatMenu.value = false; // Close menu after selection
+  console.log('[GlobalPlayerBar] Repeat mode set to:', mode);
 }
 
 function stop() {
+  // Show confirmation dialog instead of closing immediately
+  showCloseConfirmation.value = true;
+}
+
+function confirmClose() {
+  // User confirmed - close the player
+  showCloseConfirmation.value = false;
   playerStore.close();
 }
 
@@ -846,6 +1034,181 @@ function formatTime(seconds: number): string {
   background: rgba(255, 255, 255, 0.15);
 }
 
+.control-btn.inactive {
+  opacity: 0.4;
+}
+
+.control-btn.inactive:hover {
+  opacity: 0.6;
+}
+
+/* Contextual menu button */
+.control-btn--menu {
+  gap: 0.25rem;
+  position: relative;
+}
+
+.control-icon {
+  display: flex;
+  align-items: center;
+}
+
+.control-chevron {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+}
+
+.control-btn--menu:hover .control-chevron {
+  opacity: 1;
+}
+
+/* Menu group container */
+.control-menu-group {
+  position: relative;
+}
+
+/* Contextual pop-out menu */
+.control-menu {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--color-bg-secondary, rgba(20, 20, 30, 0.95));
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius-md, 8px);
+  padding: 0.5rem;
+  min-width: 160px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm, 4px);
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.menu-item--active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.menu-item__indicator {
+  font-size: 0.8rem;
+  color: var(--color-accent, #00f0ff);
+  min-width: 1rem;
+}
+
+.menu-item__label {
+  flex: 1;
+}
+
+/* Menu popup transition */
+.menu-popup-enter-active,
+.menu-popup-leave-active {
+  transition: all 0.2s ease;
+}
+
+.menu-popup-enter-from,
+.menu-popup-leave-to {
+  opacity: 0;
+  transform: translateY(0.5rem);
+}
+
+/* Volume slider menu */
+.control-menu--volume {
+  min-width: 60px;
+  padding: 1rem 0.75rem;
+}
+
+.volume-slider-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.volume-icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.volume-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+.volume-slider {
+  -webkit-appearance: slider-vertical;
+  appearance: slider-vertical;
+  width: 6px;
+  height: 100px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  writing-mode: bt-lr; /* For Firefox */
+}
+
+/* Chrome/Safari slider thumb */
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+/* Firefox slider thumb */
+.volume-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  cursor: pointer;
+  border: none;
+  transition: transform 0.2s ease;
+}
+
+.volume-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+}
+
+.volume-label {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  min-width: 3ch;
+  text-align: center;
+}
+
 /* Right: Extras */
 .player-extras {
   display: flex;
@@ -958,6 +1321,80 @@ function formatTime(seconds: number): string {
   z-index: 10000;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
+}
+
+/* Close confirmation dialog */
+.confirmation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+}
+
+.confirmation-dialog {
+  background: var(--color-bg-secondary, rgba(20, 20, 30, 0.95));
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius-lg, 12px);
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.confirmation-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.confirmation-message {
+  margin: 0 0 1.5rem 0;
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.confirmation-buttons {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.confirmation-btn {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.confirmation-btn--cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-text-primary);
+}
+
+.confirmation-btn--cancel:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.confirmation-btn--confirm {
+  background: var(--color-error, #ff4444);
+  color: white;
+}
+
+.confirmation-btn--confirm:hover {
+  background: var(--color-error-hover, #ff6666);
+  transform: scale(1.02);
 }
 
 /* History dropdown */

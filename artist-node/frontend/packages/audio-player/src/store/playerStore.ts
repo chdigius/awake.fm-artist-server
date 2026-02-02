@@ -130,20 +130,28 @@ export const usePlayerStore = defineStore('audioPlayer', {
       console.log('[PlayerStore] Track ended');
 
       if (this.repeatMode === 'one') {
-        // Replay current track
+        // Replay current track (don't change historyIndex)
         this.currentTime = 0;
-        this.play();
-      } else if (this.queue.length > 0) {
-        // Play next in queue
+        this.isPlaying = true;
+        this.isPaused = false;
+        console.log('[PlayerStore] Repeating current track');
+      } else if (this.historyIndex < this.history.length - 1) {
+        // More tracks ahead in history - play next
         this.next();
       } else if (this.repeatMode === 'all' && this.history.length > 0) {
-        // Restart from first track in history
-        const firstTrack = this.history[0];
-        this.history = [];
-        this.play(firstTrack);
+        // End of history, loop back to start
+        this.historyIndex = 0;
+        this.currentTrack = this.history[0];
+        this.currentTime = 0;
+        this.isLoading = true;
+        this.isPlaying = true;
+        this.isPaused = false;
+        console.log('[PlayerStore] Looping back to first track in history');
       } else {
-        // Nothing to play, stop
-        this.stop();
+        // No repeat, end of history - stop playback
+        this.isPlaying = false;
+        this.isPaused = true;
+        console.log('[PlayerStore] End of playback');
       }
     },
 
