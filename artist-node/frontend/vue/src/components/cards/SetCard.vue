@@ -5,9 +5,17 @@
     :class="['set-card', `set-card--${mode}`, { 'set-card--highlighted': isHighlighted }]"
     @click.prevent="handleClick"
   >
-    <!-- Placeholder thumbnail (visualizer only shown when playing) -->
+    <!-- Thumbnail: generative or placeholder -->
     <div class="set-card__thumbnail">
-      <div class="set-card__placeholder">
+      <!-- Generative thumbnail if config provided -->
+      <RadiantForgeThumbnail
+        v-if="thumbnail"
+        :trackId="trackId"
+        :config="thumbnail"
+        :lazy="true"
+      />
+      <!-- Fallback placeholder if no thumbnail config -->
+      <div v-else class="set-card__placeholder">
         <!-- Empty placeholder - visualizer will appear in active player -->
       </div>
       <div class="set-card__play-overlay">
@@ -27,6 +35,7 @@
 import { computed, ref, onMounted, watch } from 'vue';
 import { usePlayerStore } from '@awake/audio-player';
 import { useAudioCard } from '@/composables/useAudioCard';
+import RadiantForgeThumbnail from '@/components/radiantforge/RadiantForgeThumbnail.vue';
 
 interface MediaFile {
   type: 'media_file';
@@ -46,6 +55,16 @@ interface SetCardProps {
     seed_from?: string[];
     options?: Record<string, any>;
   };
+  thumbnail?: {
+    seedImage?: string;
+    colorMode?: 'duotone_generate' | 'colorize_bw' | 'extract_and_vary' | 'manual_palette';
+    palette?: string[];
+    pattern?: 'none' | 'geometric' | 'waves' | 'particles' | 'grid' | 'organic';
+    blendSeed?: boolean;
+    blendMode?: 'multiply' | 'overlay' | 'screen' | 'difference' | 'add';
+    patternOpacity?: number;
+    animationSpeed?: number;
+  };
   collectionMetadata?: {
     source: string;
     path: string;
@@ -56,9 +75,6 @@ interface SetCardProps {
 const props = withDefaults(defineProps<SetCardProps>(), {
   mode: 'list',
 });
-
-console.log('[SetCard] Item:', props.item);
-console.log('[SetCard] Visualizer config:', props.visualizer);
 
 // Parse filename for display info
 // Generic parsing - works with any artist's naming conventions

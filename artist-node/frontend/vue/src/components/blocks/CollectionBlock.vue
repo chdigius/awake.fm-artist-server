@@ -25,6 +25,7 @@
         :layout="layout"
         :card="card"
         :visualizer="media?.visualizer"
+        :thumbnail="thumbnail"
         :collection-metadata="{
           source: source,
           path: path,
@@ -116,6 +117,17 @@ interface CollectionBlockProps {
       options?: Record<string, any>;
     };
   };
+  thumbnail?: {
+    type?: 'generative_from_seed' | 'static';
+    seedImage?: string;
+    style?: {
+      pattern?: 'none' | 'geometric' | 'waves' | 'particles' | 'grid' | 'organic';
+      colorMode?: 'duotone_generate' | 'colorize_bw' | 'extract_and_vary' | 'manual_palette';
+      blendSeed?: boolean;
+      blendMode?: 'multiply' | 'overlay' | 'screen' | 'difference' | 'add';
+    };
+    seedFrom?: string;
+  };
   // If items are pre-embedded in page payload, use those instead of fetching
   items?: CollectionItem[];
 }
@@ -125,12 +137,46 @@ const props = withDefaults(defineProps<CollectionBlockProps>(), {
   source: 'folder',
 });
 
+console.log('[CollectionBlock] Initial props:', {
+  source: props.source,
+  path: props.path,
+  card: props.card,
+  thumbnail: props.thumbnail,
+  hasItems: !!props.items,
+  itemCount: props.items?.length
+});
+
 const items = ref<CollectionItem[]>(props.items || []);
 const layout = ref(props.layout || { mode: 'grid' });
 const paging = ref<any>(null);
 const loading = ref(!props.items || props.items.length === 0); // Only skip loading if items exist AND have length
 const error = ref<string | null>(null);
 const emptyState = computed(() => props.empty_state);
+
+// Store the initial thumbnail config (it doesn't change between pages)
+const initialThumbnail = ref(props.thumbnail);
+
+// Normalize thumbnail config from YAML format to component format
+// Use initialThumbnail (stored from props) so it persists across page fetches
+const thumbnail = computed(() => {
+  const thumbConfig = initialThumbnail.value;
+
+  if (!thumbConfig || thumbConfig.type !== 'generative_from_seed') {
+    return undefined;
+  }
+
+  const normalized = {
+    seedImage: thumbConfig.seedImage,
+    colorMode: thumbConfig.style?.colorMode || 'duotone_generate',
+    pattern: thumbConfig.style?.pattern || 'geometric',
+    blendSeed: thumbConfig.style?.blendSeed ?? false,
+    blendMode: thumbConfig.style?.blendMode || 'multiply',
+    patternOpacity: 0.3,
+    animationSpeed: 0.5
+  };
+
+  return normalized;
+});
 
 // Map layout mode to component
 const layoutComponent = computed(() => {

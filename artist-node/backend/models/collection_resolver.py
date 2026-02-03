@@ -36,6 +36,7 @@ class CollectionResolver:
     layout: Optional[Dict[str, Any]] = None,
     card: Optional[str] = None,
     pattern: Optional[str] = None,
+    thumbnail: Optional[Dict[str, Any]] = None,
     current_node_path: str = "server",
   ) -> Dict[str, Any]:
     """
@@ -91,6 +92,7 @@ class CollectionResolver:
       "card": card,
       "sort": sort,
       "layout": merged_layout,
+      "thumbnail": thumbnail,
       "items": items,
       "paging": {
         "enabled": True,

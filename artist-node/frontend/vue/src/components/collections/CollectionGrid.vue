@@ -7,6 +7,7 @@
         :is="cardComponent"
         :item="item"
         :visualizer="visualizer"
+        :thumbnail="thumbnail"
         :collection-metadata="collectionMetadata"
         mode="grid"
       />
@@ -59,6 +60,16 @@ interface CollectionGridProps {
     seed_from?: string[];
     options?: Record<string, any>;
   };
+  thumbnail?: {
+    seedImage?: string;
+    colorMode?: 'duotone_generate' | 'colorize_bw' | 'extract_and_vary' | 'manual_palette';
+    palette?: string[];
+    pattern?: 'none' | 'geometric' | 'waves' | 'particles' | 'grid' | 'organic';
+    blendSeed?: boolean;
+    blendMode?: 'multiply' | 'overlay' | 'screen' | 'difference' | 'add';
+    patternOpacity?: number;
+    animationSpeed?: number;
+  };
   collectionMetadata?: {
     source: string;
     path: string;
@@ -69,11 +80,6 @@ interface CollectionGridProps {
 const props = withDefaults(defineProps<CollectionGridProps>(), {
   card: 'artist',
 });
-
-// Debug: log layout config
-console.log('[CollectionGrid] Layout config:', props.layout);
-console.log('[CollectionGrid] Align horizontal:', props.layout.align?.horizontal);
-console.log('[CollectionGrid] Card type:', props.card);
 
 // Map card type to component
 const cardComponent = computed(() => {

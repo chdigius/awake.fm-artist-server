@@ -78,6 +78,7 @@
       :paging="block.paging"
       :empty_state="block.empty_state"
       :media="block.media"
+      :thumbnail="block.thumbnail"
       :items="block.items"
     />
 

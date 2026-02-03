@@ -18,6 +18,7 @@ from backend.models.blocks import (
   CollectionLayout,
   CollectionPaging,
   CollectionMedia,
+  CollectionThumbnail,
   VisualizerConfig,
 )
 from backend.models.node import NodeMeta, NodePreview, ContentNode
@@ -52,6 +53,7 @@ class ContentGraph:
     layout: Optional[Dict[str, Any]] = None,
     card: Optional[str] = None,
     pattern: Optional[str] = None,
+    thumbnail: Optional[Dict[str, Any]] = None,
     current_node_path: str = "server",
   ) -> Dict[str, Any]:
     """
@@ -69,6 +71,7 @@ class ContentGraph:
       limit=limit,
       layout=layout,
       card=card,
+      thumbnail=thumbnail,
       current_node_path=current_node_path,
     )
 
@@ -301,6 +304,17 @@ class ContentGraph:
           visualizer=media_data.get("visualizer"),
         )
 
+      # Parse thumbnail config if present
+      thumbnail_data = data.get("thumbnail")
+      thumbnail = None
+      if thumbnail_data:
+        thumbnail = CollectionThumbnail(
+          type=thumbnail_data.get("type", "generative_from_seed"),
+          seedImage=thumbnail_data.get("seedImage"),
+          style=thumbnail_data.get("style"),
+          seedFrom=thumbnail_data.get("seedFrom"),
+        )
+
       return CollectionBlock(
         source=data.get("source", "folder"),
         path=data.get("path"),
@@ -308,6 +322,7 @@ class ContentGraph:
         layout=layout,
         card=data.get("card"),
         media=media,
+        thumbnail=thumbnail,
         sort=data.get("sort"),
         sort_options=data.get("sort_options"),
         limit=data.get("limit"),

@@ -71,6 +71,20 @@ class CollectionMedia:
 
 
 @dataclass
+class CollectionThumbnail:
+  """
+  Thumbnail configuration for collection items.
+
+  Supports generative thumbnails from seed images with various color modes
+  and pattern overlays, or static thumbnails.
+  """
+  type: Literal["generative_from_seed", "static"] = "generative_from_seed"
+  seedImage: Optional[str] = None                # path to seed image
+  style: Optional[Dict[str, Any]] = None         # { pattern, colorMode, blendSeed, blendMode }
+  seedFrom: Optional[str] = None                 # what to seed from: "filename", "title", etc.
+
+
+@dataclass
 class CollectionBlock:
   type: Literal["collection"] = "collection"
 
@@ -85,6 +99,9 @@ class CollectionBlock:
 
   # media configuration (for audio/video collections)
   media: Optional[CollectionMedia] = None
+
+  # thumbnail configuration (for generative or static thumbnails)
+  thumbnail: Optional[CollectionThumbnail] = None
 
   # data shaping
   sort: Optional[str] = None          # "name_asc", "random", etc.

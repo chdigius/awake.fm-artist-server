@@ -63,6 +63,14 @@ export { spectrumBarsVisualizer } from './visualizers/spectrum-bars'
 export { gforceFlowVisualizer } from './visualizers/gforce-flow'
 export { nebulaFlightVisualizer } from './visualizers/nebula-flight'
 
+// === BUILT-IN THUMBNAILS (generative) ===
+export type { ThumbnailOptions } from './thumbnails/generative-thumbnail'
+export { generativeThumbnail } from './thumbnails/generative-thumbnail'
+
+// === CANVAS 2D THUMBNAIL RENDERER ===
+export type { CanvasThumbnailOptions } from './thumbnails/canvas-thumbnail'
+export { renderCanvasThumbnail } from './thumbnails/canvas-thumbnail'
+
 // === BOOTSTRAP: register all built-ins ===
 import { register } from './engine/registry'
 import { awakeNode001Sigil } from './sigils/awake-node-001'
@@ -70,14 +78,18 @@ import { spectrumBarsVisualizer } from './visualizers/spectrum-bars'
 import { gforceFlowVisualizer } from './visualizers/gforce-flow'
 import { nebulaFlightVisualizer } from './visualizers/nebula-flight'
 import { galaxyFlightVisualizer } from './visualizers/galaxy-flight'
+import { generativeThumbnail } from './thumbnails/generative-thumbnail'
 
 export function registerBuiltins(): void {
   // Static sigils
   register('node-001', awakeNode001Sigil)
-  
+
   // Audio visualizers
   register('spectrum-bars', spectrumBarsVisualizer)
   register('gforce-flow', gforceFlowVisualizer)
   register('nebula-flight', nebulaFlightVisualizer)
   register('galaxy-flight', galaxyFlightVisualizer)
+
+  // Generative thumbnails
+  register('generative-thumbnail', generativeThumbnail)
 }

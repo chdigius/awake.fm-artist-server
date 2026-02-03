@@ -23,8 +23,3 @@ content:
         ref: artists/hierba_phase/music/tracks
         label: "Tracks"
         nav: true
-
-      - type: subpage
-        ref: artists/hierba_phase/music/sets
-        label: "Live Sets"
-        nav: true

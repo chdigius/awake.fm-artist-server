@@ -43,6 +43,26 @@ content:
         path: "artists/awake_fm_legacy/music/sets/audio/bassdrive"
         pattern: "*.mp3"
         card: "set"
+        thumbnail:
+          type: generative_from_seed
+          seedImage: /content/artists/awake_fm_legacy/assets/logo_2.png
+          style:
+            pattern: mandelbrot  # mandelbrot, julia, fractal_noise, geometric, waves, particles, sierpinski
+            colorSource: theme   # 'theme' = use page theme colors, 'seed' = random per track
+            colorMode: duotone_generate
+            blendSeed: false
+            blendMode: multiply
+
+            patternOpacity: 0.6    # 0.0-1.0 (fractal overlay strength)
+            saturation: 90         # 0-100 (color intensity)
+            lightness: 55          # 0-100 (brightness)
+
+            # Fractal detail
+            maxIterations: 120     # 50-200 (more = finer detail)
+
+            # Color mapping
+            hueRange: 180          # 0-360 (color spread: 60=analogous, 360=rainbow)
+          seedFrom: filename
         media:
           type: "audio"
           visualizer:

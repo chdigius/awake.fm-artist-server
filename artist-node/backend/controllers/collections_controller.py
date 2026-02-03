@@ -57,6 +57,9 @@ class CollectionsController(ArtistServerControllerBase):
     mode = request.args.get("mode")  # grid|list|carousel
     layout = {"mode": mode} if mode else None
 
+    # thumbnail (optional) - will be None for dynamic API calls, present for page-embedded collections
+    thumbnail = None
+
     payload = self.get_graph_ops().get_collection(
       source=source,
       path=path,
@@ -67,6 +70,7 @@ class CollectionsController(ArtistServerControllerBase):
       limit=limit,
       card=card,
       layout=layout,
+      thumbnail=thumbnail,
     )
 
     if payload is None:
@@ -139,9 +143,6 @@ class FindTrackController(ArtistServerControllerBase):
         item_id = re.sub(r'[^a-zA-Z0-9-_]', '-', item_id)  # Replace non-alphanumeric with dash
         item_id = re.sub(r'-+', '-', item_id)  # Collapse multiple dashes
         item_id = item_id.strip('-')  # Remove leading/trailing dashes
-
-        # Debug logging
-        print(f"[FindTrack] Comparing: '{item_id}' vs '{track_id}'")
 
         if item_id == track_id:
           # Calculate page number (1-indexed)

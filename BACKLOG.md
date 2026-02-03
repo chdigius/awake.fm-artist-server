@@ -72,6 +72,70 @@ This document tracks enhancement ideas and future features for the Artist Node s
 
 ---
 
+## RadiantForge Offline Renderer (Puppeteer)
+
+### Static Asset Generation (v2.0+)
+**Status:** Design phase  
+**Priority:** Medium (Mothership integration requirement)
+
+**Vision:** Render p5.js animations to static GIF/WebP for secure mothership display.
+
+**Core Principle:** Artist nodes render their own assets. Mothership NEVER executes artist code (security).
+
+**Features:**
+- [ ] **Puppeteer renderer script** - Headless Chrome captures p5.js animations
+- [ ] **Frame capture system** - 16-24 frames @ 15fps
+- [ ] **Animated WebP export** - Modern format, smaller than GIF
+- [ ] **GIF fallback** - For compatibility (RSS, email)
+- [ ] **Build integration** - Runs during `npm run build`
+- [ ] **Incremental builds** - Only re-render changed scripts
+- [ ] **Artist preview** - See output before publishing
+
+**Technical Architecture:**
+```python
+# scripts/render_static_assets.py
+def render_p5_to_webp(script_path, output_path):
+    # 1. Launch Puppeteer headless browser
+    # 2. Load p5.js + user script
+    # 3. Capture 16 frames @ 15fps
+    # 4. Convert to animated WebP with sharp
+    # 5. Output to static/ folder
+```
+
+**Use Cases:**
+- Thumbnail animations
+- Artist sigils
+- Album art
+- Social media previews
+- Open Graph images
+- Email newsletter graphics
+
+**Workflow:**
+```
+Artist creates thumbnail.p5.js
+  ↓
+Build script renders to .webp
+  ↓
+Artist node serves static asset
+  ↓
+Mothership displays (no code execution!)
+```
+
+**Security Model:**
+- ✅ Artist node runs p5.js (their server, their risk)
+- ✅ Mothership displays pre-rendered images (zero risk)
+- ✅ No sandbox needed on mothership
+- ✅ Artist controls quality/output
+
+**Implementation notes:**
+- Uses Puppeteer for rendering
+- sharp for image processing
+- gifski for high-quality GIF compression
+- Renders during build, not runtime
+- ~3-4 seconds per asset
+
+---
+
 ## Artist-Controlled Visualizer Selection
 
 ### Visualizer Selection (v1.5)
@@ -960,6 +1024,180 @@ Enhance audio delivery:
 
 ## Documentation
 
+### CMS Reference Manual (The Bible)
+**Status:** Not started  
+**Priority:** CRITICAL (v1.0 requirement)
+
+**Vision:** The complete, authoritative reference for Awake.fm CMS - readable by humans AND AIs.
+
+**Why This Matters:**
+- Artists need to understand ALL available options
+- AIs (like me!) can help artists configure sites by reading this
+- Removes guesswork and trial-and-error
+- Establishes the "contract" between content creators and the system
+- Enables self-service site building without constant support
+
+**Content Structure:**
+
+#### 1. **Architecture & Philosophy**
+- Flat-file CMS principles
+- Content graph structure (server → artists → pages → blocks)
+- YAML-driven configuration
+- Artist sovereignty vs mothership discovery
+- Build process overview
+
+#### 2. **File Structure Reference**
+```
+content/
+├── server/
+│   ├── _meta.yaml          # Server-level config
+│   └── index.yaml          # Server homepage
+├── artists/
+│   └── {artist_slug}/
+│       ├── _meta.yaml      # Artist config (theme, effects, sigil)
+│       ├── index.yaml      # Artist homepage
+│       ├── assets/         # Images, fonts, custom CSS
+│       ├── music/          # Audio files
+│       │   ├── albums/
+│       │   └── sets/
+│       └── pages/          # Subpages
+│           └── {page_slug}/
+│               ├── _meta.yaml
+│               └── index.yaml
+```
+
+#### 3. **Complete Block Type Reference**
+For EACH block type, document:
+- **Purpose** - What it does, when to use it
+- **YAML Schema** - Every field, every option, data types
+- **Defaults** - What happens if fields are omitted
+- **Examples** - Real-world use cases (simple → complex)
+- **Styling Options** - Layout, alignment, spacing, colors
+- **Combinations** - How it works with other blocks
+
+**Block types to document:**
+- `hero` - Hero sections with headings/sigils
+- `markdown` - Rich text content
+- `section` - Container with label and nested blocks
+- `subpage` - Links to subpages
+- `collection` - Display sets/albums/tracks
+  - **Sources:** `folder`, `roster`, `tag`, `query`, `media_folder`
+  - **Layouts:** `grid`, `list`, `carousel`
+  - **Cards:** `artist`, `album`, `track`, `set`
+  - **Pagination:** `pages` mode with all options
+  - **Sorting:** All sort methods
+  - **Media config:** Audio/video with visualizers
+  - **Thumbnails:** ALL generative options (seed images, color modes, patterns)
+- `audio_player` - Embedded player blocks (if we add them)
+- Future blocks (video, gallery, contact forms, etc.)
+
+#### 4. **Collection System Deep Dive**
+- **Media Folder Collections** - Filesystem scanning, patterns, auto-discovery
+- **Generative Thumbnails** - Complete guide:
+  - `type: generative_from_seed` - Using seed images
+  - Color modes: `duotone_generate`, `colorize_bw`, `extract_and_vary`, `manual_palette`
+  - Pattern types: `geometric`, `waves`, `particles`, `grid`, `organic`
+  - Blend modes and composition
+  - Seeding strategies: `filename`, `title`, `custom`
+  - Examples for color vs B&W seed images
+- **Pagination** - Complete guide to `pages` mode
+- **Sorting** - All available sort methods
+- **Filtering** - Tag-based filtering (when implemented)
+- **Visualizer config per collection** - Audio-reactive settings
+
+#### 5. **Theme System**
+- Built-in themes: `dark`, `light`, `cyberpunk`, `retro`, etc.
+- CSS variable system
+- Custom theme creation
+- Per-page theme overrides via `_meta.yaml`
+- Color palette structure
+- Typography options
+
+#### 6. **Effects System**
+- Built-in effects: `scanlines`, `crt`, `chromatic-aberration`, `vhs`, `grain`, `pixelate`
+- Effect parameters and intensity
+- Combining effects
+- Per-page effect overrides
+- Performance considerations
+
+#### 7. **RadiantForge (p5.js) System**
+- **Sigils** - Artist identity animations
+  - Built-in sigils: `node-001`, `spiral-001`, etc.
+  - Custom sigil creation guide
+  - Seeding for variations
+  - Rendering modes (2D vs WebGL)
+- **Visualizers** - Audio-reactive animations
+  - Built-in visualizers: `galaxy-flight`, `spectrum-bars`, `gforce-flow`
+  - Custom visualizer creation
+  - Audio analyzer API
+  - Performance optimization (batching, particle counts)
+  - Per-track seeding
+- **Thumbnails** - Generative track/album art (see Collection System)
+- **Offline Rendering** - Puppeteer pre-rendering for mothership (when implemented)
+
+#### 8. **Media System**
+- **Audio files** - Supported formats, organization
+- **Video files** - Embedding and playback
+- **Images** - Formats, optimization, responsive loading
+- **File paths** - Absolute vs relative, content root reference
+- **ID3 metadata** - Auto-extraction (when implemented)
+
+#### 9. **Navigation & Routing**
+- Deep linking to tracks with timestamps (`#track-xyz&t=47:23`)
+- Page slugs and URLs
+- Menu structure (when implemented)
+- Breadcrumbs (when implemented)
+
+#### 10. **API Reference**
+- `/api/collection` - Collection queries with all parameters
+- `/api/collection/find-track` - Deep link resolution
+- Future endpoints
+
+#### 11. **Build System**
+- `python scripts/builder.py` - Content graph generation
+- Validation and error reporting
+- Incremental builds (when implemented)
+- Asset optimization
+
+#### 12. **Best Practices**
+- Content organization strategies
+- Performance optimization (image sizes, particle counts, collection pagination)
+- Accessibility guidelines
+- SEO considerations
+- Mobile responsiveness
+
+#### 13. **Common Patterns & Recipes**
+Real-world examples:
+- DJ set archive page (like Bassdrive)
+- Album discography
+- Photo gallery
+- About/bio page with timeline
+- Event calendar
+- Contact/booking page
+- Blog-style updates
+
+#### 14. **Troubleshooting**
+- Common YAML errors
+- Path resolution issues
+- Build failures and validation
+- Performance bottlenecks
+- Browser compatibility
+
+**Format:**
+- **Primary:** Markdown document (`docs/CMS_REFERENCE.md`)
+- **Searchable** - Clear headings, table of contents, keyword indexing
+- **Examples everywhere** - Show, don't just tell
+- **AI-friendly** - Structured data, consistent formatting, no ambiguity
+- **Human-friendly** - Clear language, visual examples, progressive disclosure
+
+**Success Criteria:**
+- An artist with ZERO coding experience can build a professional site using this doc
+- An AI assistant can read this and answer ANY configuration question
+- Every single YAML field/option is documented
+- No "magic" - everything is explicit and explained
+
+---
+
 ### Artist Onboarding Guide
 **Status:** Not started  
 **Priority:** High
@@ -971,6 +1209,8 @@ Create comprehensive guide for new artists:
 - Effect configuration
 - Media collection setup
 - Best practices
+
+**Note:** This is a GETTING STARTED guide that references the CMS Reference Manual above.
 
 ### Developer Documentation
 **Status:** Not started  

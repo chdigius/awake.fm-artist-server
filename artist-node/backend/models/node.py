@@ -16,6 +16,7 @@ from backend.models.blocks import (
   CollectionLayout,
   CollectionPaging,
   CollectionMedia,
+  CollectionThumbnail,
   VisualizerConfig,
 )
 
@@ -197,6 +198,17 @@ class ContentNode:
             visualizer=media_data.get("visualizer"),
           )
 
+        # Parse thumbnail config if present (for generative thumbnails)
+        thumbnail_data = b.get("thumbnail")
+        thumbnail = None
+        if thumbnail_data:
+          thumbnail = CollectionThumbnail(
+            type=thumbnail_data.get("type", "generative_from_seed"),
+            seedImage=thumbnail_data.get("seedImage"),
+            style=thumbnail_data.get("style"),
+            seedFrom=thumbnail_data.get("seedFrom"),
+          )
+
         blocks.append(CollectionBlock(
           source=b.get("source", "folder"),
           path=b.get("path"),
@@ -204,6 +216,7 @@ class ContentNode:
           layout=layout,
           card=b.get("card"),
           media=media,
+          thumbnail=thumbnail,
           sort=b.get("sort"),
           sort_options=b.get("sort_options"),
           limit=b.get("limit"),

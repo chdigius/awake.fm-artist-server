@@ -6,6 +6,7 @@
       :is="cardComponent"
       :item="item"
       :visualizer="visualizer"
+      :thumbnail="thumbnail"
       :collection-metadata="collectionMetadata"
       mode="list"
     />
@@ -53,6 +54,16 @@ interface CollectionListProps {
     seed_from?: string[];
     options?: Record<string, any>;
   };
+  thumbnail?: {
+    seedImage?: string;
+    colorMode?: 'duotone_generate' | 'colorize_bw' | 'extract_and_vary' | 'manual_palette';
+    palette?: string[];
+    pattern?: 'none' | 'geometric' | 'waves' | 'particles' | 'grid' | 'organic';
+    blendSeed?: boolean;
+    blendMode?: 'multiply' | 'overlay' | 'screen' | 'difference' | 'add';
+    patternOpacity?: number;
+    animationSpeed?: number;
+  };
   collectionMetadata?: {
     source: string;
     path: string;
@@ -63,10 +74,6 @@ interface CollectionListProps {
 const props = withDefaults(defineProps<CollectionListProps>(), {
   card: 'artist',
 });
-
-console.log('[CollectionList] Layout config:', props.layout);
-console.log('[CollectionList] Item count:', props.items.length);
-console.log('[CollectionList] Card type:', props.card);
 
 // Map card type to component
 const cardComponent = computed(() => {

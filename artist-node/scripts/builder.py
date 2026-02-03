@@ -46,6 +46,7 @@ from backend.models.blocks import (
   CollectionLayout,
   CollectionPaging,
   CollectionMedia,
+  CollectionThumbnail,
   AudioPlayerBlock,
   SigilConfig,
   VisualizerConfig,
@@ -190,6 +191,17 @@ def parse_block(raw: Dict[str, Any]) -> Block:
         visualizer=media_raw.get("visualizer"),
       )
 
+    # Parse thumbnail config if present (for generative thumbnails)
+    thumbnail_raw = raw.get("thumbnail")
+    thumbnail = None
+    if thumbnail_raw:
+      thumbnail = CollectionThumbnail(
+        type=thumbnail_raw.get("type", "generative_from_seed"),
+        seedImage=thumbnail_raw.get("seedImage"),
+        style=thumbnail_raw.get("style"),
+        seedFrom=thumbnail_raw.get("seedFrom"),
+      )
+
     return CollectionBlock(
       source=raw.get("source", "folder"),
       path=raw.get("path"),
@@ -197,6 +209,7 @@ def parse_block(raw: Dict[str, Any]) -> Block:
       layout=layout,
       card=raw.get("card"),
       media=media,
+      thumbnail=thumbnail,
       sort=raw.get("sort"),
       sort_options=raw.get("sort_options"),
       limit=raw.get("limit"),

@@ -10,6 +10,7 @@ from backend.models.blocks.collection import (
   CollectionLayout,
   CollectionPaging,
   CollectionMedia,
+  CollectionThumbnail,
   CollectionLayoutMode,
   CollectionPagingMode,
   CollectionSourceType,
@@ -51,6 +52,7 @@ __all__ = [
   "CollectionLayout",
   "CollectionPaging",
   "CollectionMedia",
+  "CollectionThumbnail",
   "VisualizerConfig",
   # Types
   "Block",

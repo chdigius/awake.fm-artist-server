@@ -185,6 +185,7 @@ class GraphOps:
     card: Optional[str] = None,
     pattern: Optional[str] = None,
     layout: Optional[Dict[str, Any]] = None,
+    thumbnail: Optional[Dict[str, Any]] = None,
   ) -> Optional[Dict[str, Any]]:
     """
     Return a collection payload.
@@ -220,5 +221,6 @@ class GraphOps:
       limit=limit,
       card=card,
       layout=layout,
+      thumbnail=thumbnail,
       current_node_path=self.graph.root_content_path,
     )

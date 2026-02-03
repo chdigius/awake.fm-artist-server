@@ -217,11 +217,16 @@ node_modules/
 dist/
 *.local
 
+# Vite build artifacts
+.vite/
+.vite-inspect/
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+lerna-debug.log*
 
 # Editor directories and files
 *.suo
@@ -229,6 +234,10 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# OS files
+.DS_Store
+Thumbs.db
 
 # ===========================================
 # Media / Content Assets
