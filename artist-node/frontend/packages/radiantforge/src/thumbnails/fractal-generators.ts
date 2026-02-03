@@ -65,6 +65,14 @@ export interface FractalGeneratorOptions {
   zoom?: number
   offsetX?: number
   offsetY?: number
+
+  // Julia-specific
+  juliaC?: { re: number; im: number }  // Julia constant (cRe, cIm)
+
+  // Fractal Noise-specific
+  octaves?: number
+  persistence?: number
+  noiseScale?: number
 }
 
 /**
@@ -143,17 +151,24 @@ export function generateJulia(
     hueRange,
     zoom: manualZoom,
     offsetX: manualOffsetX,
-    offsetY: manualOffsetY
+    offsetY: manualOffsetY,
+    juliaC
   } = options
 
-  // Use manual values or generate from seed
-  const offsetX = manualOffsetX !== undefined ? manualOffsetX : (seededRandom(seed) - 0.5) * 0.5
-  const offsetY = manualOffsetY !== undefined ? manualOffsetY : (seededRandom(seed + 1) - 0.5) * 0.5
-  const zoom = manualZoom !== undefined ? manualZoom : 1.5 + seededRandom(seed + 2) * 2
+  // Use manual values as BASE, then add seeded variation
+  const baseOffsetX = manualOffsetX !== undefined ? manualOffsetX : 0.0
+  const baseOffsetY = manualOffsetY !== undefined ? manualOffsetY : 0.0
+  const baseZoom = manualZoom !== undefined ? manualZoom : 1.5
+
+  // Add seeded variation (±0.3 for offset, ±0.5 for zoom)
+  const offsetX = baseOffsetX + (seededRandom(seed) - 0.5) * 0.6
+  const offsetY = baseOffsetY + (seededRandom(seed + 1) - 0.5) * 0.6
+  const zoom = baseZoom * (0.7 + seededRandom(seed + 2) * 0.6)  // 70%-130% of base
   const hueShift = baseHue
 
-  const cRe = -0.7 + offsetX
-  const cIm = 0.27015 + offsetY
+  // Julia constant: use manual values OR classic default
+  const cRe = juliaC?.re ?? (-0.7 + (seededRandom(seed + 3) - 0.5) * 0.2)
+  const cIm = juliaC?.im ?? (0.27015 + (seededRandom(seed + 4) - 0.5) * 0.2)
 
   for (let px = 0; px < width; px++) {
     for (let py = 0; py < height; py++) {
@@ -199,8 +214,18 @@ export function generateFractalNoise(
     baseHue,
     saturation,
     lightness,
-    hueRange
+    hueRange,
+    octaves: manualOctaves,
+    persistence: manualPersistence,
+    noiseScale: manualNoiseScale
   } = options
+
+  // Use manual values or defaults
+  const octaves = manualOctaves ?? 4                          // 1-8 layers
+  const persistence = manualPersistence ?? 0.5                // 0.0-1.0 amplitude decay
+  const baseScale = manualNoiseScale ?? (2 + seededRandom(seed + 4) * 4)  // 2-6 base frequency
+
+  console.log('[FractalNoise] octaves:', octaves, 'persistence:', persistence, 'scale:', baseScale, 'manual:', { manualOctaves, manualPersistence, manualNoiseScale })
 
   const hueShift = baseHue
 
@@ -209,15 +234,15 @@ export function generateFractalNoise(
       const x = px / width
       const y = py / height
 
-      // Multi-octave noise
+      // Multi-octave noise with configurable params
       let value = 0
       let amplitude = 1
-      let frequency = 2 + seededRandom(seed + 4) * 4
+      let frequency = baseScale
 
-      for (let octave = 0; octave < 4; octave++) {
+      for (let octave = 0; octave < octaves; octave++) {
         value += seededNoise(x * frequency + seed, y * frequency + seed) * amplitude
-        frequency *= 2
-        amplitude *= 0.5
+        frequency *= 2                    // Each octave doubles frequency
+        amplitude *= persistence          // Each octave multiplies amplitude by persistence
       }
 
       value = (value + 1) / 2 // Normalize to 0-1
@@ -359,4 +384,133 @@ export function generateParticles(
   }
 
   ctx.globalAlpha = 1
+}
+
+/**
+ * Burning Ship fractal generator.
+ * Like Mandelbrot but uses absolute values - creates dramatic ship-like structures.
+ */
+export function generateBurningShip(
+  imageData: ImageData,
+  options: FractalGeneratorOptions
+): void {
+  const { width, height, data } = imageData
+  const {
+    seed,
+    baseHue,
+    saturation,
+    lightness,
+    maxIterations,
+    hueRange,
+    zoom: manualZoom,
+    offsetX: manualOffsetX,
+    offsetY: manualOffsetY
+  } = options
+
+  // Use manual values as BASE, then add seeded variation
+  const baseOffsetX = manualOffsetX !== undefined ? manualOffsetX : 0.0
+  const baseOffsetY = manualOffsetY !== undefined ? manualOffsetY : -0.5
+  const baseZoom = manualZoom !== undefined ? manualZoom : 1.5
+
+  // Add seeded variation (±0.3 for offset, ±0.5 for zoom)
+  const offsetX = baseOffsetX + (seededRandom(seed) - 0.5) * 0.6
+  const offsetY = baseOffsetY + (seededRandom(seed + 1) - 0.5) * 0.6
+  const zoom = baseZoom * (0.7 + seededRandom(seed + 2) * 0.6)  // 70%-130% of base
+  const hueShift = baseHue
+
+  for (let px = 0; px < width; px++) {
+    for (let py = 0; py < height; py++) {
+      const x0 = (px / width - 0.5) * 3.5 / zoom + offsetX
+      const y0 = (py / height - 0.5) * 2 / zoom + offsetY
+
+      let x = 0
+      let y = 0
+      let iteration = 0
+
+      // KEY DIFFERENCE: abs() on x and y BEFORE operations
+      while (x * x + y * y <= 4 && iteration < maxIterations) {
+        const absX = Math.abs(x)
+        const absY = Math.abs(y)
+        const xtemp = absX * absX - absY * absY + x0
+        y = 2 * absX * absY + y0
+        x = xtemp
+        iteration++
+      }
+
+      const idx = (py * width + px) * 4
+      if (iteration === maxIterations) {
+        data[idx] = 0
+        data[idx + 1] = 0
+        data[idx + 2] = 0
+      } else {
+        const hue = (iteration / maxIterations * hueRange + hueShift) % 360
+        const rgb = hslToRgb(hue, saturation, lightness)
+        data[idx] = rgb.r
+        data[idx + 1] = rgb.g
+        data[idx + 2] = rgb.b
+      }
+      data[idx + 3] = 255
+    }
+  }
+}
+
+/**
+ * Tricorn (Mandelbar) fractal generator.
+ * Conjugate of Mandelbrot - creates heart-shaped structures with organic tendrils.
+ */
+export function generateTricorn(
+  imageData: ImageData,
+  options: FractalGeneratorOptions
+): void {
+  const { width, height, data } = imageData
+  const {
+    seed,
+    baseHue,
+    saturation,
+    lightness,
+    maxIterations,
+    hueRange,
+    zoom: manualZoom,
+    offsetX: manualOffsetX,
+    offsetY: manualOffsetY
+  } = options
+
+  // Use manual values or generate from seed
+  const offsetX = manualOffsetX !== undefined ? manualOffsetX : (seededRandom(seed) - 0.5) * 0.5
+  const offsetY = manualOffsetY !== undefined ? manualOffsetY : (seededRandom(seed + 1) - 0.5) * 0.5
+  const zoom = manualZoom !== undefined ? manualZoom : 1.5 + seededRandom(seed + 2) * 2
+  const hueShift = baseHue
+
+  for (let px = 0; px < width; px++) {
+    for (let py = 0; py < height; py++) {
+      const x0 = (px / width - 0.5) * 3.5 / zoom + offsetX
+      const y0 = (py / height - 0.5) * 2 / zoom + offsetY
+
+      let x = 0
+      let y = 0
+      let iteration = 0
+
+      // KEY DIFFERENCE: negative sign on y
+      while (x * x + y * y <= 4 && iteration < maxIterations) {
+        const xtemp = x * x - y * y + x0
+        y = -2 * x * y + y0  // Negative sign here
+        x = xtemp
+        iteration++
+      }
+
+      const idx = (py * width + px) * 4
+      if (iteration === maxIterations) {
+        data[idx] = 0
+        data[idx + 1] = 0
+        data[idx + 2] = 0
+      } else {
+        const hue = (iteration / maxIterations * hueRange + hueShift) % 360
+        const rgb = hslToRgb(hue, saturation, lightness)
+        data[idx] = rgb.r
+        data[idx + 1] = rgb.g
+        data[idx + 2] = rgb.b
+      }
+      data[idx + 3] = 255
+    }
+  }
 }

@@ -291,6 +291,618 @@ Displays a collection of items (artists, albums, tracks) in various layouts.
 
 ---
 
+### 3.1. Generative Thumbnails (Collection Items)
+
+Generate unique, deterministic thumbnails for collection items (tracks, albums, sets) using fractal mathematics and seed images.
+
+**Key Features:**
+- 🎨 Unique visual for each track (seeded from filename/title)
+- 🔄 Deterministic (same track = same thumbnail every time)
+- 🌈 Theme-aware coloring (matches page theme)
+- 🔥 Multiple fractal types (Mandelbrot, Burning Ship, Julia, Tricorn, etc.)
+- ⚡ Lightweight Canvas 2D rendering (no p5.js overhead)
+
+#### Basic Configuration
+
+```yaml
+blocks:
+  - type: collection
+    source: media_folder
+    path: "artists/my_artist/music/tracks"
+    pattern: "*.mp3"
+    thumbnail:
+      type: generative_from_seed
+      seedImage: /content/artists/my_artist/assets/logo.png
+      seedFrom: filename
+      style:
+        # Pattern type
+        pattern: burning_ship
+        
+        # Universal settings (apply to all patterns)
+        colorSource: theme
+        colorMode: duotone_generate
+        saturation: 90
+        lightness: 55
+        hueRange: 180
+        patternOpacity: 0.6
+        blendMode: multiply
+        
+        # Fractal-specific settings
+        fractalParams:
+          maxIterations: 120
+          zoom: 2.5
+          offsetX: 0.0
+          offsetY: -0.5
+```
+
+#### Universal Settings (All Patterns)
+
+These settings work for **all pattern types** (fractals and geometric):
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `colorSource` | `theme` \| `seed` | `seed` | `theme` = use page theme colors, `seed` = random per track |
+| `colorMode` | string | `duotone_generate` | Color mapping mode (currently only duotone supported) |
+| `saturation` | 0-100 | 80 | Color intensity (0 = grayscale, 100 = vivid) |
+| `lightness` | 0-100 | 50 | Brightness (0 = black, 100 = white) |
+| `hueRange` | 0-360 | 360 | Color spread in gradient (60 = analogous, 360 = rainbow) |
+| `patternOpacity` | 0.0-1.0 | 0.5 | Pattern overlay strength (0 = invisible, 1 = opaque) |
+| `blendMode` | string | `multiply` | How pattern blends with seed image: `multiply`, `overlay`, `screen`, `difference`, `add` |
+
+#### Fractal Pattern Types
+
+##### Mandelbrot
+Classic fractal with infinite detail and self-similarity.
+
+```yaml
+style:
+  pattern: mandelbrot
+  fractalParams:
+    maxIterations: 50-200      # Detail level (higher = finer, slower)
+    zoom: 1.0-5.0               # How zoomed in (auto-seeded if omitted)
+    offsetX: -1.0 to 1.0        # Horizontal pan (auto-seeded if omitted)
+    offsetY: -1.0 to 1.0        # Vertical pan (auto-seeded if omitted)
+```
+
+**Visual:** Circular main body with intricate tendrils. Smooth, organic.
+
+##### Burning Ship 🔥🚢
+Dramatic fractal with ship-like structures and sharp, spiky detail.
+
+```yaml
+style:
+  pattern: burning_ship
+  fractalParams:
+    maxIterations: 50-200
+    zoom: 1.0-5.0
+    offsetX: -1.0 to 1.0
+    offsetY: -1.0 to 1.0
+```
+
+**Visual:** Ship-like main structure with extremely detailed spiky tendrils. Aggressive, dramatic aesthetic. Perfect for dark/cyberpunk themes.
+
+**Note:** Burning Ship looks best with `offsetY` around -0.5 to -0.7 to capture the "ship" structure.
+
+##### Julia Set
+Related to Mandelbrot but with different structure. Creates beautiful swirls.
+
+```yaml
+style:
+  pattern: julia
+  fractalParams:
+    maxIterations: 50-200
+    zoom: 1.0-5.0
+    offsetX: -1.0 to 1.0
+    offsetY: -1.0 to 1.0
+```
+
+**Visual:** Swirling, symmetrical patterns. Different structure than Mandelbrot.
+
+##### Tricorn (Mandelbar) 🦄
+Conjugate of Mandelbrot. Heart-shaped with organic tendrils.
+
+```yaml
+style:
+  pattern: tricorn
+  fractalParams:
+    maxIterations: 50-200
+    zoom: 1.0-5.0
+    offsetX: -1.0 to 1.0
+    offsetY: -1.0 to 1.0
+```
+
+**Visual:** Heart-shaped main body with smooth, flowing tendrils. Elegant, organic aesthetic.
+
+##### Fractal Noise 🌊
+Multi-octave Perlin-style noise. Creates flowing, organic patterns.
+
+```yaml
+style:
+  pattern: fractal_noise
+  fractalParams:
+    octaves: 4              # 1-8 (number of noise layers, more = finer detail)
+    persistence: 0.5        # 0.0-1.0 (amplitude decay, higher = rougher)
+    noiseScale: 3.0         # 1.0-8.0 (base frequency, lower = larger features)
+```
+
+**Visual:** Smooth, flowing gradients. Great for subtle backgrounds.
+
+**Parameter Guide:**
+- `octaves`: More layers = more detail. Try 2-3 for smooth, 5-6 for turbulent
+- `persistence`: Lower (0.3) = smoother, Higher (0.7) = rougher, more chaotic
+- `noiseScale`: Lower (1-2) = large flowing shapes, Higher (5-8) = fine texture
+
+#### Geometric Pattern Types
+
+These patterns don't use `fractalParams`:
+
+##### Geometric
+Grid of circles and squares with noise-based placement.
+
+```yaml
+style:
+  pattern: geometric
+  # No fractalParams
+```
+
+##### Waves
+Flowing sine wave patterns.
+
+```yaml
+style:
+  pattern: waves
+  # No fractalParams
+```
+
+##### Particles
+Random particle scatter (starfield effect).
+
+```yaml
+style:
+  pattern: particles
+  # No fractalParams
+```
+
+##### Sierpinski
+Sierpinski triangle (recursive geometric).
+
+```yaml
+style:
+  pattern: sierpinski
+  # No fractalParams
+```
+
+#### Color Modes
+
+Currently only `duotone_generate` is supported:
+- Converts seed image to grayscale
+- Maps dark pixels to dark color (HSL based on `hue`, high saturation, low lightness)
+- Maps light pixels to light color (HSL based on `hue`, medium saturation, high lightness)
+- Creates consistent two-color aesthetic
+
+**Future:** `colorize_bw`, `extract_and_vary`, `manual_palette` planned.
+
+#### Seeding Strategy
+
+The `seedFrom` property determines how thumbnails are seeded:
+
+```yaml
+seedFrom: filename  # Hash filename for seed (default, recommended)
+seedFrom: title     # Hash track title for seed
+seedFrom: custom    # Use custom seed value (advanced)
+```
+
+**Important:** Use `filename` for consistency - even if metadata changes, thumbnail stays the same!
+
+#### Best Practices
+
+**For Visual Consistency:**
+```yaml
+# Use same pattern and seed image across entire collection
+pattern: burning_ship
+seedImage: /content/artists/my_artist/assets/logo.png
+colorSource: theme  # Matches page theme
+```
+
+**For Maximum Detail:**
+```yaml
+fractalParams:
+  maxIterations: 150-200  # Higher = more detail (slower rendering)
+  zoom: 3.0-4.0           # Zoom into interesting regions
+```
+
+**For Dramatic Effect:**
+```yaml
+pattern: burning_ship     # Most dramatic fractal
+patternOpacity: 0.7-0.8   # Strong overlay
+hueRange: 60-120          # Narrower color range for cohesion
+```
+
+**For Subtle Backgrounds:**
+```yaml
+pattern: fractal_noise    # Smooth gradients
+patternOpacity: 0.3-0.4   # Light overlay
+```
+
+#### Production Examples 🔥
+
+Real-world configurations from Awake.fm artists:
+
+##### Example 1: Julia Set Dragon (Organic Swirls) 💫
+
+Perfect for: Liquid DnB, ambient, melodic sets
+
+```yaml
+thumbnail:
+  type: generative_from_seed
+  seedImage: /content/artists/my_artist/assets/logo.png
+  seedFrom: filename
+  style:
+    pattern: julia
+    
+    # Universal color settings
+    colorSource: theme       # Matches page theme
+    colorMode: duotone_generate
+    saturation: 85           # Slightly desaturated for organic feel
+    lightness: 50            # Balanced brightness
+    hueRange: 240            # Wide rainbow spectrum
+    
+    # Universal compositing
+    blendSeed: true
+    blendMode: overlay       # Smooth integration with logo
+    patternOpacity: 0.7      # Strong fractal presence
+    seedImageAlpha: 0.6      # Logo partially transparent
+    
+    # Julia-specific parameters
+    fractalParams:
+      maxIterations: 150     # High detail
+      zoom: 1.5              # Standard view
+      offsetX: 0.0           # Centered
+      offsetY: 0.0           # Centered
+      # Julia constant (controls shape)
+      juliaC:
+        re: -0.7             # Classic dragon curve
+        im: 0.27015          # Organic swirls
+```
+
+**Result:** Each track gets unique swirling dragon-like patterns with rainbow gradients flowing through semi-transparent logo. Organic, psychedelic aesthetic.
+
+**Try these Julia constants for different shapes:**
+```yaml
+# Spiral galaxy
+juliaC: { re: -0.4, im: 0.6 }
+
+# Lightning bolts
+juliaC: { re: 0.285, im: 0.01 }
+
+# Tree branches (dendrite)
+juliaC: { re: -0.8, im: 0.156 }
+
+# San Marco Dragon
+juliaC: { re: -0.75, im: 0.11 }
+```
+
+##### Example 2: Burning Ship Towers (Cyberpunk) 🔥
+
+Perfect for: Neurofunk, techstep, dark DnB
+
+```yaml
+thumbnail:
+  type: generative_from_seed
+  seedImage: /content/artists/my_artist/assets/logo.png
+  seedFrom: filename
+  style:
+    pattern: burning_ship
+    
+    # Universal color settings
+    colorSource: theme
+    colorMode: duotone_generate
+    saturation: 90           # High saturation for intensity
+    lightness: 55            # Slightly bright
+    hueRange: 180            # Moderate color spread
+    
+    # Universal compositing
+    blendSeed: true
+    blendMode: multiply      # Dark, rich blending
+    patternOpacity: 0.8      # Strong fractal overlay
+    seedImageAlpha: 0.8      # Logo mostly opaque
+    
+    # Burning Ship-specific parameters
+    fractalParams:
+      maxIterations: 180     # ULTRA-FINE tower detail
+      zoom: 2.8              # Zoom in on towers
+      offsetX: 0.0           # Centered horizontally
+      offsetY: -1.05         # Focus on tower deck region
+```
+
+**Result:** Sharp, architectural "tower" structures with intense detail. Dramatic, aggressive aesthetic perfect for heavy music.
+
+##### Example 3: Mandelbrot Classic (Versatile) 🌀
+
+Perfect for: General use, classic fractal aesthetic, psychedelic vibes
+
+```yaml
+thumbnail:
+  type: generative_from_seed
+  seedImage: /content/artists/my_artist/assets/logo.png
+  seedFrom: filename
+  style:
+    pattern: mandelbrot
+    
+    # Universal settings
+    colorSource: theme
+    colorMode: duotone_generate
+    saturation: 80           # Balanced saturation
+    lightness: 50            # Balanced brightness
+    hueRange: 360            # FULL RAINBOW spectrum
+    
+    # Universal compositing
+    blendSeed: true
+    blendMode: multiply      # Rich, classic fractal blending
+    patternOpacity: 0.6      # Balanced overlay
+    seedImageAlpha: 1.0      # Logo fully opaque
+    
+    # Mandelbrot parameters
+    fractalParams:
+      maxIterations: 120     # Balanced detail
+      zoom: 1.5              # BASE zoom (seeding adds variation around this)
+      offsetX: 0.0           # Centered (seeding pans around)
+      offsetY: 0.0           # Centered (seeding pans around)
+```
+
+**Result:** Classic Mandelbrot with iconic four-directional tendrils (top/bottom/left/right). Rainbow spectrum flows through intricate detail. Each track shows unique view via seeded panning. Base zoom (1.5) keeps focus on interesting regions with minimal black space.
+
+**Pro tip:** Without explicit zoom/offset, seeding might explore empty outer regions. Set a base zoom (1.5-2.5) to focus on the fractal's detailed areas while still allowing seeded variation!
+
+##### Example 4: Tricorn Flowing Tendrils (Elegant) 🦄
+
+Perfect for: Melodic, liquid, soulful sets
+
+```yaml
+thumbnail:
+  type: generative_from_seed
+  seedImage: /content/artists/my_artist/assets/logo.png
+  seedFrom: filename
+  style:
+    pattern: tricorn
+    
+    # Universal settings
+    colorSource: theme
+    colorMode: duotone_generate
+    saturation: 75           # Softer saturation
+    lightness: 55            # Brighter for elegance
+    hueRange: 120            # Analogous colors
+    
+    # Universal compositing
+    blendSeed: true
+    blendMode: overlay       # Smooth blending
+    patternOpacity: 0.5      # Subtle overlay
+    seedImageAlpha: 0.8      # Logo prominent
+    
+    # Tricorn parameters (EXTREME zoom with offset creates diagonal sweeps!)
+    fractalParams:
+      maxIterations: 150     # Sharp definition
+      zoom: -8.2             # NEGATIVE zoom for inverted/mirrored effect
+      offsetX: -0.8          # Offset to find interesting regions
+      offsetY: 0.0           # Centered vertically
+```
+
+**Result:** Dramatic diagonal sweeping tendrils flowing across corners! Each track unique with elegant flowing aesthetic. The negative zoom creates an inverted/mirrored effect that showcases Tricorn's smooth, organic curves.
+
+**Pro tip:** Tricorn's "heart shape" requires specific zoom to show. Instead, use extreme zoom (positive or negative) with offsets to explore the fractal's beautiful flowing tendrils!
+
+##### Example 5: Fractal Noise (Subtle) 🌊
+
+Perfect for: Ambient, chill, background music
+
+```yaml
+thumbnail:
+  type: generative_from_seed
+  seedImage: /content/artists/my_artist/assets/logo.png
+  seedFrom: filename
+  style:
+    pattern: fractal_noise
+    
+    # Universal settings
+    colorSource: seed        # Random colors per track
+    colorMode: duotone_generate
+    saturation: 60           # Desaturated
+    lightness: 60            # Bright, airy
+    hueRange: 60             # Analogous (tight color range)
+    
+    # Universal compositing
+    blendSeed: true
+    blendMode: screen        # Additive, bright blending
+    patternOpacity: 0.3      # Very subtle
+    seedImageAlpha: 1.0      # Logo fully opaque
+    
+    # Fractal Noise-specific parameters
+    fractalParams:
+      octaves: 3             # Fewer layers for smooth flow
+      persistence: 0.4       # Low persistence for gentle gradients
+      noiseScale: 2.5        # Medium scale for balanced features
+```
+
+**Result:** Smooth, flowing gradient clouds. Subtle, doesn't overpower logo. Perfect for when you want recognizable branding with gentle variation.
+
+**Try different noise styles:**
+```yaml
+# Turbulent (clouds/smoke)
+fractalParams:
+  octaves: 6
+  persistence: 0.6
+  noiseScale: 4.0
+
+# Large flowing (lava lamp)
+fractalParams:
+  octaves: 2
+  persistence: 0.3
+  noiseScale: 1.5
+
+# Fine texture (marble)
+fractalParams:
+  octaves: 5
+  persistence: 0.5
+  noiseScale: 6.0
+```
+
+##### Example 6: Sierpinski Triangle (Sharp Geometric) 🔺
+
+Perfect for: Glitch hop, IDM, mathematical/minimal aesthetic
+
+```yaml
+thumbnail:
+  type: generative_from_seed
+  seedImage: /content/artists/my_artist/assets/logo.png
+  seedFrom: filename
+  style:
+    pattern: sierpinski
+    
+    # Universal color settings
+    colorSource: theme
+    colorMode: duotone_generate
+    saturation: 85           # High saturation for bold shapes
+    lightness: 55            # Balanced brightness
+    hueRange: 180            # Wide color variety
+    
+    # Universal compositing
+    blendSeed: true
+    blendMode: overlay       # Smooth integration
+    patternOpacity: 0.8      # Strong pattern presence
+    seedImageAlpha: 1.0      # Logo fully opaque
+    
+    # No fractalParams needed - depth is seeded automatically
+```
+
+**Result:** Recursive triangle patterns with clean, sharp edges. Creates mathematical, structured aesthetic. Each track gets different recursion depth based on filename seed.
+
+**Note:** Sierpinski recursion depth is automatically varied per track (3-5 levels) for visual diversity.
+
+##### Example 7: Geometric Shapes (Clean Polygons) 🔷
+
+Perfect for: House, techno, minimal, modern electronic
+
+```yaml
+thumbnail:
+  type: generative_from_seed
+  seedImage: /content/artists/my_artist/assets/logo.png
+  seedFrom: filename
+  style:
+    pattern: geometric
+    
+    # Universal color settings
+    colorSource: theme
+    colorMode: duotone_generate
+    saturation: 80           # Clean, professional saturation
+    lightness: 50            # Balanced
+    hueRange: 120            # Moderate color spread
+    
+    # Universal compositing
+    blendSeed: true
+    blendMode: overlay       # Smooth blending
+    patternOpacity: 0.7      # Medium presence
+    seedImageAlpha: 1.0      # Logo fully visible
+    
+    # No fractalParams needed - shapes/positions are seeded
+```
+
+**Result:** Random polygons (triangles, squares, hexagons) scattered across canvas. Clean, modern aesthetic with geometric precision. Each track gets unique shape combinations.
+
+##### Example 8: Waves (Flowing Lines) 🌊
+
+Perfect for: Liquid DnB, chillout, ambient, progressive
+
+```yaml
+thumbnail:
+  type: generative_from_seed
+  seedImage: /content/artists/my_artist/assets/logo.png
+  seedFrom: filename
+  style:
+    pattern: waves
+    
+    # Universal color settings
+    colorSource: theme
+    colorMode: duotone_generate
+    saturation: 70           # Moderate saturation for smooth flow
+    lightness: 55            # Slightly bright
+    hueRange: 90             # Tight color harmony
+    
+    # Universal compositing
+    blendSeed: true
+    blendMode: overlay       # Smooth, flowing blend
+    patternOpacity: 0.6      # Subtle presence
+    seedImageAlpha: 1.0      # Logo clear and readable
+    
+    # No fractalParams needed - wave parameters are seeded
+```
+
+**Result:** Flowing sine wave patterns with gentle curves. Creates movement and rhythm. Each track gets unique wave frequencies, amplitudes, and phases based on filename seed.
+
+##### Example 9: Particles (Starfield) ✨
+
+Perfect for: Space bass, ambient, cosmic themes, minimalist
+
+```yaml
+thumbnail:
+  type: generative_from_seed
+  seedImage: /content/artists/my_artist/assets/logo.png
+  seedFrom: filename
+  style:
+    pattern: particles
+    
+    # Universal color settings
+    colorSource: theme
+    colorMode: duotone_generate
+    saturation: 60           # Desaturated for spacey feel
+    lightness: 65            # Bright particles
+    hueRange: 40             # Tight color range
+    
+    # Universal compositing
+    blendSeed: true
+    blendMode: overlay       # Soft, glowing blend
+    patternOpacity: 0.4      # Very subtle
+    seedImageAlpha: 1.0      # Logo prominent
+    
+    # No fractalParams needed - particle count/positions are seeded
+```
+
+**Result:** Scattered dots like a starfield. Minimal, spacey aesthetic with clean, open composition. Each track gets unique particle placement and density. Perfect for letting logo/branding shine while adding subtle texture.
+
+#### Performance Considerations
+
+- **Iteration count:** Higher = more detail but slower rendering
+  - 50-80: Fast, good for testing
+  - 80-120: Balanced (recommended)
+  - 120-200: Maximum detail, slower
+
+- **Lazy loading:** Thumbnails use IntersectionObserver - only render when visible
+- **Canvas size:** Automatically sized to container (responsive)
+- **Rendering:** Pure Canvas 2D (no p5.js overhead)
+
+#### Troubleshooting
+
+**Thumbnails not showing:**
+- Check `seedImage` path is correct
+- Ensure content graph is rebuilt: `python -m scripts.builder`
+- Verify browser console for errors
+
+**Thumbnails look too similar:**
+- Increase `hueRange` (0-360 for maximum variation)
+- Try different `pattern` type
+- Adjust `zoom` and `offset` for different fractal regions
+
+**Thumbnails too dark/light:**
+- Adjust `lightness` (0-100)
+- Try `saturation` adjustments
+- Check `patternOpacity` (lower = more seed image shows through)
+
+**Performance issues:**
+- Lower `maxIterations` (50-100)
+- Use simpler patterns (`geometric`, `waves` instead of fractals)
+- Ensure lazy loading is working (check console)
+
+---
+
 ### 4. Markdown Block
 
 Renders markdown content.

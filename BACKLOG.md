@@ -72,6 +72,186 @@ This document tracks enhancement ideas and future features for the Artist Node s
 
 ---
 
+## Generative Thumbnail System Enhancements
+
+### Phase 1: Visual Polish & New Fractals (v1.5)
+**Status:** In progress  
+**Priority:** HIGH (Next session!)
+
+**Vision:** Make generative thumbnails look LEGENDARY with advanced fractals, stacked patterns, and alpha control.
+
+**Immediate Tasks (Tomorrow's Session):**
+- [ ] **Tweak existing fractals** - Iterate on Mandelbrot params until mind-blowing
+- [ ] **Stacked patterns** - Layer multiple fractals/patterns for complex visuals
+- [ ] **Alpha control** - Adjustable opacity for seed image layer (0.0-1.0)
+- [ ] **Test different seeds** - Color vs B&W images, different logos
+- [ ] **Audio player bug** - Clear track from storage on close (prevents auto-play on reload)
+
+**New Fractal Types to Implement:**
+
+#### 1. Burning Ship Fractal 🔥🚢
+**Status:** Not started  
+**Priority:** HIGH (Perfect for retro sci-fi aesthetic)
+
+**Description:** Like Mandelbrot but uses absolute values, creates dramatic ship-like structures with spiky detail.
+
+**Algorithm:**
+```typescript
+// Burning Ship iteration
+while (x*x + y*y <= 4 && iteration < maxIterations) {
+  const xtemp = x*x - y*y + x0
+  y = Math.abs(2*x*y) + y0  // Key difference: abs() here
+  x = Math.abs(xtemp)        // and here
+  iteration++
+}
+```
+
+**Visual characteristics:**
+- Ship-like main structure
+- Extremely detailed spiky tendrils
+- Dramatic, aggressive aesthetic
+- Perfect for dark/cyberpunk themes
+
+#### 2. Newton Fractal 🌀
+**Status:** Not started  
+**Priority:** MEDIUM
+
+**Description:** Based on Newton's method for finding roots. Creates beautiful symmetrical patterns with multiple color basins.
+
+**Algorithm:**
+```typescript
+// Newton's method for z^3 - 1 = 0
+while (iteration < maxIterations) {
+  const z3 = z * z * z
+  const z2 = z * z
+  z = z - (z3 - 1) / (3 * z2)  // Newton iteration
+  
+  // Check which root we converged to
+  if (distance_to_root < threshold) break
+  iteration++
+}
+// Color based on which root + iteration count
+```
+
+**Visual characteristics:**
+- Symmetrical (usually 3-fold or higher)
+- Psychedelic color basins
+- Smooth gradients between regions
+- Trippy, kaleidoscope-like
+
+#### 3. Tricorn (Mandelbar) Fractal 🦄
+**Status:** Not started  
+**Priority:** MEDIUM
+
+**Description:** Conjugate of Mandelbrot set. Heart-shaped with intricate organic tendrils.
+
+**Algorithm:**
+```typescript
+// Tricorn iteration (conjugate)
+while (x*x + y*y <= 4 && iteration < maxIterations) {
+  const xtemp = x*x - y*y + x0
+  y = -2*x*y + y0  // Key difference: negative sign
+  x = xtemp
+  iteration++
+}
+```
+
+**Visual characteristics:**
+- Heart-shaped main body
+- Smooth, organic tendrils
+- Elegant, flowing aesthetic
+- Great for softer themes
+
+#### 4. Phoenix Fractal 🐦‍🔥
+**Status:** Not started  
+**Priority:** LOW (More complex, requires state)
+
+**Description:** Requires previous iteration value. Creates feather-like patterns.
+
+**Algorithm:**
+```typescript
+// Phoenix iteration (requires previous state)
+let xprev = 0, yprev = 0
+while (x*x + y*y <= 4 && iteration < maxIterations) {
+  const xtemp = x*x - y*y + x0 + c * xprev
+  const ytemp = 2*x*y + y0 + c * yprev
+  xprev = x
+  yprev = y
+  x = xtemp
+  y = ytemp
+  iteration++
+}
+```
+
+**Visual characteristics:**
+- Feather-like structures
+- Flowing, organic patterns
+- Unique aesthetic (not Mandelbrot-like)
+- Great for nature/organic themes
+
+#### 5. Lyapunov Fractal 🌊
+**Status:** Not started  
+**Priority:** LOW (Different algorithm, chaos theory based)
+
+**Description:** Based on Lyapunov exponents from chaos theory. Creates flowing, organic patterns.
+
+**Algorithm:**
+```typescript
+// Lyapunov fractal (logistic map)
+// Uses sequence string like "AABAB" to vary parameter
+let sum = 0
+for (let i = 0; i < iterations; i++) {
+  const r = sequence[i % sequence.length] === 'A' ? a : b
+  x = r * x * (1 - x)  // Logistic map
+  sum += Math.log(Math.abs(r - 2*r*x))
+}
+const lyapunov = sum / iterations
+// Color based on lyapunov exponent (positive = chaos, negative = stable)
+```
+
+**Visual characteristics:**
+- Flowing, wave-like patterns
+- Organic, biological feel
+- Smooth gradients
+- Perfect for ambient/chill themes
+
+**Stacked Patterns Feature:**
+```yaml
+thumbnail:
+  type: generative_from_seed
+  seedImage: /assets/logo.png
+  style:
+    # Layer 1: Base fractal
+    pattern: mandelbrot
+    patternOpacity: 0.6
+
+    # Layer 2: Overlay pattern (NEW!)
+    overlayPattern: geometric  # or waves, particles, etc.
+    overlayOpacity: 0.3
+    overlayBlendMode: screen
+
+    # Layer 3: Seed image alpha (NEW!)
+    seedImageAlpha: 0.8  # 0.0-1.0 (default: 1.0)
+```
+
+**Implementation Plan:**
+1. Add Burning Ship generator to `fractal-generators.ts`
+2. Add Newton fractal generator
+3. Add Tricorn generator
+4. Implement stacked pattern rendering (multiple layers)
+5. Add `seedImageAlpha` control to duotone mapping
+6. Test all combinations with Bassdrive logo
+7. Document all fractals in CMS Reference Manual
+
+**Success Criteria:**
+- Thumbnails look LEGENDARY (mind-blowing visual quality)
+- Each fractal type has distinct aesthetic
+- Stacked patterns create complex, professional visuals
+- Alpha control enables subtle seed image blending
+- All 128 Bassdrive sets look unique and cohesive
+
+---
+
 ## RadiantForge Offline Renderer (Puppeteer)
 
 ### Static Asset Generation (v2.0+)

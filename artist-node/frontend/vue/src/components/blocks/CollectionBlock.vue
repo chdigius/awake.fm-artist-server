@@ -168,11 +168,28 @@ const thumbnail = computed(() => {
   const normalized = {
     seedImage: thumbConfig.seedImage,
     colorMode: thumbConfig.style?.colorMode || 'duotone_generate',
+    colorSource: thumbConfig.style?.colorSource || 'seed',
     pattern: thumbConfig.style?.pattern || 'geometric',
     blendSeed: thumbConfig.style?.blendSeed ?? false,
     blendMode: thumbConfig.style?.blendMode || 'multiply',
-    patternOpacity: 0.3,
-    animationSpeed: 0.5
+    patternOpacity: thumbConfig.style?.patternOpacity ?? 0.5,
+    seedImageAlpha: thumbConfig.style?.seedImageAlpha ?? 1.0,
+    saturation: thumbConfig.style?.saturation ?? 80,
+    lightness: thumbConfig.style?.lightness ?? 50,
+    hueRange: thumbConfig.style?.hueRange ?? 360,
+    // Pass through fractalParams if present
+    ...(thumbConfig.style?.fractalParams && {
+      maxIterations: thumbConfig.style.fractalParams.maxIterations,
+      zoom: thumbConfig.style.fractalParams.zoom,
+      offsetX: thumbConfig.style.fractalParams.offsetX,
+      offsetY: thumbConfig.style.fractalParams.offsetY,
+      // Julia-specific
+      juliaC: thumbConfig.style.fractalParams.juliaC,
+      // Fractal Noise-specific
+      octaves: thumbConfig.style.fractalParams.octaves,
+      persistence: thumbConfig.style.fractalParams.persistence,
+      noiseScale: thumbConfig.style.fractalParams.noiseScale
+    })
   };
 
   return normalized;

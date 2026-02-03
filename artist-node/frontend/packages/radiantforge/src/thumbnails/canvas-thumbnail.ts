@@ -11,6 +11,8 @@ import {
   generateGeometric,
   generateWaves,
   generateParticles,
+  generateBurningShip,
+  generateTricorn,
   seededRandom,
   hslToRgb
 } from './fractal-generators'
@@ -25,22 +27,31 @@ export interface CanvasThumbnailOptions {
   palette?: string[]
   blendSeed?: boolean
   blendMode?: string
-  
+
   // Visual controls
   patternOpacity?: number      // 0.0-1.0 (default: 0.5)
+  seedImageAlpha?: number      // 0.0-1.0 (default: 1.0) - seed image opacity
   saturation?: number          // 0-100 (default: 80)
   lightness?: number           // 0-100 (default: 50)
-  
+
   // Fractal detail
   maxIterations?: number       // 50-200 (default: 100)
-  
+
   // Color mapping
   hueRange?: number            // 0-360 (default: 360)
-  
+
   // Viewport controls
   zoom?: number                // 1.0-5.0 (default: auto-seeded)
   offsetX?: number             // -1.0 to 1.0 (default: auto-seeded)
   offsetY?: number             // -1.0 to 1.0 (default: auto-seeded)
+
+  // Julia-specific
+  juliaC?: { re: number; im: number }  // Julia constant (default: re=-0.7, im=0.27015)
+
+  // Fractal Noise-specific
+  octaves?: number             // Noise layers (default: 4)
+  persistence?: number         // Amplitude decay (default: 0.5)
+  noiseScale?: number          // Noise frequency (default: varies)
 }
 
 /**
@@ -60,13 +71,19 @@ export async function renderCanvasThumbnail(
     colorSource = 'seed',
     themeColors,
     patternOpacity = 0.5,
+    seedImageAlpha = 1.0,
+    blendMode = 'overlay',
     saturation = 80,
     lightness = 50,
     maxIterations = 100,
     hueRange = 360,
     zoom,
     offsetX,
-    offsetY
+    offsetY,
+    juliaC,
+    octaves,
+    persistence,
+    noiseScale
   } = options
 
   // Generate duotone colors
@@ -91,8 +108,10 @@ export async function renderCanvasThumbnail(
     try {
       const img = await loadImage(seedImage)
 
-      // Draw image
+      // Draw image with alpha
+      ctx.globalAlpha = seedImageAlpha
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      ctx.globalAlpha = 1.0
 
       // Apply duotone effect
       applyDuotone(ctx, canvas, darkColor, lightColor)
@@ -120,7 +139,12 @@ export async function renderCanvasThumbnail(
       zoom,
       offsetX,
       offsetY,
-      patternOpacity
+      patternOpacity,
+      blendMode: blendMode || 'overlay',
+      juliaC,
+      octaves,
+      persistence,
+      noiseScale
     }
     drawPattern(ctx, canvas, lightColor, pattern, fractalOptions)
   }
@@ -232,6 +256,11 @@ interface FractalOptions {
   offsetX?: number
   offsetY?: number
   patternOpacity: number
+  blendMode?: string
+  juliaC?: { re: number; im: number }
+  octaves?: number
+  persistence?: number
+  noiseScale?: number
 }
 
 /**
@@ -245,7 +274,9 @@ function drawPattern(
   options: FractalOptions
 ): void {
   // Fractal patterns render to temporary canvas, then blend on top
-  if (pattern === 'mandelbrot' || pattern === 'julia' || pattern === 'fractal_noise') {
+  const isFractalPattern = ['mandelbrot', 'julia', 'fractal_noise', 'burning_ship', 'tricorn'].includes(pattern)
+
+  if (isFractalPattern) {
     // Create temporary canvas for fractal
     const tempCanvas = document.createElement('canvas')
     tempCanvas.width = canvas.width
@@ -261,13 +292,17 @@ function drawPattern(
       generateJulia(imageData, options)
     } else if (pattern === 'fractal_noise') {
       generateFractalNoise(imageData, options)
+    } else if (pattern === 'burning_ship') {
+      generateBurningShip(imageData, options)
+    } else if (pattern === 'tricorn') {
+      generateTricorn(imageData, options)
     }
 
     tempCtx.putImageData(imageData, 0, 0)
 
-    // Blend fractal on top of seed image
+    // Blend fractal on top of seed image using specified blend mode
     ctx.globalAlpha = options.patternOpacity
-    ctx.globalCompositeOperation = 'overlay'
+    ctx.globalCompositeOperation = options.blendMode || 'overlay'
     ctx.drawImage(tempCanvas, 0, 0)
     ctx.globalAlpha = 1
     ctx.globalCompositeOperation = 'source-over'

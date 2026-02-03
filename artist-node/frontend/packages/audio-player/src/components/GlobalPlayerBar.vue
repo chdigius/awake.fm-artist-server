@@ -53,13 +53,30 @@
       <Transition name="fade">
         <div v-if="showCloseConfirmation" class="confirmation-overlay" @click="showCloseConfirmation = false">
           <div class="confirmation-dialog" @click.stop>
-            <h3 class="confirmation-title">Close Player?</h3>
+            <h3 class="confirmation-title">Close player?</h3>
             <div class="confirmation-buttons">
               <button class="confirmation-btn confirmation-btn--cancel" @click="showCloseConfirmation = false">
                 Cancel
               </button>
               <button class="confirmation-btn confirmation-btn--confirm" @click="confirmClose">
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+
+      <!-- Clear history confirmation dialog -->
+      <Transition name="fade">
+        <div v-if="showClearHistoryConfirmation" class="confirmation-overlay" @click="showClearHistoryConfirmation = false">
+          <div class="confirmation-dialog" @click.stop>
+            <h3 class="confirmation-title">Clear player history?</h3>
+            <div class="confirmation-buttons">
+              <button class="confirmation-btn confirmation-btn--cancel" @click="showClearHistoryConfirmation = false">
+                Cancel
+              </button>
+              <button class="confirmation-btn confirmation-btn--confirm" @click="confirmClearHistory">
+                Clear History
               </button>
             </div>
           </div>
@@ -341,6 +358,7 @@ const showHistoryDropdown = ref(false);
 const showRepeatMenu = ref(false);
 const showVolumeMenu = ref(false);
 const showCloseConfirmation = ref(false);
+const showClearHistoryConfirmation = ref(false);
 
 // Share button tooltip with current timestamp
 const shareButtonTitle = computed(() => {
@@ -412,12 +430,17 @@ function playFromHistory(index: number) {
 
 // Clear history
 function clearHistory() {
-  if (confirm('Clear all play history?')) {
-    playerStore.history = [];
-    playerStore.historyIndex = -1;
-    showHistoryDropdown.value = false;
-    console.log('[GlobalPlayerBar] History cleared');
-  }
+  // Show confirmation dialog instead of browser confirm
+  showClearHistoryConfirmation.value = true;
+}
+
+function confirmClearHistory() {
+  // User confirmed - clear the history
+  showClearHistoryConfirmation.value = false;
+  playerStore.history = [];
+  playerStore.historyIndex = -1;
+  showHistoryDropdown.value = false;
+  console.log('[GlobalPlayerBar] History cleared');
 }
 
 // Generate deep link for track in history

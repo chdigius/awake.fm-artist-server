@@ -47,21 +47,32 @@ content:
           type: generative_from_seed
           seedImage: /content/artists/awake_fm_legacy/assets/logo_2.png
           style:
-            pattern: mandelbrot  # mandelbrot, julia, fractal_noise, geometric, waves, particles, sierpinski
-            colorSource: theme   # 'theme' = use page theme colors, 'seed' = random per track
+            # Pattern type (fractal or geometric)
+            pattern: julia  # mandelbrot, julia, burning_ship, tricorn, fractal_noise, geometric, waves, particles, sierpinski
+
+            # Universal color settings (apply to all patterns)
+            colorSource: theme       # 'theme' = use page theme colors
             colorMode: duotone_generate
-            blendSeed: false
-            blendMode: multiply
+            saturation: 85           # 0-100 (vibrant for geometric)
+            lightness: 55            # 0-100 (bright)
+            hueRange: 180            # 0-360 (moderate spread)
 
-            patternOpacity: 0.6    # 0.0-1.0 (fractal overlay strength)
-            saturation: 90         # 0-100 (color intensity)
-            lightness: 55          # 0-100 (brightness)
+            # Universal compositing settings (apply to all patterns)
+            blendSeed: true
+            blendMode: overlay       # Smooth integration with logo
+            patternOpacity: 0.7      # 0.0-1.0 (strong fractal presence)
+            seedImageAlpha: 0.6      # 0.0-1.0 (logo partially transparent)
 
-            # Fractal detail
-            maxIterations: 120     # 50-200 (more = finer detail)
-
-            # Color mapping
-            hueRange: 180          # 0-360 (color spread: 60=analogous, 360=rainbow)
+            # Julia-specific parameters (organic dragon swirls)
+            fractalParams:
+              maxIterations: 150     # High detail for organic swirls
+              zoom: 1.5              # Standard view
+              offsetX: 0.0           # Centered
+              offsetY: 0.0           # Centered
+              # Julia constant (controls fractal shape)
+              juliaC:
+                re: -0.7             # Classic dragon curve
+                im: 0.27015          # Organic swirls
           seedFrom: filename
         media:
           type: "audio"

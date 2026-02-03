@@ -18,26 +18,35 @@ interface Props {
     colorMode?: 'duotone_generate' | 'colorize_bw' | 'extract_and_vary' | 'manual_palette'
     colorSource?: 'seed' | 'theme'
     palette?: string[]
-    pattern?: 'none' | 'geometric' | 'waves' | 'particles' | 'mandelbrot' | 'julia' | 'fractal_noise' | 'sierpinski'
+    pattern?: 'none' | 'geometric' | 'waves' | 'particles' | 'mandelbrot' | 'julia' | 'fractal_noise' | 'sierpinski' | 'burning_ship' | 'tricorn'
     blendSeed?: boolean
     blendMode?: 'multiply' | 'overlay' | 'screen' | 'difference' | 'add'
-    
+
     // Visual controls
     patternOpacity?: number
+    seedImageAlpha?: number
     saturation?: number
     lightness?: number
-    
+
     // Fractal detail
     maxIterations?: number
-    
+
     // Color mapping
     hueRange?: number
-    
+
     // Viewport controls
     zoom?: number
     offsetX?: number
     offsetY?: number
-    
+
+    // Julia-specific
+    juliaC?: { re: number; im: number }
+
+    // Fractal Noise-specific
+    octaves?: number
+    persistence?: number
+    noiseScale?: number
+
     // Legacy
     animationSpeed?: number
   }
@@ -127,13 +136,18 @@ async function renderThumbnail() {
     blendSeed: props.config.blendSeed,
     blendMode: props.config.blendMode,
     patternOpacity: props.config.patternOpacity,
+    seedImageAlpha: props.config.seedImageAlpha,
     saturation: props.config.saturation,
     lightness: props.config.lightness,
     maxIterations: props.config.maxIterations,
     hueRange: props.config.hueRange,
     zoom: props.config.zoom,
     offsetX: props.config.offsetX,
-    offsetY: props.config.offsetY
+    offsetY: props.config.offsetY,
+    juliaC: props.config.juliaC,
+    octaves: props.config.octaves,
+    persistence: props.config.persistence,
+    noiseScale: props.config.noiseScale
   }
 
   // Render using RadiantForge
