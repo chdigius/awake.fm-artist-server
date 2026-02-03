@@ -868,6 +868,211 @@ thumbnail:
 
 **Result:** Scattered dots like a starfield. Minimal, spacey aesthetic with clean, open composition. Each track gets unique particle placement and density. Perfect for letting logo/branding shine while adding subtle texture.
 
+#### Modulation System (Advanced) 🌊
+
+The modulation system allows parameters to **change dynamically** across your collection instead of being static values. This creates **organic visual evolution** across tracks, like LFO modulation in synthesis.
+
+**Key Concepts:**
+- 🎛️ **Modulators** = Functions that generate values based on track position
+- 🌊 **Visual Evolution** = Parameters animate smoothly across collection
+- 🎼 **Musical Parallels** = Like programming a synth envelope for visuals
+- 🎨 **Cohesive Variety** = Collection feels unified but each track is unique
+
+##### Why Use Modulators?
+
+**Without Modulators (Static):**
+- All tracks use the same zoom level
+- Variation only comes from seeded randomness
+- No sense of progression or flow
+
+**With Modulators (Dynamic):**
+- Zoom "breathes" across collection (sine wave)
+- Colors evolve from warm to cool (linear ramp)
+- Visual narrative matches musical journey
+- Organic, purposeful variation
+
+##### Modulator Types
+
+| Type | Description | Use Case |
+|------|-------------|----------|
+| `sine_wave` | Smooth oscillation (wave) | Breathing zoom, cyclical color shifts |
+| `cosine_wave` | Sine wave shifted 90° | Same as sine but different phase |
+| `linear_ramp` | Straight progression | Track 1→N darkens/zooms/evolves |
+| `random` | Uniform random (current default) | Maximum chaos, unpredictable |
+| `step` | Discrete values from array | Specific states, quantized parameters |
+| `exponential` | Non-linear curve | Accelerating zoom, dramatic evolution |
+| `sawtooth` | Linear ramp that resets | Repeating patterns |
+| `triangle` | Up-and-down ramp | Smooth cyclical variation |
+
+##### Modulator Configuration
+
+Any numerical parameter can be modulated by replacing the number with a modulator config:
+
+**Static Value (before):**
+```yaml
+fractalParams:
+  zoom: 1.5  # All tracks use 1.5x zoom
+```
+
+**Modulated Value (after):**
+```yaml
+fractalParams:
+  zoom:
+    modulator:
+      type: sine_wave
+      min: 0.8           # Minimum value
+      max: 2.0           # Maximum value
+      frequency: 0.3     # How fast it oscillates
+```
+
+**Modulator Properties:**
+
+| Property | Required | Type | Description |
+|----------|----------|------|-------------|
+| `type` | ✅ Yes | string | Modulator type (sine_wave, linear_ramp, etc.) |
+| `min` | ✅ Yes | number | Minimum output value |
+| `max` | ✅ Yes | number | Maximum output value |
+| `frequency` | ⚠️ Waves only | number | Oscillation speed (for sine, cosine, sawtooth, triangle) |
+| `curve` | ⚠️ Exponential only | number | Curve shape (>1 = ease-in, <1 = ease-out) |
+| `steps` | ⚠️ Step only | array | Discrete values to choose from |
+
+##### Which Parameters Can Be Modulated?
+
+**Universal Parameters:**
+- `saturation` - Color intensity evolution
+- `lightness` - Brightness progression
+- `hueRange` - Color spread variation
+- `patternOpacity` - Pattern strength breathing
+- `seedImageAlpha` - Logo opacity variation
+
+**Fractal Parameters:**
+- `maxIterations` - Detail level progression
+- `zoom` - Zoom in/out breathing
+- `offsetX` - Horizontal panning
+- `offsetY` - Vertical panning
+- `juliaC.re` - Julia shape morphing (real part)
+- `juliaC.im` - Julia shape morphing (imaginary part)
+- `octaves` - Fractal Noise layer count variation
+- `persistence` - Fractal Noise roughness evolution
+- `noiseScale` - Fractal Noise frequency variation
+
+##### Example: Breathing Julia Set Zoom
+
+**Production config from Awake.fm Bassdrive archive:**
+
+```yaml
+thumbnail:
+  type: generative_from_seed
+  seedImage: /content/artists/awake_fm_legacy/assets/logo_2.png
+  seedFrom: filename
+  style:
+    pattern: julia
+    colorSource: theme
+    colorMode: duotone_generate
+    saturation: 85
+    lightness: 50
+    hueRange: 240
+    blendMode: overlay
+    patternOpacity: 0.7
+    seedImageAlpha: 0.6
+    
+    fractalParams:
+      maxIterations: 150
+      
+      # MODULATED ZOOM - sine wave breathing! 🌊
+      zoom:
+        modulator:
+          type: sine_wave
+          min: 0.8           # Zoomed out (wide view)
+          max: 2.0           # Zoomed in (detail view)
+          frequency: 0.3     # ~1 cycle per 3 tracks
+      
+      offsetX: 0.0           # Centered (static)
+      offsetY: 0.0           # Centered (static)
+      
+      juliaC:
+        re: -0.7             # Dragon curve (static)
+        im: 0.27015          # Organic swirls (static)
+```
+
+**Result:**
+- 🌊 Zoom oscillates smoothly from 0.8x to 2.0x
+- 🔍 Some tracks show wide dragon swirls, others show tight detail
+- 💫 Smooth visual flow across entire collection
+- 🎨 Cohesive but each track feels unique
+
+##### Example: Color Evolution Across Discography
+
+**Linear ramp from warm to cool:**
+
+```yaml
+style:
+  pattern: mandelbrot
+  
+  # Colors progress from orange to blue
+  hueRange:
+    modulator:
+      type: linear_ramp
+      min: 30        # Orange/warm
+      max: 240       # Blue/cool
+```
+
+**Result:** Track 1 = warm orange fractals, Track 100 = cool blue fractals, smooth gradient between!
+
+##### Example: Morphing Julia Shapes
+
+**Modulate Julia constant for shape-shifting:**
+
+```yaml
+fractalParams:
+  # Shape morphs from spiral to dendrite
+  juliaC:
+    re:
+      modulator:
+        type: sine_wave
+        min: -0.9      # Spiral
+        max: -0.5      # Dendrite
+        frequency: 0.2
+    im: 0.27015        # Keep imaginary part static
+```
+
+**Result:** Julia dragon morphs between different fractal shapes across collection!
+
+##### Example: Dramatic Zoom Crescendo
+
+**Exponential zoom-in across album:**
+
+```yaml
+fractalParams:
+  zoom:
+    modulator:
+      type: exponential
+      min: 0.5         # Start wide
+      max: 5.0         # End super zoomed
+      curve: 2.0       # Accelerating (slow start, fast end)
+```
+
+**Result:** Album starts with wide overview, progressively zooms into fractal detail, accelerating toward climax!
+
+##### Pro Tips
+
+**✅ DO:**
+- Mix modulated and static parameters
+- Use different modulator types for different params
+- Match visual evolution to musical journey
+- Test frequency values (0.1-1.0 typical range)
+
+**❌ DON'T:**
+- Modulate everything at once (too chaotic)
+- Use extreme min/max ranges (visual coherence breaks)
+- Ignore frequency (too fast = noisy, too slow = flat)
+
+**🎯 Best Practices:**
+- Start with ONE modulated parameter
+- Use sine wave for organic breathing
+- Use linear ramp for storytelling
+- Keep min/max within reasonable bounds
+
 #### Performance Considerations
 
 - **Iteration count:** Higher = more detail but slower rendering

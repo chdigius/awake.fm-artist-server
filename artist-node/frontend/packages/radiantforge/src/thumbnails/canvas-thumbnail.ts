@@ -16,6 +16,7 @@ import {
   seededRandom,
   hslToRgb
 } from './fractal-generators'
+import { ModulatedValue, ModulationContext } from './types'
 
 export interface CanvasThumbnailOptions {
   seed: number
@@ -28,30 +29,36 @@ export interface CanvasThumbnailOptions {
   blendSeed?: boolean
   blendMode?: string
 
-  // Visual controls
-  patternOpacity?: number      // 0.0-1.0 (default: 0.5)
-  seedImageAlpha?: number      // 0.0-1.0 (default: 1.0) - seed image opacity
-  saturation?: number          // 0-100 (default: 80)
-  lightness?: number           // 0-100 (default: 50)
+  // Visual controls (can be modulated!)
+  patternOpacity?: ModulatedValue      // 0.0-1.0 (default: 0.5)
+  seedImageAlpha?: ModulatedValue      // 0.0-1.0 (default: 1.0) - seed image opacity
+  saturation?: ModulatedValue          // 0-100 (default: 80)
+  lightness?: ModulatedValue           // 0-100 (default: 50)
 
-  // Fractal detail
-  maxIterations?: number       // 50-200 (default: 100)
+  // Fractal detail (can be modulated!)
+  maxIterations?: ModulatedValue       // 50-200 (default: 100)
 
-  // Color mapping
-  hueRange?: number            // 0-360 (default: 360)
+  // Color mapping (can be modulated!)
+  hueRange?: ModulatedValue            // 0-360 (default: 360)
 
-  // Viewport controls
-  zoom?: number                // 1.0-5.0 (default: auto-seeded)
-  offsetX?: number             // -1.0 to 1.0 (default: auto-seeded)
-  offsetY?: number             // -1.0 to 1.0 (default: auto-seeded)
+  // Viewport controls (can be modulated!)
+  zoom?: ModulatedValue                // 1.0-5.0 (default: auto-seeded)
+  offsetX?: ModulatedValue             // -1.0 to 1.0 (default: auto-seeded)
+  offsetY?: ModulatedValue             // -1.0 to 1.0 (default: auto-seeded)
 
-  // Julia-specific
-  juliaC?: { re: number; im: number }  // Julia constant (default: re=-0.7, im=0.27015)
+  // Julia-specific (can be modulated!)
+  juliaC?: {
+    re: ModulatedValue
+    im: ModulatedValue
+  }
 
-  // Fractal Noise-specific
-  octaves?: number             // Noise layers (default: 4)
-  persistence?: number         // Amplitude decay (default: 0.5)
-  noiseScale?: number          // Noise frequency (default: varies)
+  // Fractal Noise-specific (can be modulated!)
+  octaves?: ModulatedValue             // Noise layers (default: 4)
+  persistence?: ModulatedValue         // Amplitude decay (default: 0.5)
+  noiseScale?: ModulatedValue          // Noise frequency (default: varies)
+
+  // Modulation context (optional, for collection-aware modulation)
+  modulationContext?: ModulationContext
 }
 
 /**
@@ -132,10 +139,10 @@ export async function renderCanvasThumbnail(
     const fractalOptions = {
       seed,
       baseHue: hue,
-      saturation,
-      lightness,
-      maxIterations,
-      hueRange,
+      saturation: saturation || 80,
+      lightness: lightness || 50,
+      maxIterations: maxIterations || 100,
+      hueRange: hueRange || 360,
       zoom,
       offsetX,
       offsetY,
@@ -144,7 +151,8 @@ export async function renderCanvasThumbnail(
       juliaC,
       octaves,
       persistence,
-      noiseScale
+      noiseScale,
+      modulationContext: options.modulationContext
     }
     drawPattern(ctx, canvas, lightColor, pattern, fractalOptions)
   }

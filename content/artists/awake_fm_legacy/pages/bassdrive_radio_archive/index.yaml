@@ -55,7 +55,11 @@ content:
             colorMode: duotone_generate
             saturation: 85           # 0-100 (vibrant for geometric)
             lightness: 55            # 0-100 (bright)
-            hueRange: 180            # 0-360 (moderate spread)
+            hueRange:            # 0-360 (moderate spread)
+              modulator:
+                type: linear_ramp
+                min: 60
+                max: 360
 
             # Universal compositing settings (apply to all patterns)
             blendSeed: true
@@ -66,12 +70,23 @@ content:
             # Julia-specific parameters (organic dragon swirls)
             fractalParams:
               maxIterations: 150     # High detail for organic swirls
-              zoom: 1.5              # Standard view
+              # MODULATED ZOOM - sine wave breathing effect! 🌊
+              zoom:
+                modulator:
+                  type: sine_wave
+                  min: 0.8           # Zoom out
+                  max: 2.0           # Zoom in
+                  frequency: 0.3     # How fast it oscillates
               offsetX: 0.0           # Centered
               offsetY: 0.0           # Centered
               # Julia constant (controls fractal shape)
               juliaC:
-                re: -0.7             # Classic dragon curve
+                re:             # Classic dragon curve
+                  modulator:
+                    type: sine_wave
+                    min: -0.6
+                    max: -0.8
+                    frequency: 0.2
                 im: 0.27015          # Organic swirls
           seedFrom: filename
         media:

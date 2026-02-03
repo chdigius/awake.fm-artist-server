@@ -2,12 +2,34 @@
  * Fractal pattern generators for Canvas 2D thumbnails.
  */
 
+import { ModulatedValue, ModulationContext } from './types'
+import { resolveModulatedValue, seededRandom as importedSeededRandom } from './modulators'
+
+// Re-export seededRandom for backwards compatibility
+export { seededRandom } from './modulators'
+
 /**
- * Seeded random number generator (0-1).
+ * Helper to resolve common fractal options (baseHue, saturation, lightness, etc.)
  */
-export function seededRandom(seed: number): number {
-  const x = Math.sin(seed) * 10000
-  return x - Math.floor(x)
+interface ResolvedCommonOptions {
+  baseHue: number
+  saturation: number
+  lightness: number
+  maxIterations: number
+  hueRange: number
+}
+
+function resolveCommonOptions(
+  options: FractalGeneratorOptions
+): ResolvedCommonOptions {
+  const { seed, modulationContext } = options
+  return {
+    baseHue: resolveModulatedValue(seed, options.baseHue, modulationContext),
+    saturation: resolveModulatedValue(seed, options.saturation, modulationContext),
+    lightness: resolveModulatedValue(seed, options.lightness, modulationContext),
+    maxIterations: Math.round(resolveModulatedValue(seed, options.maxIterations, modulationContext)),
+    hueRange: resolveModulatedValue(seed, options.hueRange, modulationContext)
+  }
 }
 
 /**
@@ -57,22 +79,28 @@ export function hslToRgb(h: number, s: number, l: number): { r: number; g: numbe
 
 export interface FractalGeneratorOptions {
   seed: number
-  baseHue: number
-  saturation: number
-  lightness: number
-  maxIterations: number
-  hueRange: number
-  zoom?: number
-  offsetX?: number
-  offsetY?: number
+  baseHue: ModulatedValue
+  saturation: ModulatedValue
+  lightness: ModulatedValue
+  maxIterations: ModulatedValue
+  hueRange: ModulatedValue
+  zoom?: ModulatedValue
+  offsetX?: ModulatedValue
+  offsetY?: ModulatedValue
 
   // Julia-specific
-  juliaC?: { re: number; im: number }  // Julia constant (cRe, cIm)
+  juliaC?: {
+    re: ModulatedValue
+    im: ModulatedValue
+  }
 
   // Fractal Noise-specific
-  octaves?: number
-  persistence?: number
-  noiseScale?: number
+  octaves?: ModulatedValue
+  persistence?: ModulatedValue
+  noiseScale?: ModulatedValue
+
+  // Modulation context (optional, for collection-aware modulation)
+  modulationContext?: ModulationContext
 }
 
 /**
@@ -85,20 +113,25 @@ export function generateMandelbrot(
   const { width, height, data } = imageData
   const {
     seed,
-    baseHue,
-    saturation,
-    lightness,
-    maxIterations,
-    hueRange,
     zoom: manualZoom,
     offsetX: manualOffsetX,
-    offsetY: manualOffsetY
+    offsetY: manualOffsetY,
+    modulationContext
   } = options
 
+  // Resolve common modulated values
+  const { baseHue, saturation, lightness, maxIterations, hueRange } = resolveCommonOptions(options)
+
   // Use manual values or generate from seed
-  const offsetX = manualOffsetX !== undefined ? manualOffsetX : (seededRandom(seed) - 0.5) * 0.5
-  const offsetY = manualOffsetY !== undefined ? manualOffsetY : (seededRandom(seed + 1) - 0.5) * 0.5
-  const zoom = manualZoom !== undefined ? manualZoom : 1.5 + seededRandom(seed + 2) * 2
+  const offsetX = manualOffsetX !== undefined
+    ? resolveModulatedValue(seed, manualOffsetX, modulationContext)
+    : (importedSeededRandom(seed) - 0.5) * 0.5
+  const offsetY = manualOffsetY !== undefined
+    ? resolveModulatedValue(seed, manualOffsetY, modulationContext)
+    : (importedSeededRandom(seed + 1) - 0.5) * 0.5
+  const zoom = manualZoom !== undefined
+    ? resolveModulatedValue(seed, manualZoom, modulationContext)
+    : 1.5 + importedSeededRandom(seed + 2) * 2
   const hueShift = baseHue
 
   for (let px = 0; px < width; px++) {
@@ -144,31 +177,40 @@ export function generateJulia(
   const { width, height, data } = imageData
   const {
     seed,
-    baseHue,
-    saturation,
-    lightness,
-    maxIterations,
-    hueRange,
     zoom: manualZoom,
     offsetX: manualOffsetX,
     offsetY: manualOffsetY,
-    juliaC
+    juliaC,
+    modulationContext
   } = options
 
+  // Resolve common modulated values
+  const { baseHue, saturation, lightness, maxIterations, hueRange } = resolveCommonOptions(options)
+
   // Use manual values as BASE, then add seeded variation
-  const baseOffsetX = manualOffsetX !== undefined ? manualOffsetX : 0.0
-  const baseOffsetY = manualOffsetY !== undefined ? manualOffsetY : 0.0
-  const baseZoom = manualZoom !== undefined ? manualZoom : 1.5
+  const baseOffsetX = manualOffsetX !== undefined
+    ? resolveModulatedValue(seed, manualOffsetX, modulationContext)
+    : 0.0
+  const baseOffsetY = manualOffsetY !== undefined
+    ? resolveModulatedValue(seed, manualOffsetY, modulationContext)
+    : 0.0
+  const baseZoom = manualZoom !== undefined
+    ? resolveModulatedValue(seed, manualZoom, modulationContext)
+    : 1.5
 
   // Add seeded variation (±0.3 for offset, ±0.5 for zoom)
-  const offsetX = baseOffsetX + (seededRandom(seed) - 0.5) * 0.6
-  const offsetY = baseOffsetY + (seededRandom(seed + 1) - 0.5) * 0.6
-  const zoom = baseZoom * (0.7 + seededRandom(seed + 2) * 0.6)  // 70%-130% of base
+  const offsetX = baseOffsetX + (importedSeededRandom(seed) - 0.5) * 0.6
+  const offsetY = baseOffsetY + (importedSeededRandom(seed + 1) - 0.5) * 0.6
+  const zoom = baseZoom * (0.7 + importedSeededRandom(seed + 2) * 0.6)  // 70%-130% of base
   const hueShift = baseHue
 
   // Julia constant: use manual values OR classic default
-  const cRe = juliaC?.re ?? (-0.7 + (seededRandom(seed + 3) - 0.5) * 0.2)
-  const cIm = juliaC?.im ?? (0.27015 + (seededRandom(seed + 4) - 0.5) * 0.2)
+  const cRe = juliaC?.re !== undefined
+    ? resolveModulatedValue(seed, juliaC.re, modulationContext)
+    : (-0.7 + (importedSeededRandom(seed + 3) - 0.5) * 0.2)
+  const cIm = juliaC?.im !== undefined
+    ? resolveModulatedValue(seed, juliaC.im, modulationContext)
+    : (0.27015 + (importedSeededRandom(seed + 4) - 0.5) * 0.2)
 
   for (let px = 0; px < width; px++) {
     for (let py = 0; py < height; py++) {
@@ -211,21 +253,25 @@ export function generateFractalNoise(
   const { width, height, data } = imageData
   const {
     seed,
-    baseHue,
-    saturation,
-    lightness,
-    hueRange,
     octaves: manualOctaves,
     persistence: manualPersistence,
-    noiseScale: manualNoiseScale
+    noiseScale: manualNoiseScale,
+    modulationContext
   } = options
 
-  // Use manual values or defaults
-  const octaves = manualOctaves ?? 4                          // 1-8 layers
-  const persistence = manualPersistence ?? 0.5                // 0.0-1.0 amplitude decay
-  const baseScale = manualNoiseScale ?? (2 + seededRandom(seed + 4) * 4)  // 2-6 base frequency
+  // Resolve common modulated values
+  const { baseHue, saturation, lightness, hueRange } = resolveCommonOptions(options)
 
-  console.log('[FractalNoise] octaves:', octaves, 'persistence:', persistence, 'scale:', baseScale, 'manual:', { manualOctaves, manualPersistence, manualNoiseScale })
+  // Use manual values or defaults
+  const octaves = manualOctaves !== undefined
+    ? Math.round(resolveModulatedValue(seed, manualOctaves, modulationContext))
+    : 4  // 1-8 layers
+  const persistence = manualPersistence !== undefined
+    ? resolveModulatedValue(seed, manualPersistence, modulationContext)
+    : 0.5  // 0.0-1.0 amplitude decay
+  const baseScale = manualNoiseScale !== undefined
+    ? resolveModulatedValue(seed, manualNoiseScale, modulationContext)
+    : (2 + importedSeededRandom(seed + 4) * 4)  // 2-6 base frequency
 
   const hueShift = baseHue
 
@@ -397,25 +443,30 @@ export function generateBurningShip(
   const { width, height, data } = imageData
   const {
     seed,
-    baseHue,
-    saturation,
-    lightness,
-    maxIterations,
-    hueRange,
     zoom: manualZoom,
     offsetX: manualOffsetX,
-    offsetY: manualOffsetY
+    offsetY: manualOffsetY,
+    modulationContext
   } = options
 
+  // Resolve common modulated values
+  const { baseHue, saturation, lightness, maxIterations, hueRange } = resolveCommonOptions(options)
+
   // Use manual values as BASE, then add seeded variation
-  const baseOffsetX = manualOffsetX !== undefined ? manualOffsetX : 0.0
-  const baseOffsetY = manualOffsetY !== undefined ? manualOffsetY : -0.5
-  const baseZoom = manualZoom !== undefined ? manualZoom : 1.5
+  const baseOffsetX = manualOffsetX !== undefined
+    ? resolveModulatedValue(seed, manualOffsetX, modulationContext)
+    : 0.0
+  const baseOffsetY = manualOffsetY !== undefined
+    ? resolveModulatedValue(seed, manualOffsetY, modulationContext)
+    : -0.5
+  const baseZoom = manualZoom !== undefined
+    ? resolveModulatedValue(seed, manualZoom, modulationContext)
+    : 1.5
 
   // Add seeded variation (±0.3 for offset, ±0.5 for zoom)
-  const offsetX = baseOffsetX + (seededRandom(seed) - 0.5) * 0.6
-  const offsetY = baseOffsetY + (seededRandom(seed + 1) - 0.5) * 0.6
-  const zoom = baseZoom * (0.7 + seededRandom(seed + 2) * 0.6)  // 70%-130% of base
+  const offsetX = baseOffsetX + (importedSeededRandom(seed) - 0.5) * 0.6
+  const offsetY = baseOffsetY + (importedSeededRandom(seed + 1) - 0.5) * 0.6
+  const zoom = baseZoom * (0.7 + importedSeededRandom(seed + 2) * 0.6)  // 70%-130% of base
   const hueShift = baseHue
 
   for (let px = 0; px < width; px++) {
@@ -465,20 +516,25 @@ export function generateTricorn(
   const { width, height, data } = imageData
   const {
     seed,
-    baseHue,
-    saturation,
-    lightness,
-    maxIterations,
-    hueRange,
     zoom: manualZoom,
     offsetX: manualOffsetX,
-    offsetY: manualOffsetY
+    offsetY: manualOffsetY,
+    modulationContext
   } = options
 
+  // Resolve common modulated values
+  const { baseHue, saturation, lightness, maxIterations, hueRange } = resolveCommonOptions(options)
+
   // Use manual values or generate from seed
-  const offsetX = manualOffsetX !== undefined ? manualOffsetX : (seededRandom(seed) - 0.5) * 0.5
-  const offsetY = manualOffsetY !== undefined ? manualOffsetY : (seededRandom(seed + 1) - 0.5) * 0.5
-  const zoom = manualZoom !== undefined ? manualZoom : 1.5 + seededRandom(seed + 2) * 2
+  const offsetX = manualOffsetX !== undefined
+    ? resolveModulatedValue(seed, manualOffsetX, modulationContext)
+    : (importedSeededRandom(seed) - 0.5) * 0.5
+  const offsetY = manualOffsetY !== undefined
+    ? resolveModulatedValue(seed, manualOffsetY, modulationContext)
+    : (importedSeededRandom(seed + 1) - 0.5) * 0.5
+  const zoom = manualZoom !== undefined
+    ? resolveModulatedValue(seed, manualZoom, modulationContext)
+    : 1.5 + importedSeededRandom(seed + 2) * 2
   const hueShift = baseHue
 
   for (let px = 0; px < width; px++) {

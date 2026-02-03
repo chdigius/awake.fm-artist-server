@@ -71,6 +71,24 @@ export { generativeThumbnail } from './thumbnails/generative-thumbnail'
 export type { CanvasThumbnailOptions } from './thumbnails/canvas-thumbnail'
 export { renderCanvasThumbnail } from './thumbnails/canvas-thumbnail'
 
+// === MODULATION SYSTEM (for dynamic parameter variation) ===
+export type {
+  ModulatorType,
+  ModulatorConfig,
+  ModulatedValue,
+  ModulationContext,
+  Transform,
+  RotateTransform,
+  ScaleTransform,
+  SkewTransform,
+  TranslateTransform,
+  MatrixTransform
+} from './thumbnails/types'
+export {
+  resolveModulatedValue,
+  seededRandom
+} from './thumbnails/modulators'
+
 // === BOOTSTRAP: register all built-ins ===
 import { register } from './engine/registry'
 import { awakeNode001Sigil } from './sigils/awake-node-001'
