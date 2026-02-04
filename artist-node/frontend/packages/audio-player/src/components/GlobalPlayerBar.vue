@@ -961,6 +961,8 @@ function formatTime(seconds: number): string {
 
 /* Controls container with solid/tinted background */
 .player-controls-container {
+  position: relative;
+  z-index: 10002;
   background: rgba(var(--color-surface-rgb, 20, 20, 20), 0.95);
   backdrop-filter: blur(10px);
   border-top: 1px solid var(--color-border);
@@ -1100,7 +1102,7 @@ function formatTime(seconds: number): string {
   min-width: 160px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
-  z-index: 1000;
+  z-index: 10003;
 }
 
 .menu-item {
@@ -1432,7 +1434,7 @@ function formatTime(seconds: number): string {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  z-index: 100;
+  z-index: 10001;
   box-sizing: border-box;
 }
 

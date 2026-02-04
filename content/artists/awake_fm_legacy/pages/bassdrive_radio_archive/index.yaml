@@ -16,7 +16,7 @@ content:
       type: p5
       id: node-001
       options:
-        seed: 2018
+        seed: 2333
 
   - type: markdown
     body: |
@@ -64,8 +64,8 @@ content:
             # Universal compositing settings (apply to all patterns)
             blendSeed: true
             blendMode: overlay       # Smooth integration with logo
-            patternOpacity: 0.7      # 0.0-1.0 (strong fractal presence)
-            seedImageAlpha: 0.4      # 0.0-1.0 (logo partially transparent)
+            patternOpacity: 0.8      # 0.0-1.0 (strong fractal presence)
+            seedImageAlpha: 0.2      # 0.0-1.0 (logo partially transparent)
 
             # Julia-specific parameters (organic dragon swirls)
             fractalParams:
@@ -173,8 +173,8 @@ content:
             # Universal compositing settings (apply to all patterns)
             blendSeed: true
             blendMode: overlay       # Smooth integration with logo
-            patternOpacity: 0.7      # 0.0-1.0 (strong fractal presence)
-            seedImageAlpha: 0.4      # 0.0-1.0 (logo partially transparent)
+            patternOpacity: 0.8      # 0.0-1.0 (strong fractal presence)
+            seedImageAlpha: 0.2      # 0.0-1.0 (logo partially transparent)
 
             # Julia-specific parameters (organic dragon swirls)
             fractalParams:
