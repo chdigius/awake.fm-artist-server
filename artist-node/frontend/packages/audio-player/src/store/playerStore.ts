@@ -65,7 +65,6 @@ export const usePlayerStore = defineStore('audioPlayer', {
       this.isPlaying = true;
       this.isPaused = false;
 
-      console.log('[PlayerStore] Playing track:', this.currentTrack?.title, 'historyIndex:', this.historyIndex);
     },
 
     pause() {

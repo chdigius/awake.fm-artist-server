@@ -108,6 +108,7 @@ body {
   background: var(--color-bg);
   color: var(--color-fg);
   transition: background var(--transition-slow), color var(--transition-slow);
+  scrollbar-gutter: stable;
 }
 
 /* Universal Nav styling skeleton */

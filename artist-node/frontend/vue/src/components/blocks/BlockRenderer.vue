@@ -106,7 +106,6 @@ const props = defineProps<{
 }>()
 
 onMounted(() => {
-  console.log('[BlockRenderer] Block type:', props.block?.type, props.block);
 })
 
 const emit = defineEmits<{

@@ -17,18 +17,39 @@ interface ResolvedCommonOptions {
   lightness: number
   maxIterations: number
   hueRange: number
+  rotation: number  // Rotation angle in radians
 }
 
 function resolveCommonOptions(
   options: FractalGeneratorOptions
 ): ResolvedCommonOptions {
-  const { seed, modulationContext } = options
+  const { seed, modulationContext, rotation: rotationDegrees } = options
+  
+  // Resolve rotation (convert degrees to radians)
+  const rotationAngle = rotationDegrees !== undefined
+    ? resolveModulatedValue(seed, rotationDegrees, modulationContext)
+    : 0
+  
   return {
     baseHue: resolveModulatedValue(seed, options.baseHue, modulationContext),
     saturation: resolveModulatedValue(seed, options.saturation, modulationContext),
     lightness: resolveModulatedValue(seed, options.lightness, modulationContext),
     maxIterations: Math.round(resolveModulatedValue(seed, options.maxIterations, modulationContext)),
-    hueRange: resolveModulatedValue(seed, options.hueRange, modulationContext)
+    hueRange: resolveModulatedValue(seed, options.hueRange, modulationContext),
+    rotation: rotationAngle * Math.PI / 180  // Convert to radians
+  }
+}
+
+/**
+ * Rotate a 2D point around origin.
+ * Used to rotate fractal coordinate space during generation.
+ */
+function rotatePoint(x: number, y: number, angle: number): { x: number; y: number } {
+  const cos = Math.cos(angle)
+  const sin = Math.sin(angle)
+  return {
+    x: x * cos - y * sin,
+    y: x * sin + y * cos
   }
 }
 
@@ -87,6 +108,7 @@ export interface FractalGeneratorOptions {
   zoom?: ModulatedValue
   offsetX?: ModulatedValue
   offsetY?: ModulatedValue
+  rotation?: ModulatedValue       // Rotate fractal coordinate space (degrees)
 
   // Julia-specific
   juliaC?: {
@@ -119,8 +141,8 @@ export function generateMandelbrot(
     modulationContext
   } = options
 
-  // Resolve common modulated values
-  const { baseHue, saturation, lightness, maxIterations, hueRange } = resolveCommonOptions(options)
+  // Resolve common modulated values (includes rotation)
+  const { baseHue, saturation, lightness, maxIterations, hueRange, rotation } = resolveCommonOptions(options)
 
   // Use manual values or generate from seed
   const offsetX = manualOffsetX !== undefined
@@ -136,8 +158,20 @@ export function generateMandelbrot(
 
   for (let px = 0; px < width; px++) {
     for (let py = 0; py < height; py++) {
-      const x0 = (px / width - 0.5) * 3.5 / zoom + offsetX
-      const y0 = (py / height - 0.5) * 2 / zoom + offsetY
+      // Map pixel to centered coordinates
+      let coordX = (px / width - 0.5) * 3.5 / zoom
+      let coordY = (py / height - 0.5) * 2 / zoom
+      
+      // Apply rotation to coordinate space (rotate the fractal math!)
+      if (rotation !== 0) {
+        const rotated = rotatePoint(coordX, coordY, rotation)
+        coordX = rotated.x
+        coordY = rotated.y
+      }
+      
+      // Apply offset after rotation
+      const x0 = coordX + offsetX
+      const y0 = coordY + offsetY
 
       let x = 0
       let y = 0
@@ -184,8 +218,8 @@ export function generateJulia(
     modulationContext
   } = options
 
-  // Resolve common modulated values
-  const { baseHue, saturation, lightness, maxIterations, hueRange } = resolveCommonOptions(options)
+  // Resolve common modulated values (includes rotation)
+  const { baseHue, saturation, lightness, maxIterations, hueRange, rotation } = resolveCommonOptions(options)
 
   // Use manual values as BASE, then add seeded variation
   const baseOffsetX = manualOffsetX !== undefined
@@ -214,8 +248,16 @@ export function generateJulia(
 
   for (let px = 0; px < width; px++) {
     for (let py = 0; py < height; py++) {
+      // Map pixel to centered coordinates
       let zRe = (px / width - 0.5) * 3 / zoom
       let zIm = (py / height - 0.5) * 2 / zoom
+      
+      // Apply rotation to coordinate space
+      if (rotation !== 0) {
+        const rotated = rotatePoint(zRe, zIm, rotation)
+        zRe = rotated.x
+        zIm = rotated.y
+      }
 
       let iteration = 0
 
@@ -449,8 +491,8 @@ export function generateBurningShip(
     modulationContext
   } = options
 
-  // Resolve common modulated values
-  const { baseHue, saturation, lightness, maxIterations, hueRange } = resolveCommonOptions(options)
+  // Resolve common modulated values (includes rotation)
+  const { baseHue, saturation, lightness, maxIterations, hueRange, rotation } = resolveCommonOptions(options)
 
   // Use manual values as BASE, then add seeded variation
   const baseOffsetX = manualOffsetX !== undefined
@@ -471,8 +513,20 @@ export function generateBurningShip(
 
   for (let px = 0; px < width; px++) {
     for (let py = 0; py < height; py++) {
-      const x0 = (px / width - 0.5) * 3.5 / zoom + offsetX
-      const y0 = (py / height - 0.5) * 2 / zoom + offsetY
+      // Map pixel to centered coordinates
+      let coordX = (px / width - 0.5) * 3.5 / zoom
+      let coordY = (py / height - 0.5) * 2 / zoom
+      
+      // Apply rotation to coordinate space
+      if (rotation !== 0) {
+        const rotated = rotatePoint(coordX, coordY, rotation)
+        coordX = rotated.x
+        coordY = rotated.y
+      }
+      
+      // Apply offset after rotation
+      const x0 = coordX + offsetX
+      const y0 = coordY + offsetY
 
       let x = 0
       let y = 0
@@ -522,8 +576,8 @@ export function generateTricorn(
     modulationContext
   } = options
 
-  // Resolve common modulated values
-  const { baseHue, saturation, lightness, maxIterations, hueRange } = resolveCommonOptions(options)
+  // Resolve common modulated values (includes rotation)
+  const { baseHue, saturation, lightness, maxIterations, hueRange, rotation } = resolveCommonOptions(options)
 
   // Use manual values or generate from seed
   const offsetX = manualOffsetX !== undefined
@@ -539,8 +593,20 @@ export function generateTricorn(
 
   for (let px = 0; px < width; px++) {
     for (let py = 0; py < height; py++) {
-      const x0 = (px / width - 0.5) * 3.5 / zoom + offsetX
-      const y0 = (py / height - 0.5) * 2 / zoom + offsetY
+      // Map pixel to centered coordinates
+      let coordX = (px / width - 0.5) * 3.5 / zoom
+      let coordY = (py / height - 0.5) * 2 / zoom
+      
+      // Apply rotation to coordinate space
+      if (rotation !== 0) {
+        const rotated = rotatePoint(coordX, coordY, rotation)
+        coordX = rotated.x
+        coordY = rotated.y
+      }
+      
+      // Apply offset after rotation
+      const x0 = coordX + offsetX
+      const y0 = coordY + offsetY
 
       let x = 0
       let y = 0

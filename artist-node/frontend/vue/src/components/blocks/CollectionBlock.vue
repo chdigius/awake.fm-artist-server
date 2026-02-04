@@ -137,15 +137,6 @@ const props = withDefaults(defineProps<CollectionBlockProps>(), {
   source: 'folder',
 });
 
-console.log('[CollectionBlock] Initial props:', {
-  source: props.source,
-  path: props.path,
-  card: props.card,
-  thumbnail: props.thumbnail,
-  hasItems: !!props.items,
-  itemCount: props.items?.length
-});
-
 const items = ref<CollectionItem[]>(props.items || []);
 const layout = ref(props.layout || { mode: 'grid' });
 const paging = ref<any>(null);
@@ -183,13 +174,16 @@ const thumbnail = computed(() => {
       zoom: thumbConfig.style.fractalParams.zoom,
       offsetX: thumbConfig.style.fractalParams.offsetX,
       offsetY: thumbConfig.style.fractalParams.offsetY,
+      rotation: thumbConfig.style.fractalParams.rotation,
       // Julia-specific
       juliaC: thumbConfig.style.fractalParams.juliaC,
       // Fractal Noise-specific
       octaves: thumbConfig.style.fractalParams.octaves,
       persistence: thumbConfig.style.fractalParams.persistence,
       noiseScale: thumbConfig.style.fractalParams.noiseScale
-    })
+    }),
+    // Pass through transforms if present
+    transforms: thumbConfig.style?.transforms
   };
 
   return normalized;
@@ -246,7 +240,6 @@ async function checkDeepLink() {
   // Check if another collection already handled this
   // @ts-ignore
   if (window.__deepLinkHandled) {
-    console.log(`[CollectionBlock:${props.path}] Deep link already handled by another collection, skipping`);
     return null;
   }
 
@@ -262,25 +255,19 @@ async function checkDeepLink() {
   const hashPattern = params.get('pattern');
   const timestamp = params.get('t'); // e.g. "47:23" or "2843"
 
-  console.log(`[CollectionBlock:${props.path}] Hash params:`, { trackId, hashSource, hashPath, hashPattern, timestamp });
 
   // Check if this hash is for THIS collection
   // If hash has collection params, they must match
   if (hashSource && hashSource !== props.source) {
-    console.log(`[CollectionBlock:${props.path}] Source mismatch (${hashSource} vs ${props.source}), skipping`);
     return null;
   }
   if (hashPath && hashPath !== props.path) {
-    console.log(`[CollectionBlock:${props.path}] Path mismatch (${hashPath} vs ${props.path}), skipping`);
     return null;
   }
   // Pattern can be optional, only check if both exist
   if (hashPattern && props.pattern && hashPattern !== props.pattern) {
-    console.log(`[CollectionBlock:${props.path}] Pattern mismatch (${hashPattern} vs ${props.pattern}), skipping`);
     return null;
   }
-
-  console.log(`[CollectionBlock:${props.path}] ✅ This collection matches hash params, searching for track:`, trackId);
 
   try {
     const params = new URLSearchParams({
@@ -300,14 +287,12 @@ async function checkDeepLink() {
 
     const data = await response.json();
     if (data.found) {
-      console.log(`[CollectionBlock:${props.path}] ✅ Track found!`, data);
       // Mark as handled so other collections skip
       // @ts-ignore
       window.__deepLinkHandled = true;
       // Add timestamp to result if present
       return { ...data, timestamp };
     } else {
-      console.log(`[CollectionBlock:${props.path}] Track not found in this collection`);
       return null;
     }
   } catch (err) {
@@ -323,18 +308,16 @@ async function loadInitial() {
 
   // If deep link found, ALWAYS fetch from API to get correct page
   if (deepLink) {
-    console.log(`[CollectionBlock:${props.path}] Deep link found, loading page ${deepLink.page}...`);
     loading.value = true;
     error.value = null;
 
     try {
       const data = await fetchCollection(deepLink.page);
-      console.log('[CollectionBlock] API response:', data);
+
       items.value = data.items || [];
-      layout.value = data.layout || layout.value;
+      // DON'T update layout from API - keep original layout from props!
+      // layout.value = data.layout || layout.value;
       paging.value = data.paging || null;
-      console.log('[CollectionBlock] After fetch - items:', items.value.length, 'layout:', layout.value.mode);
-      console.log('[CollectionBlock] Paging:', paging.value);
 
       // Scroll to track after items render
       setTimeout(() => scrollToTrack(deepLink), 500);
@@ -354,8 +337,6 @@ async function loadInitial() {
     if (props.paging) {
       paging.value = props.paging;
     }
-    console.log('[CollectionBlock] Using embedded items:', props.items.length);
-    console.log('[CollectionBlock] Embedded paging:', paging.value);
     return;
   }
 
@@ -365,9 +346,10 @@ async function loadInitial() {
 
   try {
     const data = await fetchCollection(1);
-    console.log('[CollectionBlock] API response:', data);
+
     items.value = data.items || [];
-    layout.value = data.layout || layout.value;
+    // DON'T update layout from API - keep original layout from props!
+    // layout.value = data.layout || layout.value;
     paging.value = data.paging || null;
     console.log('[CollectionBlock] After fetch - items:', items.value.length, 'layout:', layout.value.mode);
     console.log('[CollectionBlock] Paging:', paging.value);
@@ -390,19 +372,16 @@ function scrollToTrack(deepLink: any) {
   const element = document.getElementById(`track-${trackId}`);
 
   if (element) {
-    console.log(`[CollectionBlock:${props.path}] Scrolling to track:`, trackId);
     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
     // If timestamp provided, store it globally so player can seek on load
     if (deepLink.timestamp) {
-      console.log(`[CollectionBlock:${props.path}] Storing timestamp for player:`, deepLink.timestamp);
       // @ts-ignore
       window.__pendingSeekTimestamp = deepLink.timestamp;
     }
 
     // Auto-play after scroll
     setTimeout(() => {
-      console.log(`[CollectionBlock:${props.path}] Auto-clicking track:`, trackId);
       element.click();
     }, 1000);
   } else {
@@ -417,10 +396,8 @@ async function goToPage(pageNum: number) {
 
   try {
     const data = await fetchCollection(pageNum);
-    console.log('[CollectionBlock] Page change - fetched page', pageNum, 'with', data.items?.length, 'items');
     items.value = data.items || []; // Replace, don't append!
     paging.value = data.paging || null;
-    console.log('[CollectionBlock] New paging state:', paging.value);
     
     // Scroll to top of this collection block (not top of page)
     if (collectionRoot.value) {
@@ -466,14 +443,6 @@ const visiblePages = computed(() => {
 });
 
 onMounted(() => {
-  console.log('[CollectionBlock] Mounted with props:', {
-    source: props.source,
-    path: props.path,
-    pattern: props.pattern,
-    card: props.card,
-    hasItems: !!props.items,
-    itemCount: props.items?.length || 0,
-  });
   loadInitial();
 });
 </script>

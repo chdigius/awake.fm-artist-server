@@ -57,15 +57,15 @@ content:
             lightness: 55            # 0-100 (bright)
             hueRange:            # 0-360 (moderate spread)
               modulator:
-                type: linear_ramp
-                min: 60
+                type: linear_ramp 
+                min: 0
                 max: 360
 
             # Universal compositing settings (apply to all patterns)
             blendSeed: true
             blendMode: overlay       # Smooth integration with logo
             patternOpacity: 0.7      # 0.0-1.0 (strong fractal presence)
-            seedImageAlpha: 0.6      # 0.0-1.0 (logo partially transparent)
+            seedImageAlpha: 0.4      # 0.0-1.0 (logo partially transparent)
 
             # Julia-specific parameters (organic dragon swirls)
             fractalParams:
@@ -74,8 +74,8 @@ content:
               zoom:
                 modulator:
                   type: sine_wave
-                  min: 0.8           # Zoom out
-                  max: 2.0           # Zoom in
+                  min: 1.0           # Zoom out
+                  max: 3.0           # Zoom in
                   frequency: 0.3     # How fast it oscillates
               offsetX: 0.0           # Centered
               offsetY: 0.0           # Centered
@@ -88,17 +88,47 @@ content:
                     max: -0.8
                     frequency: 0.2
                 im: 0.27015          # Organic swirls
+            
+              # MODULATED ROTATION - rotate the fractal coordinate space! 🔄
+              rotation:
+                modulator:
+                  type: sine_wave
+                  min: -45           # Rotate left
+                  max: 45            # Rotate right
+                  frequency: 0.25    # Different frequency than zoom!
+            
+            # TRANSFORMS - apply after fractal generation! 🔄
+            transforms:
+              - type: scale
+                x:
+                  modulator:
+                    type: sine_wave
+                    min: 1.0          # Shrink to 90%
+                    max: 1.1          # Grow to 110%
+                    frequency: 0.4    # Yet another frequency!
+                y:
+                  modulator:
+                    type: sine_wave
+                    min: 1.0          # Match X for uniform scaling
+                    max: 1.1
+                    frequency: 0.4    # Same as X
           seedFrom: filename
         media:
           type: "audio"
           visualizer:
-            id: "galaxy-flight"
+            id: "nebula-flight"
             seed_from: ["filename", "duration"]
             options:
               renderer: "webgl"
-              particle_count: 5000
+              particle_count: 2500
         layout:
           mode: "grid"
+          columns:
+            xl: 7    # 8 columns = smaller tiles
+            lg: 7    # 8 columns on large screens
+            md: 4    # 4 columns on medium screens
+            sm: 3    # 3 columns on small screens
+            xs: 2    # 2 columns on mobile
           max_width: "900px"
           gap: "1rem"
           align:
@@ -106,7 +136,7 @@ content:
         sort: "filename_desc"
         paging:
           enabled: true
-          page_size: 10
+          page_size: 14
           mode: "pages"
         empty_state:
           heading: "No live sessions yet."
@@ -122,6 +152,67 @@ content:
         path: "artists/awake_fm_legacy/music/sets/audio/youtube"
         pattern: "*.mp3"
         card: "set"
+        thumbnail:
+          type: generative_from_seed
+          seedImage: /content/artists/awake_fm_legacy/assets/logo_2.png
+          style:
+            # Pattern type (fractal or geometric)
+            pattern: mandelbrot  # mandelbrot, julia, burning_ship, tricorn, fractal_noise, geometric, waves, particles, sierpinski
+
+            # Universal color settings (apply to all patterns)
+            colorSource: theme       # 'theme' = use page theme colors
+            colorMode: duotone_generate
+            saturation: 85           # 0-100 (vibrant for geometric)
+            lightness: 55            # 0-100 (bright)
+            hueRange:            # 0-360 (moderate spread)
+              modulator:
+                type: linear_ramp
+                min: 180
+                max: 270
+
+            # Universal compositing settings (apply to all patterns)
+            blendSeed: true
+            blendMode: overlay       # Smooth integration with logo
+            patternOpacity: 0.7      # 0.0-1.0 (strong fractal presence)
+            seedImageAlpha: 0.4      # 0.0-1.0 (logo partially transparent)
+
+            # Julia-specific parameters (organic dragon swirls)
+            fractalParams:
+              maxIterations: 300     # High detail for organic swirls
+              # MODULATED ZOOM - sine wave breathing effect! 🌊
+              zoom:
+                modulator:
+                  type: sine_wave
+                  min: 5.0           # Zoom out
+                  max: 10.0           # Zoom in
+                  frequency: 0.3     # How fast it oscillates
+              offsetX: -0.8           # Centered
+              offsetY: 0.3           # Centered
+            
+              # MODULATED ROTATION - rotate the fractal coordinate space! 🔄
+              rotation:
+                modulator:
+                  type: sine_wave
+                  min: -180           # Rotate left
+                  max: 180            # Rotate right
+                  frequency: 0.25    # Different frequency than zoom!
+            
+            # TRANSFORMS - apply after fractal generation! 🔄
+            transforms:
+              - type: scale
+                x:
+                  modulator:
+                    type: sine_wave
+                    min: 1.0          # Shrink to 90%
+                    max: 1.1          # Grow to 110%
+                    frequency: 0.4    # Yet another frequency!
+                y:
+                  modulator:
+                    type: sine_wave
+                    min: 1.0          # Match X for uniform scaling
+                    max: 1.1
+                    frequency: 0.4    # Same as X
+          seedFrom: filename
         media:
           type: "audio"
           visualizer:
@@ -131,8 +222,18 @@ content:
             options:
               renderer: "2d"
               trail_length: 50
+          max_width: "900px"
+          gap: "1rem"
+          align:
+            horizontal: "center"
         layout:
-          mode: "list"
+          mode: "grid"
+          columns:
+            xl: 7    # 8 columns = smaller tiles
+            lg: 7    # 8 columns on large screens
+            md: 4    # 4 columns on medium screens
+            sm: 3    # 3 columns on small screens
+            xs: 2    # 2 columns on mobile
           max_width: "900px"
           gap: "1rem"
           align:
@@ -140,7 +241,7 @@ content:
         sort: "filename_desc"
         paging:
           enabled: true
-          page_size: 10
+          page_size: 14
           mode: "pages"
         empty_state:
           heading: "No music-only sets yet."

@@ -25,7 +25,6 @@ const hasConnected = ref(false);
 function renderVisualizer() {
   if (!host.value || !props.visualizerId) return;
 
-  console.log('[PlayerVisualizer] Rendering with global analyzer:', props.visualizerId);
 
   // Clean up previous
   unmountVisualizer(host.value);
@@ -35,7 +34,6 @@ function renderVisualizer() {
 
   // Resume analyzer on first render (browser autoplay policy)
   if (!hasConnected.value) {
-    console.log('[PlayerVisualizer] Resuming global analyzer for first time');
     globalAnalyzer.ensureResumed();
     hasConnected.value = true;
   }

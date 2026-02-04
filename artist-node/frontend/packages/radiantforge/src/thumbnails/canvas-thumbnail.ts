@@ -16,7 +16,8 @@ import {
   seededRandom,
   hslToRgb
 } from './fractal-generators'
-import { ModulatedValue, ModulationContext } from './types'
+import { ModulatedValue, ModulationContext, Transform } from './types'
+import { applyTransforms } from './transforms'
 
 export interface CanvasThumbnailOptions {
   seed: number
@@ -45,6 +46,7 @@ export interface CanvasThumbnailOptions {
   zoom?: ModulatedValue                // 1.0-5.0 (default: auto-seeded)
   offsetX?: ModulatedValue             // -1.0 to 1.0 (default: auto-seeded)
   offsetY?: ModulatedValue             // -1.0 to 1.0 (default: auto-seeded)
+  rotation?: ModulatedValue            // Rotate fractal coordinate space (degrees)
 
   // Julia-specific (can be modulated!)
   juliaC?: {
@@ -59,6 +61,9 @@ export interface CanvasThumbnailOptions {
 
   // Modulation context (optional, for collection-aware modulation)
   modulationContext?: ModulationContext
+
+  // Transforms (applied after pattern generation)
+  transforms?: Transform[]
 }
 
 /**
@@ -87,6 +92,7 @@ export async function renderCanvasThumbnail(
     zoom,
     offsetX,
     offsetY,
+    rotation,
     juliaC,
     octaves,
     persistence,
@@ -146,13 +152,15 @@ export async function renderCanvasThumbnail(
       zoom,
       offsetX,
       offsetY,
+      rotation,
       patternOpacity,
       blendMode: blendMode || 'overlay',
       juliaC,
       octaves,
       persistence,
       noiseScale,
-      modulationContext: options.modulationContext
+      modulationContext: options.modulationContext,
+      transforms: options.transforms
     }
     drawPattern(ctx, canvas, lightColor, pattern, fractalOptions)
   }
@@ -263,12 +271,14 @@ interface FractalOptions {
   zoom?: number
   offsetX?: number
   offsetY?: number
+  rotation?: number
   patternOpacity: number
   blendMode?: string
   juliaC?: { re: number; im: number }
   octaves?: number
   persistence?: number
   noiseScale?: number
+  transforms?: Transform[]
 }
 
 /**
@@ -308,10 +318,36 @@ function drawPattern(
 
     tempCtx.putImageData(imageData, 0, 0)
 
+    // Apply transforms if specified
+    let finalCanvas = tempCanvas
+    if (options.transforms && options.transforms.length > 0) {
+      
+      // Create a second temp canvas for transformed output
+      const transformCanvas = document.createElement('canvas')
+      transformCanvas.width = canvas.width
+      transformCanvas.height = canvas.height
+      const transformCtx = transformCanvas.getContext('2d')
+      if (!transformCtx) return
+
+      // Save context state before transforms
+      transformCtx.save()
+      
+      // Apply transforms (modifies the transformation matrix)
+      applyTransforms(transformCtx, options.transforms, options.seed, transformCanvas.width, transformCanvas.height)
+      
+      // Draw the fractal with the transformed matrix
+      transformCtx.drawImage(tempCanvas, 0, 0)
+      
+      // Restore context state
+      transformCtx.restore()
+
+      finalCanvas = transformCanvas
+    }
+
     // Blend fractal on top of seed image using specified blend mode
     ctx.globalAlpha = options.patternOpacity
     ctx.globalCompositeOperation = options.blendMode || 'overlay'
-    ctx.drawImage(tempCanvas, 0, 0)
+    ctx.drawImage(finalCanvas, 0, 0)
     ctx.globalAlpha = 1
     ctx.globalCompositeOperation = 'source-over'
     return

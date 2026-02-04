@@ -1,6 +1,6 @@
 <template>
-  <div class="collection-grid-wrapper" :style="wrapperStyles">
-    <div class="collection-grid" :style="gridStyles">
+  <div class="collection-grid-wrapper" :style="gridStyles">
+    <div class="collection-grid">
       <component
         v-for="item in items"
         :key="item.path || item.filename"
@@ -19,6 +19,11 @@
 import { computed } from 'vue';
 import ArtistCard from '@/components/cards/ArtistCard.vue';
 import SetCard from '@/components/cards/SetCard.vue';
+import CollectionBlock from '../blocks/CollectionBlock.vue';
+
+import { getCurrentInstance } from 'vue';
+
+const uid = getCurrentInstance()?.uid;
 
 interface CollectionItem {
   type?: 'media_file' | string;
@@ -109,11 +114,11 @@ const gridStyles = computed(() => {
   // Cap columns at item count - never show more columns than items
   const itemCount = props.items.length;
   const cappedColumns = {
-    xs: Math.min(columns.xs || 1, itemCount),
-    sm: Math.min(columns.sm || 2, itemCount),
-    md: Math.min(columns.md || 3, itemCount),
-    lg: Math.min(columns.lg || 4, itemCount),
-    xl: Math.min(columns.xl || 5, itemCount),
+    xs: Math.min(columns.xs ?? 1, itemCount),
+    sm: Math.min(columns.sm ?? 2, itemCount),
+    md: Math.min(columns.md ?? 3, itemCount),
+    lg: Math.min(columns.lg ?? 4, itemCount),
+    xl: Math.min(columns.xl ?? 5, itemCount),
   };
   
   // Map horizontal align to CSS justify-content for the grid
@@ -138,42 +143,46 @@ const gridStyles = computed(() => {
 <style scoped>
 .collection-grid-wrapper {
   display: flex;
-  justify-content: var(--wrapper-justify);
+  justify-content: center;
   width: 100%;
 }
 
 .collection-grid {
   display: grid;
-  grid-template-columns: repeat(var(--grid-columns-xs), 1fr);
+  grid-template-columns: repeat(var(--grid-columns-xs), minmax(200px, 300px));
   gap: var(--grid-gap-row) var(--grid-gap-column);
-  width: var(--grid-width);
-  max-width: 100%;
   justify-items: var(--grid-justify-items);
   align-items: var(--grid-align-items);
+}
+
+/* Ensure grid items don't shrink below minimum */
+.collection-grid > * {
+  min-width: 200px;
+  max-width: 300px;
 }
 
 /* Responsive breakpoints matching base.css */
 @media (min-width: 640px) {
   .collection-grid {
-    grid-template-columns: repeat(var(--grid-columns-sm), 1fr);
+    grid-template-columns: repeat(var(--grid-columns-sm), minmax(200px, 300px));
   }
 }
 
 @media (min-width: 768px) {
   .collection-grid {
-    grid-template-columns: repeat(var(--grid-columns-md), 1fr);
+    grid-template-columns: repeat(var(--grid-columns-md), minmax(200px, 300px));
   }
 }
 
 @media (min-width: 1024px) {
   .collection-grid {
-    grid-template-columns: repeat(var(--grid-columns-lg), 1fr);
+    grid-template-columns: repeat(var(--grid-columns-lg), minmax(200px, 300px));
   }
 }
 
 @media (min-width: 1280px) {
   .collection-grid {
-    grid-template-columns: repeat(var(--grid-columns-xl), 1fr);
+    grid-template-columns: repeat(var(--grid-columns-xl), minmax(200px, 300px));
   }
 }
 </style>

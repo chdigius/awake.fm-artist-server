@@ -70,7 +70,6 @@ export function mountSigil(
   
   // Log renderer type for debugging
   if (import.meta.env?.MODE !== 'production') {
-    console.log(`RadiantForge: Mounted sigil with ${renderer.toUpperCase()} renderer`, { width, height, el })
   }
   
   return instance

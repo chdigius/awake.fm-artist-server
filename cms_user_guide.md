@@ -261,10 +261,17 @@ Displays a collection of items (artists, albums, tracks) in various layouts.
 - `card` (string) - Card component: `artist`, `album`, `track`
 - `layout` (object) - Layout configuration
   - `mode` - Display mode: `grid`, `list`, `carousel`
-  - `columns` (object, for grid) - Responsive column counts
-  - `gap` (string, for grid/list) - Spacing between items
+  - `columns` (object, for grid) - Responsive column counts (controls card sizing - more columns = smaller cards)
+    - `xs` - Columns on extra-small screens (mobile)
+    - `sm` - Columns on small screens (tablets)
+    - `md` - Columns on medium screens (laptops)
+    - `lg` - Columns on large screens (desktops)
+    - `xl` - Columns on extra-large screens (wide monitors)
+  - `gap` (string, for grid/list) - Spacing between items (e.g., `"1rem"`, `"2rem"`)
   - `max_width` (string, for list) - Max width of list container
   - `align` (object) - Alignment configuration
+    - `horizontal` - Horizontal alignment: `left`, `center`, `right`, `start`, `end`, `stretch`
+    - `vertical` - Vertical alignment: `start`, `center`, `end`
   - `slides_per_view` (object, for carousel) - Responsive slides visible
   - `spacing` (string, for carousel) - Gap between slides
   - `controls` (object, for carousel) - UI controls
@@ -394,9 +401,12 @@ style:
     zoom: 1.0-5.0
     offsetX: -1.0 to 1.0
     offsetY: -1.0 to 1.0
+    juliaC:
+      re: -0.7        # Real component (-0.8 to 0.3 for variety)
+      im: 0.27015     # Imaginary component (-0.5 to 0.5)
 ```
 
-**Visual:** Swirling, symmetrical patterns. Different structure than Mandelbrot.
+**Visual:** Swirling, symmetrical patterns. Different structure than Mandelbrot. The `juliaC` constant controls the shape - experiment with different values for dragons, spirals, or dendrites!
 
 ##### Tricorn (Mandelbar) 🦄
 Conjugate of Mandelbrot. Heart-shaped with organic tendrils.

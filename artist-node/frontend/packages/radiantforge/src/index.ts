@@ -88,6 +88,9 @@ export {
   resolveModulatedValue,
   seededRandom
 } from './thumbnails/modulators'
+export {
+  applyTransforms
+} from './thumbnails/transforms'
 
 // === BOOTSTRAP: register all built-ins ===
 import { register } from './engine/registry'

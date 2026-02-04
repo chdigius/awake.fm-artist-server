@@ -625,7 +625,6 @@ function onError(event: Event) {
 }
 
 function onPlay() {
-  console.log('[GlobalPlayerBar] Audio element fired PLAY event');
 }
 
 function onPause() {
@@ -707,7 +706,6 @@ function onWaiting() {
 function onCanPlay() {
   const paused = audioElement.value?.paused;
   const readyState = audioElement.value?.readyState;
-  console.log('[GlobalPlayerBar] Audio CAN PLAY - enough data buffered (paused:', paused, 'readyState:', readyState, ')');
   // If we're supposed to be playing but audio is paused (due to stall), resume
   if (isPlaying.value && audioElement.value && audioElement.value.paused) {
     console.log('[GlobalPlayerBar] Auto-resuming playback after buffer recovery');
@@ -718,7 +716,6 @@ function onCanPlay() {
 }
 
 function onPlaying() {
-  console.log('[GlobalPlayerBar] Audio PLAYING - playback has started/resumed ✅');
   // Clear stall recovery timeout if playback resumed
   if (stallRecoveryTimeout) {
     console.log('[GlobalPlayerBar] Clearing stall recovery timeout - playback resumed!');
@@ -1182,15 +1179,16 @@ function formatTime(seconds: number): string {
 }
 
 .volume-slider {
-  -webkit-appearance: slider-vertical;
-  appearance: slider-vertical;
+  -webkit-appearance: none;
+  appearance: none;
   width: 6px;
   height: 100px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 3px;
   outline: none;
   cursor: pointer;
-  writing-mode: bt-lr; /* For Firefox */
+  writing-mode: vertical-lr;
+  direction: rtl;
 }
 
 /* Chrome/Safari slider thumb */

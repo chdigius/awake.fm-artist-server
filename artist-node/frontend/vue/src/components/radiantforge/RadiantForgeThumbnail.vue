@@ -38,6 +38,7 @@ interface Props {
     zoom?: number
     offsetX?: number
     offsetY?: number
+    rotation?: number
 
     // Julia-specific
     juliaC?: { re: number; im: number }
@@ -46,6 +47,9 @@ interface Props {
     octaves?: number
     persistence?: number
     noiseScale?: number
+
+    // Transforms
+    transforms?: any[]  // Transform configs from YAML
 
     // Legacy
     animationSpeed?: number
@@ -144,10 +148,12 @@ async function renderThumbnail() {
     zoom: props.config.zoom,
     offsetX: props.config.offsetX,
     offsetY: props.config.offsetY,
+    rotation: props.config.rotation,
     juliaC: props.config.juliaC,
     octaves: props.config.octaves,
     persistence: props.config.persistence,
-    noiseScale: props.config.noiseScale
+    noiseScale: props.config.noiseScale,
+    transforms: props.config.transforms
   }
 
   // Render using RadiantForge
