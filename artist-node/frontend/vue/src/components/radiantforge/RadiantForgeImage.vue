@@ -60,12 +60,16 @@ interface Props {
   /** Size in pixels (width and height, thumbnails are square) */
   size?: number
 
+  /** Aspect ratio (width/height) - 1 for square, 21/9 for banner, etc. */
+  aspectRatio?: number
+
   /** Enable lazy loading (won't animate until visible) */
   lazy?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   size: 200,
+  aspectRatio: 1,
   lazy: true
 })
 
@@ -114,12 +118,27 @@ async function renderThumbnail() {
 
   // Get actual container size
   const rect = containerRef.value.getBoundingClientRect()
-  const size = Math.max(rect.width, rect.height, 200) // Minimum 200px
+  const containerWidth = Math.max(rect.width, 200) // Minimum 200px
+  const containerHeight = Math.max(rect.height, 200)
 
-  // Create canvas at actual display size for crisp rendering
+  // Calculate canvas dimensions based on aspect ratio
+  let canvasWidth: number
+  let canvasHeight: number
+
+  if (props.aspectRatio >= 1) {
+    // Wider than tall (banner) or square
+    canvasWidth = containerWidth
+    canvasHeight = containerWidth / props.aspectRatio
+  } else {
+    // Taller than wide (portrait)
+    canvasHeight = containerHeight
+    canvasWidth = containerHeight * props.aspectRatio
+  }
+
+  // Create canvas at calculated size for crisp rendering
   const canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
+  canvas.width = Math.round(canvasWidth)
+  canvas.height = Math.round(canvasHeight)
   canvas.style.width = '100%'
   canvas.style.height = '100%'
   canvas.style.display = 'block'

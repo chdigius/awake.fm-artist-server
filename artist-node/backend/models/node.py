@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Any
 
 from backend.models.blocks import (
   Block,
+  ImageConfig,
   HeroBlock,
   SectionBlock,
   MarkdownBlock,
@@ -39,7 +40,8 @@ class NodeMeta:
 class NodePreview:
   title: str
   subtitle: Optional[str] = None
-  image: Optional[str] = None
+  image: Optional[str] = None  # DEPRECATED: use thumbnail instead
+  thumbnail: Optional[ImageConfig] = None  # NEW: supports static or generative
   badge: Optional[str] = None   # e.g. "Artist", "Album", "Set"
   blurb: Optional[str] = None   # short card/body text
 
@@ -94,10 +96,23 @@ class ContentNode:
     preview_raw = data.get("preview")
     preview = None
     if preview_raw:
+      # Parse thumbnail if present
+      thumbnail_data = preview_raw.get("thumbnail")
+      thumbnail = None
+      if thumbnail_data:
+        thumbnail = ImageConfig(
+          type=thumbnail_data.get("type", "static"),
+          src=thumbnail_data.get("src"),
+          alt=thumbnail_data.get("alt"),
+          seedFrom=thumbnail_data.get("seedFrom"),
+          seed=thumbnail_data.get("seed"),
+          style=thumbnail_data.get("style"),
+        )
       preview = NodePreview(
         title=preview_raw.get("title", ""),
         subtitle=preview_raw.get("subtitle"),
         image=preview_raw.get("image"),
+        thumbnail=thumbnail,
         badge=preview_raw.get("badge"),
         blurb=preview_raw.get("blurb"),
       )
@@ -117,6 +132,29 @@ class ContentNode:
             alt=sigil_data.get("alt"),
             options=sigil_data.get("options"),
           )
+        # Parse backgroundImage and banner
+        bg_image_data = b.get("backgroundImage")
+        bg_image = None
+        if bg_image_data:
+          bg_image = ImageConfig(
+            type=bg_image_data.get("type", "static"),
+            src=bg_image_data.get("src"),
+            alt=bg_image_data.get("alt"),
+            seedFrom=bg_image_data.get("seedFrom"),
+            seed=bg_image_data.get("seed"),
+            style=bg_image_data.get("style"),
+          )
+        banner_data = b.get("banner")
+        banner = None
+        if banner_data:
+          banner = ImageConfig(
+            type=banner_data.get("type", "static"),
+            src=banner_data.get("src"),
+            alt=banner_data.get("alt"),
+            seedFrom=banner_data.get("seedFrom"),
+            seed=banner_data.get("seed"),
+            style=banner_data.get("style"),
+          )
         blocks.append(HeroBlock(
           heading=b.get("heading", ""),
           subheading=b.get("subheading"),
@@ -124,6 +162,8 @@ class ContentNode:
           cta=b.get("cta"),
           sigil=sigil,
           background=b.get("background"),
+          backgroundImage=bg_image,
+          banner=banner,
         ))
       elif btype == "section":
         # we can recurse into nested blocks later as needed

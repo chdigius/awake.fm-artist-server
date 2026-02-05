@@ -2,10 +2,19 @@
 <template>
   <section
     class="hero-block"
-    :class="{ 'hero-block--has-bg': block.background }"
+    :class="{ 'hero-block--has-bg': block.background || block.backgroundImage }"
     :id="block.id || undefined"
     :style="backgroundStyle"
   >
+    <!-- BANNER (optional - wide image over background) -->
+    <div v-if="block.banner" class="hero-banner">
+      <ImageRenderer
+        :config="block.banner"
+        :aspect-ratio="21/9"
+        image-class="hero-banner__image"
+      />
+    </div>
+
     <!-- SIGIL FLAG (optional) -->
     <div
       v-if="block.sigil"
@@ -98,6 +107,7 @@ defineOptions({ name: 'HeroBlock' })
 
 import { computed } from 'vue'
 import RadiantForgeSigil from '@/components/radiantforge/RadiantForgeSigil.vue'
+import ImageRenderer from '@/components/shared/ImageRenderer.vue'
 import type { SigilOptions } from '@awake/radiantforge'
 
 type Cta = {
@@ -120,6 +130,15 @@ type ImageSigilConfig = {
 
 type SigilConfig = P5SigilConfig | ImageSigilConfig
 
+type ImageConfig = {
+  type: 'static' | 'generative_from_seed'
+  src?: string
+  alt?: string
+  seedFrom?: string
+  seed?: number
+  style?: any
+}
+
 const props = defineProps<{
   block: {
     id?: string
@@ -132,18 +151,33 @@ const props = defineProps<{
     meta?: string
     sigil?: SigilConfig
     background?: string
+    backgroundImage?: ImageConfig
+    banner?: ImageConfig
     [key: string]: any
   }
 }>()
 
 // Compute background style if block has a background image
 const backgroundStyle = computed(() => {
-  if (!props.block.background) return {}
-  return {
-    backgroundImage: `url(${props.block.background})`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
+  // Support new backgroundImage (ImageConfig) or legacy background (string path)
+  if (props.block.backgroundImage) {
+    // For now, only support static backgrounds (generative backgrounds in future phase)
+    if (props.block.backgroundImage.type === 'static' && props.block.backgroundImage.src) {
+      return {
+        backgroundImage: `url(${props.block.backgroundImage.src})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }
+    }
+  } else if (props.block.background) {
+    // Legacy string path support
+    return {
+      backgroundImage: `url(${props.block.background})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    }
   }
+  return {}
 })
 
 const emit = defineEmits<{
@@ -193,6 +227,22 @@ function onClick(target?: string) {
 .hero-block--has-bg > * {
   position: relative;
   z-index: 1;
+}
+
+/* BANNER - wide image over background */
+.hero-banner {
+  width: 100%;
+  max-width: 1200px;
+  margin-bottom: 2rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.hero-banner__image {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 /* SIGIL FLAG */

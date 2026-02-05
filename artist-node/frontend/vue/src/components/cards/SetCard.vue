@@ -8,7 +8,7 @@
     <!-- Thumbnail: generative or placeholder -->
     <div class="set-card__thumbnail">
       <!-- Generative thumbnail if config provided -->
-      <RadiantForgeThumbnail
+      <RadiantForgeImage
         v-if="thumbnail"
         :trackId="trackId"
         :config="thumbnail"
@@ -35,7 +35,7 @@
 import { computed, ref, onMounted, watch } from 'vue';
 import { usePlayerStore } from '@awake/audio-player';
 import { useAudioCard } from '@/composables/useAudioCard';
-import RadiantForgeThumbnail from '@/components/radiantforge/RadiantForgeThumbnail.vue';
+import RadiantForgeImage from '@/components/radiantforge/RadiantForgeImage.vue';
 
 interface MediaFile {
   type: 'media_file';

@@ -4,6 +4,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, Optional, Literal, Any
 
+from backend.models.blocks.image import ImageConfig
+
 
 @dataclass
 class SigilConfig:
@@ -23,5 +25,7 @@ class HeroBlock:
   body: Optional[str] = None
   cta: Optional[Dict[str, str]] = None  # { "label": "...", "target": "#id" }
   sigil: Optional[SigilConfig] = None   # animated or static visual sigil
-  background: Optional[str] = None      # background image path
+  background: Optional[str | ImageConfig] = None  # DEPRECATED: use backgroundImage
+  backgroundImage: Optional[ImageConfig] = None   # NEW: static or generative background
+  banner: Optional[ImageConfig] = None            # NEW: wide banner over background
 

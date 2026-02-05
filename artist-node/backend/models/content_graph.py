@@ -8,6 +8,7 @@ from typing import Dict, List, Optional, Any
 from backend.models.blocks import (
   Block,
   BlockType,
+  ImageConfig,
   HeroBlock,
   SectionBlock,
   MarkdownBlock,
@@ -178,10 +179,23 @@ class ContentGraph:
       preview_data = node_data.get("preview")
       preview = None
       if preview_data:
+        # Parse thumbnail if present
+        thumbnail_data = preview_data.get("thumbnail")
+        thumbnail = None
+        if thumbnail_data:
+          thumbnail = ImageConfig(
+            type=thumbnail_data.get("type", "static"),
+            src=thumbnail_data.get("src"),
+            alt=thumbnail_data.get("alt"),
+            seedFrom=thumbnail_data.get("seedFrom"),
+            seed=thumbnail_data.get("seed"),
+            style=thumbnail_data.get("style"),
+          )
         preview = NodePreview(
           title=preview_data["title"],
           subtitle=preview_data.get("subtitle"),
           image=preview_data.get("image"),
+          thumbnail=thumbnail,
           badge=preview_data.get("badge"),
           blurb=preview_data.get("blurb"),
         )
@@ -221,6 +235,29 @@ class ContentGraph:
           alt=sigil_data.get("alt"),
           options=sigil_data.get("options"),
         )
+      # Parse backgroundImage and banner
+      bg_image_data = data.get("backgroundImage")
+      bg_image = None
+      if bg_image_data:
+        bg_image = ImageConfig(
+          type=bg_image_data.get("type", "static"),
+          src=bg_image_data.get("src"),
+          alt=bg_image_data.get("alt"),
+          seedFrom=bg_image_data.get("seedFrom"),
+          seed=bg_image_data.get("seed"),
+          style=bg_image_data.get("style"),
+        )
+      banner_data = data.get("banner")
+      banner = None
+      if banner_data:
+        banner = ImageConfig(
+          type=banner_data.get("type", "static"),
+          src=banner_data.get("src"),
+          alt=banner_data.get("alt"),
+          seedFrom=banner_data.get("seedFrom"),
+          seed=banner_data.get("seed"),
+          style=banner_data.get("style"),
+        )
       return HeroBlock(
         heading=data.get("heading", ""),
         subheading=data.get("subheading"),
@@ -228,6 +265,8 @@ class ContentGraph:
         cta=data.get("cta"),
         sigil=sigil,
         background=data.get("background"),
+        backgroundImage=bg_image,
+        banner=banner,
       )
 
     if btype == "section":

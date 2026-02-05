@@ -1,6 +1,7 @@
 """Content block types for the artist node CMS."""
 from typing import Union, Literal
 
+from backend.models.blocks.image import ImageConfig
 from backend.models.blocks.hero import HeroBlock, SigilConfig
 from backend.models.blocks.section import SectionBlock
 from backend.models.blocks.markdown import MarkdownBlock
@@ -48,6 +49,7 @@ __all__ = [
   "CollectionBlock",
   "AudioPlayerBlock",
   # Configs
+  "ImageConfig",
   "SigilConfig",
   "CollectionLayout",
   "CollectionPaging",
