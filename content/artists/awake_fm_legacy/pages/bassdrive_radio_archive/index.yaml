@@ -13,10 +13,14 @@ content:
     heading: "Bassdrive Sessions"
     subheading: "2018-2021 • 50+ Live Sets"
     sigil:
-      type: p5
-      id: node-001
-      options:
-        seed: 2333
+      type: "image"
+      src: "/content/artists/awake_fm_legacy/assets/awakefm_bassdrive.png"
+      alt: "Awake.fm Legacy Logo"
+    # sigil:
+    #   type: p5
+    #   id: node-001
+    #   options:
+    #     seed: 2333
 
   - type: markdown
     body: |
@@ -51,15 +55,23 @@ content:
             pattern: julia  # mandelbrot, julia, burning_ship, tricorn, fractal_noise, geometric, waves, particles, sierpinski
 
             # Universal color settings (apply to all patterns)
-            colorSource: theme       # 'theme' = use page theme colors
+            colorSource: theme      # 'custom' = use custom baseHue!
+            # colorSource: custom
             colorMode: duotone_generate
+            duotoneSeedImage: false  # - apply color to seed image
+            # baseHue:                 # RED BASE with modulation! 🔥
+            #   modulator:
+            #     type: sine_wave
+            #     min: 0             # Deep red
+            #     max: 30              # Orange-red
+            #     frequency: 0.2       # Smooth wave across collection
             saturation: 85           # 0-100 (vibrant for geometric)
             lightness: 55            # 0-100 (bright)
             hueRange:            # 0-360 (moderate spread)
               modulator:
-                type: linear_ramp 
-                min: 0
-                max: 360
+                type: linear_ramp
+                min: 180
+                max: 270
 
             # Universal compositing settings (apply to all patterns)
             blendSeed: true

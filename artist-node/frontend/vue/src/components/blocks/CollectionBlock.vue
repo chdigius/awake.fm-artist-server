@@ -163,10 +163,12 @@ const thumbnail = computed(() => {
     pattern: thumbConfig.style?.pattern || 'geometric',
     blendSeed: thumbConfig.style?.blendSeed ?? false,
     blendMode: thumbConfig.style?.blendMode || 'multiply',
+    duotoneSeedImage: thumbConfig.style?.duotoneSeedImage ?? false,
     patternOpacity: thumbConfig.style?.patternOpacity ?? 0.5,
     seedImageAlpha: thumbConfig.style?.seedImageAlpha ?? 1.0,
     saturation: thumbConfig.style?.saturation ?? 80,
     lightness: thumbConfig.style?.lightness ?? 50,
+    baseHue: thumbConfig.style?.baseHue,
     hueRange: thumbConfig.style?.hueRange ?? 360,
     // Pass through fractalParams if present
     ...(thumbConfig.style?.fractalParams && {

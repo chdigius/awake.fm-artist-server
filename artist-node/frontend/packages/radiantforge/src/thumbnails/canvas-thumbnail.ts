@@ -17,6 +17,7 @@ import {
   hslToRgb
 } from './fractal-generators'
 import { ModulatedValue, ModulationContext, Transform } from './types'
+import { resolveModulatedValue } from './modulators'
 import { applyTransforms } from './transforms'
 
 export interface CanvasThumbnailOptions {
@@ -24,11 +25,12 @@ export interface CanvasThumbnailOptions {
   seedImage?: string
   pattern?: string
   colorMode?: string
-  colorSource?: 'seed' | 'theme'
+  colorSource?: 'seed' | 'theme' | 'custom'
   themeColors?: { primary: string; accent: string } | null
   palette?: string[]
   blendSeed?: boolean
   blendMode?: string
+  duotoneSeedImage?: boolean           // Apply duotone to seedImage (default: false)
 
   // Visual controls (can be modulated!)
   patternOpacity?: ModulatedValue      // 0.0-1.0 (default: 0.5)
@@ -40,7 +42,8 @@ export interface CanvasThumbnailOptions {
   maxIterations?: ModulatedValue       // 50-200 (default: 100)
 
   // Color mapping (can be modulated!)
-  hueRange?: ModulatedValue            // 0-360 (default: 360)
+  baseHue?: ModulatedValue             // 0-360 (for colorSource: custom) - base hue, can be modulated!
+  hueRange?: ModulatedValue            // 0-360 (default: 360) - variation around base hue
 
   // Viewport controls (can be modulated!)
   zoom?: ModulatedValue                // 1.0-5.0 (default: auto-seeded)
@@ -82,12 +85,14 @@ export async function renderCanvasThumbnail(
     pattern = 'geometric',
     colorSource = 'seed',
     themeColors,
+    duotoneSeedImage = false,
     patternOpacity = 0.5,
     seedImageAlpha = 1.0,
     blendMode = 'overlay',
     saturation = 80,
     lightness = 50,
     maxIterations = 100,
+    baseHue,
     hueRange = 360,
     zoom,
     offsetX,
@@ -104,7 +109,12 @@ export async function renderCanvasThumbnail(
   let darkColor: string
   let lightColor: string
 
-  if (colorSource === 'theme' && themeColors) {
+  if (colorSource === 'custom' && baseHue !== undefined) {
+    // Custom: use provided baseHue (can be modulated!)
+    hue = resolveModulatedValue(seed, baseHue, options.modulationContext)
+    darkColor = `hsl(${hue}, 80%, 20%)`
+    lightColor = `hsl(${hue}, 60%, 85%)`
+  } else if (colorSource === 'theme' && themeColors) {
     // Extract hue from theme primary color
     hue = extractHueFromColor(themeColors.primary)
     darkColor = `hsl(${hue}, 80%, 20%)`
@@ -126,8 +136,10 @@ export async function renderCanvasThumbnail(
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
       ctx.globalAlpha = 1.0
 
-      // Apply duotone effect
-      applyDuotone(ctx, canvas, darkColor, lightColor)
+      // Optionally apply duotone to seedImage (useful for B&W photos, not logos)
+      if (duotoneSeedImage) {
+        applyDuotone(ctx, canvas, darkColor, lightColor)
+      }
     } catch (err) {
       console.warn('[RadiantForge] Failed to load seed image, using solid color:', err)
       // Fallback: solid color background
@@ -135,7 +147,7 @@ export async function renderCanvasThumbnail(
       ctx.fillRect(0, 0, canvas.width, canvas.height)
     }
   } else {
-    // No seed image: solid color
+    // No seed image: solid color background
     ctx.fillStyle = darkColor
     ctx.fillRect(0, 0, canvas.width, canvas.height)
   }

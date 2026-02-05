@@ -16,11 +16,12 @@ interface Props {
   config: {
     seedImage?: string
     colorMode?: 'duotone_generate' | 'colorize_bw' | 'extract_and_vary' | 'manual_palette'
-    colorSource?: 'seed' | 'theme'
+    colorSource?: 'seed' | 'theme' | 'custom'
     palette?: string[]
     pattern?: 'none' | 'geometric' | 'waves' | 'particles' | 'mandelbrot' | 'julia' | 'fractal_noise' | 'sierpinski' | 'burning_ship' | 'tricorn'
     blendSeed?: boolean
     blendMode?: 'multiply' | 'overlay' | 'screen' | 'difference' | 'add'
+    duotoneSeedImage?: boolean
 
     // Visual controls
     patternOpacity?: number
@@ -32,6 +33,7 @@ interface Props {
     maxIterations?: number
 
     // Color mapping
+    baseHue?: number | any         // For colorSource: custom - can be static or modulated
     hueRange?: number
 
     // Viewport controls
@@ -139,11 +141,13 @@ async function renderThumbnail() {
     palette: props.config.palette,
     blendSeed: props.config.blendSeed,
     blendMode: props.config.blendMode,
+    duotoneSeedImage: props.config.duotoneSeedImage,
     patternOpacity: props.config.patternOpacity,
     seedImageAlpha: props.config.seedImageAlpha,
     saturation: props.config.saturation,
     lightness: props.config.lightness,
     maxIterations: props.config.maxIterations,
+    baseHue: props.config.baseHue,
     hueRange: props.config.hueRange,
     zoom: props.config.zoom,
     offsetX: props.config.offsetX,

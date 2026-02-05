@@ -1393,7 +1393,7 @@ Create comprehensive guide for new artists:
 **Note:** This is a GETTING STARTED guide that references the CMS Reference Manual above.
 
 ### Developer Documentation
-**Status:** Not started  
+**Status:** Not started
 **Priority:** Medium
 
 Technical documentation for contributors:
@@ -1405,4 +1405,39 @@ Technical documentation for contributors:
 
 ---
 
-*Last updated: 2026-01-28*
+## UX Enhancements
+
+### Hex Color Support for Custom baseHue
+**Status:** Not started
+**Priority:** Low (Nice-to-have for humans, LLMs work fine with HSL)
+
+Currently `baseHue` requires HSL values (0-360). Consider adding hex color support for human convenience:
+
+**Current (HSL only):**
+```yaml
+style:
+  colorSource: custom
+  baseHue: 240  # Blue
+```
+
+**Proposed (hex + auto-conversion):**
+```yaml
+style:
+  colorSource: custom
+  baseHue: "#3b82f6"  # Tailwind blue-500 → automatically extracted to hue: 220
+```
+
+**Implementation:**
+- Detect if `baseHue` is string starting with `#`
+- Extract HSL hue from hex using existing `extractHueFromColor()` function
+- Support both static hex and modulated hex values
+
+**Why Low Priority:**
+- LLMs naturally work with HSL values (they understand "red = 0, blue = 240")
+- Artists using AI assistants won't need to think about hex vs HSL
+- Humans editing YAML can easily use HSL (0-360 is intuitive)
+- No functional limitation - purely convenience for manual YAML editing
+
+---
+
+*Last updated: 2026-02-02*

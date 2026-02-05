@@ -348,11 +348,13 @@ These settings work for **all pattern types** (fractals and geometric):
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `colorSource` | `theme` \| `seed` | `seed` | `theme` = use page theme colors, `seed` = random per track |
+| `colorSource` | `theme` \| `seed` \| `custom` | `seed` | `theme` = use page theme colors, `seed` = random per track, `custom` = specify exact colors |
+| `baseHue` | 0-360 or modulated | - | **Custom color mode only!** Base hue for color palette. Can be static number or modulated value |
 | `colorMode` | string | `duotone_generate` | Color mapping mode (currently only duotone supported) |
+| `duotoneSeedImage` | boolean | `false` | Apply duotone effect to seed image (useful for B&W photos, not logos) |
 | `saturation` | 0-100 | 80 | Color intensity (0 = grayscale, 100 = vivid) |
 | `lightness` | 0-100 | 50 | Brightness (0 = black, 100 = white) |
-| `hueRange` | 0-360 | 360 | Color spread in gradient (60 = analogous, 360 = rainbow) |
+| `hueRange` | 0-360 | 360 | Color spread around baseHue (40 = tight palette, 360 = full rainbow) |
 | `patternOpacity` | 0.0-1.0 | 0.5 | Pattern overlay strength (0 = invisible, 1 = opaque) |
 | `blendMode` | string | `multiply` | How pattern blends with seed image: `multiply`, `overlay`, `screen`, `difference`, `add` |
 
@@ -877,6 +879,142 @@ thumbnail:
 ```
 
 **Result:** Scattered dots like a starfield. Minimal, spacey aesthetic with clean, open composition. Each track gets unique particle placement and density. Perfect for letting logo/branding shine while adding subtle texture.
+
+#### Custom Color Palettes 🎨
+
+The `colorSource: custom` mode gives you **complete control** over your collection's color palette. Instead of using theme colors or random seeds, you can specify exact hue ranges and create cohesive visual branding across your entire collection.
+
+**Why use custom colors?**
+- 🎨 **Brand consistency** - Lock thumbnails to your signature colors (red/orange desert vibes, blue/cyan tech aesthetic, etc.)
+- 🌈 **Color theory** - Use analogous, complementary, or triadic color schemes
+- 🔄 **Smooth transitions** - Modulate `baseHue` across collections for gradual color evolution
+
+##### Basic Custom Color Setup
+
+```yaml
+thumbnail:
+  type: generative_from_seed
+  style:
+    colorSource: custom      # Enable custom color mode
+    baseHue: 240             # Blue base (0=red, 120=green, 240=blue)
+    hueRange: 60             # Tight palette (±30° from base)
+    saturation: 80           # Color intensity
+    lightness: 50            # Brightness
+```
+
+**Result:** All thumbnails will use blue tones (210-270°) with consistent saturation and brightness.
+
+##### Understanding the Color System
+
+**Color Wheel (HSL):**
+- `0°` = Red
+- `30°` = Orange
+- `60°` = Yellow
+- `120°` = Green
+- `180°` = Cyan
+- `240°` = Blue
+- `300°` = Magenta
+
+**`baseHue` (0-360):** The center point of your color palette.
+
+**`hueRange` (0-360):** How much colors vary around the base:
+- `20-40` = **Tight palette** (monochromatic, single color family)
+- `60-120` = **Analogous** (neighboring colors, harmonious)
+- `180` = **Complementary** (opposite colors, high contrast)
+- `360` = **Full spectrum** (rainbow, all colors)
+
+**Example: Warm Desert Sunset (Red/Orange)**
+```yaml
+style:
+  colorSource: custom
+  baseHue: 15              # Red-orange
+  hueRange: 40             # Stay in warm tones
+  saturation: 85           # Vivid
+  lightness: 55            # Bright
+```
+**Colors:** Deep reds → bright oranges → yellows (all warm tones)
+
+**Example: Cool Ocean Depths (Blue/Cyan)**
+```yaml
+style:
+  colorSource: custom
+  baseHue: 200             # Cyan-blue
+  hueRange: 60             # Oceanic range
+  saturation: 70           # Moderately saturated
+  lightness: 45            # Darker (deep water)
+```
+**Colors:** Deep blues → cyans → aqua (all cool tones)
+
+##### Modulating Custom Colors
+
+Combine `custom` with modulation for **color evolution across your collection**:
+
+```yaml
+style:
+  colorSource: custom
+  baseHue:
+    modulator:
+      type: sine_wave
+      min: 0               # Red
+      max: 30              # Orange
+      frequency: 0.2       # Smooth wave
+  hueRange: 40             # Keep tight palette
+  saturation: 85
+  lightness: 55
+```
+
+**Result:** Thumbnails smoothly transition from red → orange → red across the collection while staying in warm tones!
+
+##### Preserving Logos with Custom Colors
+
+By default, seed images (logos) are **NOT** affected by duotone colorization. This preserves your logo's original colors:
+
+```yaml
+style:
+  colorSource: custom
+  baseHue: 340             # Magenta
+  hueRange: 40
+  duotoneSeedImage: false  # DEFAULT - preserve logo as-is
+```
+
+**When to enable `duotoneSeedImage: true`:**
+- You have a **black & white photo** you want colorized
+- You have a **grayscale texture** that should match the fractal colors
+- You want your **logo to blend** into the color palette
+
+**Example: Colorize B&W Photo**
+```yaml
+thumbnail:
+  seedImage: /content/artists/me/assets/band_photo_bw.jpg
+  style:
+    colorSource: custom
+    baseHue: 240           # Blue
+    hueRange: 30
+    duotoneSeedImage: true # Colorize the photo!
+```
+
+##### Pro Tips 💡
+
+1. **Start with theme colors:** Use `colorSource: theme` first to see page colors, then switch to `custom` if you want specific control.
+
+2. **Test hueRange values:**
+   - Start with `40` for monochromatic
+   - Try `80` for more variety
+   - Go to `180` for complementary contrast
+   - Use `360` only if you want full rainbow
+
+3. **Modulate baseHue for evolution:** Sine waves create smooth color transitions, linear ramps create gradual shifts.
+
+4. **Match music genre:**
+   - Heavy/Dark music → Low hue (reds/magentas), low lightness (30-40)
+   - Bright/Happy music → Mid hue (yellows/cyans), high lightness (60-70)
+   - Ambient/Chill → Any hue, low saturation (40-60)
+
+5. **Color psychology:**
+   - Red/Orange (0-30°) → Energy, warmth, aggression
+   - Yellow/Green (60-120°) → Happiness, nature, calm
+   - Blue/Cyan (180-240°) → Cool, tech, depth
+   - Purple/Magenta (270-330°) → Mystery, luxury, psychedelic
 
 #### Modulation System (Advanced) 🌊
 

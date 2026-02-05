@@ -91,6 +91,32 @@ Modern music platforms have failed artists:
 
 ## The Artist Experience
 
+### The Interview-Driven Setup
+
+**Artists don't need to learn YAML.** LifewareCore interviews them and builds their site through conversation:
+
+```
+LifewareCore: "What vibe are you going for? Dark and moody, or bright and energetic?"
+Artist: "Dark cyberpunk with neon green accents"
+LifewareCore: *generates theme YAML with dark base + neon green accent*
+
+LifewareCore: "Where's your music? Bandcamp, local files, or somewhere else?"
+Artist: "I've got a folder with all my releases"
+LifewareCore: *scans folder, extracts ID3 metadata, builds collections*
+
+LifewareCore: "Want visualizers on your tracks?"
+Artist: "Yeah, something spacey and trippy"
+LifewareCore: *configures nebula-flight visualizer with audio reactivity*
+
+LifewareCore: "How about album art? I can generate unique fractals for each track."
+Artist: "That sounds sick, show me"
+LifewareCore: *generates preview with modulated Julia sets*
+Artist: "Perfect. Can we make them more red?"
+LifewareCore: *adjusts hue parameters, regenerates*
+```
+
+**The AI guides the artist through decisions, explains options, and generates production-ready YAML.** No coding required. Just conversation.
+
 ### Day 1: Setup
 ```
 Artist: "I want a dark cyberpunk site with neon green accents"
@@ -153,11 +179,13 @@ SocialCaster: *broadcasts to Twitter, Mastodon, RSS*
 - **Themes**: CSS variables, cascading effects (CRT, VHS, chromatic aberration)
 
 ### LifewareCore Integration (Future)
-- Local AI assistant specialized for Awake.fm
-- Continue + VS Code integration
-- Session memory, context awareness
-- Natural language → YAML generation
-- Automated content management
+- **Interview-driven site builder**: AI asks questions, artist answers, YAML gets generated
+- Local AI assistant specialized for Awake.fm (knows CMS structure, best practices)
+- Continue + VS Code integration (familiar dev environment)
+- Session memory, context awareness (remembers your style, preferences)
+- Natural language → YAML generation (no coding required)
+- Automated content management (scan folders, extract metadata, update collections)
+- **"Cursor for musicians"** - conversational site building without technical knowledge
 
 ### SocialCaster Integration (Future)
 - Broadcast updates to mainstream social
