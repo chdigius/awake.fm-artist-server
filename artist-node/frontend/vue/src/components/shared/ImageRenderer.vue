@@ -44,14 +44,22 @@ interface ImageConfig {
 interface Props {
   config: ImageConfig
   itemName?: string      // For seedFrom: 'item_name', 'artist_name', 'filename'
-  aspectRatio?: number   // 1 for square, 21/9 for banner, etc.
+  aspectRatio?: number   // 1 for square, 21/9 for banner, 16/9 for video, etc.
   imageClass?: string    // Additional CSS classes
   imageStyle?: any       // Additional inline styles
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  aspectRatio: 1,
+  aspectRatio: 1,  // Square by default
 })
+
+// Common aspect ratio presets:
+// 1 = Square (thumbnails, profile pics)
+// 16/9 = 1.778 (video, widescreen)
+// 21/9 = 2.333 (ultrawide banner)
+// 4/3 = 1.333 (classic photo)
+// 3/2 = 1.5 (35mm photo)
+// 2/3 = 0.667 (portrait)
 
 // Compute seed for generative images
 const computedSeed = computed(() => {

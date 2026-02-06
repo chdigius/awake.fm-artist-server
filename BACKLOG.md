@@ -1407,6 +1407,76 @@ Technical documentation for contributors:
 
 ## UX Enhancements
 
+### Mobile Responsive Fixes for Hero Banners & Collection Grids
+**Status:** In Progress (needs attention)
+**Priority:** High
+
+**Issue:** Display issues on mobile screens for:
+1. Hero banners with generative images
+2. Collection grids (SetCard thumbnails, spacing, layout)
+
+**Locations:**
+- `HeroBlock.vue` - `.hero-banner` CSS and media queries
+- `CollectionGrid.vue` - Grid layout and responsive columns
+- `SetCard.vue` - Card sizing and thumbnail display
+
+**Likely fixes needed:**
+
+**Hero Banner:**
+- Adjust aspect ratio for mobile (21/9 might be too wide on small screens)
+- Remove border-radius on mobile for edge-to-edge display
+- Adjust margin/padding around banner
+- Ensure canvas renders at correct size on mobile devices
+
+**Collection Grids:**
+- Review column counts at mobile breakpoints (xs, sm)
+- Adjust card sizing and gaps for small screens
+- Ensure thumbnails render correctly on mobile
+- Check horizontal scrolling issues
+- Verify touch interactions work smoothly
+
+**Testing checklist:**
+- [ ] iPhone SE (375px)
+- [ ] iPhone 12/13 (390px)
+- [ ] iPhone 14 Pro Max (430px)
+- [ ] Android small (360px)
+- [ ] Android large (412px)
+- [ ] Tablet portrait (768px)
+
+**Next session:** Debug mobile display, adjust CSS media queries in `HeroBlock.vue`, `CollectionGrid.vue`, and `SetCard.vue`
+
+---
+
+### Configurable Banner Sizing & Aspect Ratios
+**Status:** Not started
+**Priority:** Medium
+
+Currently hero banners use hardcoded sizing:
+- Aspect ratio: `21/9` (ultra-wide cinematic)
+- Max width: `1200px`
+- Responsive: scales down on mobile
+
+**Potential enhancements:**
+- Add `aspectRatio` field to `ImageConfig` (e.g., `16/9`, `21/9`, `4/3`, `1/1`)
+- Add `maxWidth` option to banner config
+- Add `fullWidth` boolean for edge-to-edge banners
+- Support different aspect ratios for mobile vs desktop
+
+**Example YAML:**
+```yaml
+banner:
+  type: generative_from_seed
+  aspectRatio: 21/9  # or "ultrawide", "widescreen", "square"
+  maxWidth: 1400px
+  fullWidth: false
+  style:
+    # ... generative options
+```
+
+**Decision:** Deferred until we see more real-world usage patterns. Current defaults work well for most cases.
+
+---
+
 ### Hex Color Support for Custom baseHue
 **Status:** Not started
 **Priority:** Low (Nice-to-have for humans, LLMs work fine with HSL)
@@ -1440,4 +1510,4 @@ style:
 
 ---
 
-*Last updated: 2026-02-02*
+*Last updated: 2026-02-05*

@@ -12,10 +12,30 @@ content:
   - type: hero
     heading: "Bassdrive Sessions"
     subheading: "2018-2021 • 50+ Live Sets"
-    sigil:
-      type: "image"
-      src: "/content/artists/awake_fm_legacy/assets/awakefm_bassdrive.png"
-      alt: "Awake.fm Legacy Logo"
+    banner:
+      type: generative_from_seed
+      seed: 42
+      style:
+        seedImage: /content/artists/awake_fm_legacy/assets/awakefm_bassdrive.png
+        pattern: julia
+        colorSource: custom
+        baseHue: 280          # Purple/magenta vibes
+        hueRange: 60          # Purple → blue range
+        saturation: 80
+        lightness: 50
+        duotoneSeedImage: false  # Preserve logo
+        blendSeed: true
+        blendMode: overlay
+        patternOpacity: 0.7
+        seedImageAlpha: 0.6
+        fractalParams:
+          maxIterations: 150
+          zoom: 2.5
+          offsetX: 0.0
+          offsetY: 0.0
+          juliaC:
+            re: -0.7
+            im: 0.27015
     # sigil:
     #   type: p5
     #   id: node-001

@@ -245,6 +245,15 @@ function onClick(target?: string) {
   display: block;
 }
 
+/* Responsive banner heights */
+@media (max-width: 768px) {
+  .hero-banner {
+    max-width: 100%;
+    border-radius: 0;
+    margin-bottom: 1.5rem;
+  }
+}
+
 /* SIGIL FLAG */
 .hero-sigil-wrapper {
   display: flex;

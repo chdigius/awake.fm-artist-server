@@ -1,11 +1,21 @@
 <template>
   <router-link :to="`/${item.path}`" :class="['artist-card', `artist-card--${mode}`]">
-    <!-- Custom image -->
-    <div v-if="item.preview?.image" class="artist-card__image">
+    <!-- NEW: Thumbnail (static or generative) -->
+    <div v-if="item.preview?.thumbnail" class="artist-card__image">
+      <ImageRenderer
+        :config="item.preview.thumbnail"
+        :item-name="item.display_name || item.slug"
+        :aspect-ratio="1"
+        image-class="artist-card__thumbnail"
+      />
+    </div>
+
+    <!-- LEGACY: Custom image -->
+    <div v-else-if="item.preview?.image" class="artist-card__image">
       <img :src="item.preview.image" :alt="item.display_name || item.preview.title" />
     </div>
 
-    <!-- Custom p5 sigil -->
+    <!-- LEGACY: Custom p5 sigil -->
     <div v-else-if="item.preview?.sigil" class="artist-card__image">
       <RadiantForgeSigil
         :sigil-id="item.preview.sigil.id || 'node-001'"
@@ -13,12 +23,9 @@
       />
     </div>
 
-    <!-- Generative default sigil -->
-    <div v-else class="artist-card__image">
-      <RadiantForgeSigil
-        sigil-id="node-001"
-        :options="defaultSigilOptions"
-      />
+    <!-- FALLBACK: Static placeholder (no more auto-generated sigils!) -->
+    <div v-else class="artist-card__image artist-card__image--placeholder">
+      <span class="placeholder-icon">♪</span>
     </div>
 
     <div class="artist-card__content">
@@ -38,6 +45,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import RadiantForgeSigil from '@/components/radiantforge/RadiantForgeSigil.vue';
+import ImageRenderer from '@/components/shared/ImageRenderer.vue';
 
 interface ArtistCardProps {
   item: {
@@ -49,6 +57,14 @@ interface ArtistCardProps {
       title?: string;
       subtitle?: string;
       image?: string;
+      thumbnail?: {
+        type: 'static' | 'generative_from_seed';
+        src?: string;
+        alt?: string;
+        seedFrom?: string;
+        seed?: number;
+        style?: any;
+      };
       badge?: string;
       blurb?: string;
       sigil?: {
@@ -66,40 +82,7 @@ const props = withDefaults(defineProps<ArtistCardProps>(), {
   mode: 'grid',
 });
 
-// Debug: log item data
-console.log('[ArtistCard] Item:', props.item);
-
-// Hash function to generate consistent seed from artist name
-function hashString(str: string): number {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
-  }
-  return Math.abs(hash);
-}
-
-// Generate unique sigil options based on artist name
-const defaultSigilOptions = computed(() => {
-  const name = props.item.display_name || props.item.preview?.title || props.item.slug || 'unknown';
-  const seed = hashString(name);
-  
-  // Use seed to pick variant and colors
-  const variants = ['orbit', 'pulse', 'spiral'];
-  const variant = variants[seed % variants.length];
-  
-  // Generate hue from seed (0-360)
-  const hue = seed % 360;
-  
-  return {
-    seed,
-    variant,
-    accentColor: `hsl(${hue}, 70%, 60%)`,
-    particleCount: 20 + (seed % 30), // 20-50 particles
-    speed: 0.5 + ((seed % 100) / 200), // 0.5-1.0 speed
-  };
-});
+// No more auto-generated sigils! Artists must define thumbnails explicitly for performance.
 </script>
 
 <style scoped>
@@ -194,6 +177,20 @@ const defaultSigilOptions = computed(() => {
   left: 0;
   width: 100%;
   height: 100%;
+}
+
+/* Placeholder when no thumbnail defined */
+.artist-card__image--placeholder {
+  background: var(--color-surface-dim, rgba(255, 255, 255, 0.05));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder-icon {
+  font-size: 3rem;
+  opacity: 0.3;
+  color: var(--color-text-muted);
 }
 
 /* === TEXT STYLES === */

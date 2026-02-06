@@ -34,10 +34,32 @@ def normalize_media_path(path_str: Optional[str]) -> Optional[str]:
   return normalized
 
 
+def parse_image_config(raw: Optional[Dict[str, Any]]) -> Optional[ImageConfig]:
+  """Parse ImageConfig from YAML dict."""
+  if not raw:
+    return None
+
+  # Normalize seedImage path if present in style
+  style = raw.get("style")
+  if style and "seedImage" in style:
+    style = dict(style)  # Copy to avoid mutating original
+    style["seedImage"] = normalize_media_path(style["seedImage"])
+
+  return ImageConfig(
+    type=raw.get("type", "static"),
+    src=normalize_media_path(raw.get("src")),
+    alt=raw.get("alt"),
+    seedFrom=raw.get("seedFrom"),
+    seed=raw.get("seed"),
+    style=style,
+  )
+
+
 from backend.models.content_graph import ContentGraph
 from backend.models.node import ContentNode, NodeMeta, NodePreview
 from backend.models.blocks import (
   Block,
+  ImageConfig,
   HeroBlock,
   SectionBlock,
   MarkdownBlock,
@@ -104,7 +126,11 @@ def parse_block(raw: Dict[str, Any]) -> Block:
         alt=sigil_raw.get("alt"),
         options=sigil_raw.get("options"),
       )
-    
+
+    # Parse banner and backgroundImage
+    banner = parse_image_config(raw.get("banner"))
+    background_image = parse_image_config(raw.get("backgroundImage"))
+
     return HeroBlock(
       heading=raw.get("heading", ""),
       subheading=raw.get("subheading", ""),
@@ -112,6 +138,8 @@ def parse_block(raw: Dict[str, Any]) -> Block:
       cta=raw.get("cta", ""),
       sigil=sigil,
       background=normalize_media_path(raw.get("background")),
+      backgroundImage=background_image,
+      banner=banner,
     )
 
   if block_type == "section":
@@ -286,10 +314,14 @@ def build_node_from_directory(node_dir: Path, content_root: Path) -> ContentNode
   preview: Optional[NodePreview] = None
 
   if preview_data:
+    # Parse thumbnail if present
+    thumbnail = parse_image_config(preview_data.get("thumbnail"))
+
     preview = NodePreview(
       title=preview_data.get("title", meta.display_name),
       subtitle=preview_data.get("subtitle"),
       image=preview_data.get("image"),
+      thumbnail=thumbnail,
       badge=preview_data.get("badge"),
       blurb=preview_data.get("blurb"),
     )
